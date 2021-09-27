@@ -1,25 +1,35 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+#k = k_BT
 k=100
-# I define fermi dist for electrons = '+' and holes = '-'
-def fermi_dirac(e,mu):
-    return 1/(np.exp((e-mu)*k)+1)
+# ed= dot energy
+def fermi_dirac(ed,mu):
+    return 1/(np.exp((ed-mu)*k)+1)
 
 #tunneling rate as semicircle with wide w 
-w=10e0
-def gamma(e,mu,intensity):
-    gamma = intensity * np.sqrt(1-((e-mu)/w)**2)
+w=10e1
+ed=0.
+def gamma(mu,intensity,ef):
+#attempt to insert a dependence of fermi energy as step function 
+    gamma = np.piecewise(mu, [mu+ef<ed,mu+ef>=ed],\
+                [lambda mu: 0,\
+                 lambda mu: intensity * np.sqrt(1-((ed-mu)/w)**2)])
     return gamma
 
-
+# ef_{alpha}: fermy energy in the \alpha electrode
+efl = 100
+efr = efl
+#l,r = tunneling rates in the wide band limit 
+l=1.
+r=l
 #current for asymmetric coupling in which
 #Gamma_L = Gamma_R =Gamma/2
 # since current invokes gamma we have to add a factor 2.
 def current(mul,mur):
-    current= -(2*gamma(0,mul,1.)*(gamma(0,mur,1.))/\
-                   (gamma(0,mul,1)+gamma(0,mur,1.)))*\
-    (fermi_dirac(0,mur)-fermi_dirac(0,mul))
+    current= -(2*gamma(mul,l,efl)*(gamma(mur,r,efr))/\
+                   (gamma(mul,l,efl)+gamma(mur,r,efr)))*\
+    (fermi_dirac(ed,mur)-fermi_dirac(ed,mul))
     return current
 
 
