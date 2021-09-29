@@ -47,7 +47,8 @@ def trans_rate_in(mul,mur,a):
              gamma_r[3,i-1] = gamma_l[i-1,0]
              i=i+1
              return gamma_l, gamma_r
-print(trans_rate_in(0.2,-0.2,0)[0]+trans_rate_in(0.2,-0.2,0)[1])      
+
+        
 #Here a transition rates matrix
 def trans_rate(mul,mur):
      trans_rate = np.zeros((4,4)) 
@@ -59,18 +60,18 @@ def trans_rate(mul,mur):
      #finally diagonal elements    
      for i in range(0,3):
          trans_rate[i,i] = - trans_rate.sum(axis=0)[i]
+         #imposing sum of x_i=1
          trans_rate[3]=np.array([1,1,1,1])
          return trans_rate
-#print('rate',trans_rate(1., 1.))
+
 
 
 
 def populations(mul,mur):
-    #trans_rate(mul, mur)[3]=np.array([1,1,1,1])
     b = np.array([0, 0,0,1])
     populations = np.linalg.solve(trans_rate(mul, mur),b)
     return populations
-#print(populations(1., -1.))
+print(populations(1., -1.))
    
 #Finally electronic current
 
@@ -78,7 +79,9 @@ def current(mul,mur):
     gamma = trans_rate_in(mul,mur,1)[0]-trans_rate_in(mul,mur,0)[0]
     current = np.dot(gamma,populations(mul,mur))
     return current
-#print(current(1.,1.))
+
+
+
 #visualization
 #plt.rc('text', usetex=True)
 #plt.rc('font', family='Bitstream Vera Serif', size=16)
