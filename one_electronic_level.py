@@ -8,13 +8,22 @@ def fermi_dirac(ed,mu):
     return 1/(np.exp((ed-mu)*b)+1)
 
 #tunneling rate as semicircle with wide w 
+
+def semi_circle(e, mu, w):
+    e = np.array(e).reshape(-1, 1)
+    mu = np.array(mu).reshape(1, -1)
+    x = (e - mu) / w # broadcasting                                                                                                                                                                                
+    x = np.clip(x, -1, 1) # values outside the band width should be set to zero
+    y = (1 - x ** 2) ** 0.5
+    return np.squeeze(y)
+
 w=10e1
 ed=0.
 def gamma(mu,intensity,ef):
 #attempt to insert a dependence of fermi energy as step function 
     gamma = np.piecewise(mu, [mu+ef<ed,mu+ef>=ed],\
                 [lambda mu: 0,\
-                 lambda mu: intensity * np.sqrt(1-((ed-mu)/w)**2)])
+                 lambda mu: intensity * semi_circle(ed,mu,w)])
     return gamma
 
 # ef_{alpha}: fermy energy in the \alpha electrode
@@ -31,12 +40,6 @@ def current(mul,mur):
                    (gamma(mul,l,efl)+gamma(mur,r,efr)))*\
     (fermi_dirac(ed,mur)-fermi_dirac(ed,mul))
     return current
-
-
-
-
-
-
 
 
 #visualization
