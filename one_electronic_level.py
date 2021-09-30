@@ -20,8 +20,8 @@ def semi_circle(e, mu, w):
 #l,r = tunneling rates in the wide band limit 
 l=1.
 r=l
-w=10e1
-VL = VR = np.linspace(-1, 1, 101)
+w=10
+VL = VR = np.linspace(-12, 12, 101)
 gamma_L = l * semi_circle(ed, VL,w)
 gamma_R = r * semi_circle(ed, VR,w)
 
