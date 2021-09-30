@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #b=1/ k_BT
-b=100
+b=10
 # ed= dot energy
 ed=0.
 def fermi_dirac(ed,mu):
@@ -21,7 +21,7 @@ def semi_circle(e, mu, w):
 l=1.
 r=l
 w=10e1
-VL = VR = np.linspace(-10, 10, 10)
+VL = VR = np.linspace(-1, 1, 101)
 gamma_L = l * semi_circle(ed, VL,w)
 gamma_R = r * semi_circle(ed, VR,w)
 
@@ -57,6 +57,8 @@ plt.contourf(VL, VR, I,20,cmap='RdGy')
 plt.colorbar(label = ''r'$I/e\Gamma$')
 axes.set_xlabel(r'$eV_L$ ')
 axes.set_ylabel(r'$eV_R$')
+
+plt.savefig('test.pdf')
 
 ######
 #plt.legend([r'$I_L$', r'$I_R$',r'$I_L+I_R$'])
