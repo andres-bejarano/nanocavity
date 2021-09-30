@@ -4,8 +4,12 @@ import matplotlib.pyplot as plt
 #b=1/ k_BT
 b=100
 # ed= dot energy
+ed=0.
 def fermi_dirac(ed,mu):
-    return 1/(np.exp((ed-mu)*b)+1)
+    #I have a problem here
+    #error =
+    #RuntimeWarning: overflow encountered in exp
+     return 1/(np.exp((ed-mu)*b)+1)
 
 #tunneling rate as semicircle with wide w 
 
@@ -17,58 +21,53 @@ def semi_circle(e, mu, w):
     y = (1 - x ** 2) ** 0.5
     return np.squeeze(y)
 
-w=10e1
-ed=0.
-def gamma(mu,intensity,ef):
-#attempt to insert a dependence of fermi energy as step function 
-    gamma = np.piecewise(mu, [mu+ef<ed,mu+ef>=ed],\
-                [lambda mu: 0,\
-                 lambda mu: intensity * semi_circle(ed,mu,w)])
-    return gamma
-
-# ef_{alpha}: fermy energy in the \alpha electrode
-efl = 100
-efr = efl
 #l,r = tunneling rates in the wide band limit 
 l=1.
 r=l
+w=10e1
+VL = VR = np.linspace(-10, 10, 101)
+gamma_L = l * semi_circle(ed, VL,w)
+gamma_R = r * semi_circle(ed, VR,w)
+
+#to have have a current I.shape = (101, 101)
+gamma_L = gamma_L.reshape(1, -1)
+gamma_R = gamma_R.reshape(-1, 1)
+
 #current for asymmetric coupling in which
 #Gamma_L = Gamma_R =Gamma/2
 # since current invokes gamma we have to add a factor 2.
-def current(mul,mur):
-    current= -(2*gamma(mul,l,efl)*(gamma(mur,r,efr))/\
-                   (gamma(mul,l,efl)+gamma(mur,r,efr)))*\
-    (fermi_dirac(ed,mur)-fermi_dirac(ed,mul))
-    return current
-
+I= -2*(gamma_L * gamma_R / (gamma_L + gamma_R)) *\
+    (fermi_dirac(ed,VR)-fermi_dirac(ed,VL))
+    
+print(I)
 
 #visualization
 plt.rc('text', usetex=True)
 plt.rc('font', family='Bitstream Vera Serif', size=16)
-
 fig = plt.figure(figsize=(8, 6))
 axes = plt.axes()
 
-potential = np.linspace(-15.,15.)
-x, y = np.meshgrid(potential, potential)
-z =  current(x,y)
 
-#plt.plot(chemL,fermi_dirac(0.,chemL,'+'))
-#plt.plot(energy,gamma_L(energy))
-#plt.plot(energy,gamma_R(energy))
+V = VL.reshape(1, -1) - VR.reshape(-1, 1)
+x, y = np.meshgrid(VL, VR)
+z = I
+
 
 
 #symmetric chemical potential 
-#plt.plot(potential,current(potential,-potential))
+#plt.plot(VL,semi_circle(0,VL,1))
 #axes.set_xlabel(r'$eV_L$ ')
 #axes.set_ylabel(r'$I/e\Gamma$')
 
 # 2d visualization
 
-plt.contourf(x ,y, z,20,cmap='RdGy')
-plt.colorbar(label = ''r'$I/e\Gamma$')
-axes.set_xlabel(r'$eV_L$ ')
-axes.set_ylabel(r'$eV_R$')
+plt.contourf(V, I,20,cmap='RdGy')
+#here also problems
+#error =Input z must be 2D, not 0D
+
+#plt.colorbar(label = ''r'$I/e\Gamma$')
+#axes.set_xlabel(r'$eV_L$ ')
+#axes.set_ylabel(r'$eV_R$')
 
 ######
 #plt.legend([r'$I_L$', r'$I_R$',r'$I_L+I_R$'])
