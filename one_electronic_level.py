@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #b=1/ k_BT
-b=100
+b=10
 # ed= dot energy
 ed=0.
 def fermi_dirac(ed,mu):
@@ -36,10 +36,13 @@ gamma_R = gamma_R.reshape(-1, 1)
 #current for asymmetric coupling in which
 #Gamma_L = Gamma_R =Gamma/2
 # since current invokes gamma we have to add a factor 2.
+fL = fermi_dirac(ed, VL).reshape(1, -1)
+fR = fermi_dirac(ed, VR).reshape(-1, 1)
+
 I= -2*(gamma_L * gamma_R / (gamma_L + gamma_R)) *\
-    (fermi_dirac(ed,VR)-fermi_dirac(ed,VL))
+    (fR-fL)
     
-print(I)
+print('current',I)
 
 #visualization
 plt.rc('text', usetex=True)
