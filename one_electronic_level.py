@@ -2,13 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #b=1/ k_BT
-b=100
+b=10
 # ed= dot energy
 def fermi_dirac(ed,mu):
     return 1/(np.exp((ed-mu)*b)+1)
 
 #tunneling rate as semicircle with wide w 
-w=10e1
+w=10e0
 ed=0.
 def gamma(mu,intensity,ef):
 #attempt to insert a dependence of fermi energy as step function 
