@@ -102,13 +102,15 @@ for i in range(N):
 
 # finally we solve 9.28
 GL = gamma_le-gamma_lh
-I = np.zeros((N,N))
+GR = gamma_re-gamma_rh
+I_L = I_R = np.zeros((N,N))
 #Pending to avoid this loop
 for i in range(N):
     for j in range(N):
-        I[i,j] = np.matmul(GL[:,:,i],populations[:,:,i,j]).sum()
+        I_L[i,j] = np.matmul(GL[:,:,i],populations[:,:,i,j]).sum()
+        I_R[i,j] = np.matmul(GR[:,:,i],populations[:,:,i,j]).sum()
 
-
+print(I_L-I_R)
 #visualization
 plt.rc('text', usetex=True)
 plt.rc('font', family='Bitstream Vera Serif', size=16)
@@ -119,7 +121,7 @@ axes = plt.axes()
 
 
 VL, VR = np.meshgrid(VL, VR)
-plt.contourf(VL ,VR, I,20,cmap='RdGy')
+plt.contourf(VL ,VR, I_L, 20,cmap='RdGy')
 plt.colorbar(label = ''r'$I/e\Gamma$')
 axes.set_xlabel(r'$eV_L$ ')
 axes.set_ylabel(r'$eV_R$')
