@@ -12,7 +12,7 @@ def fermi_dirac(e,mu):
 
 #(0,e,g,2)=(0,1,2,3)
 #e_g = 0 
-delta = 2.
+delta = 0.
 
 #here tunneling rates for \Gamma_{Le,lg,re,rg}
 #tunneling rate as semicircle with wide w 
@@ -21,16 +21,14 @@ def semi_circle(e, mu, w):
     mu = np.array(mu).reshape(1, -1)
     x = (e - mu) / w # broadcasting                                                                                                                                                                                
     x = np.clip(x, -1, 1) # values outside the band width should be set to zero
-    y = (1 - x * 2) * 0.5
+    y = (1 - x ** 2) ** 0.5
     return np.squeeze(y)
 
-lg=1.
-le=1.
-rg=1.
-re=1.
-w=10e2
+lg,le,rg,re=1,1,1,1
 
-VL = VR = np.linspace(-12, 12, 101)
+w=10e100
+
+VL = VR = np.linspace(-12,12, 101)
 N = len(VL)
 tu_Lg = lg * semi_circle(0, VL,w)
 tu_Le = le * semi_circle(delta, VL,w)
@@ -104,13 +102,37 @@ for i in range(N):
 GL = gamma_le-gamma_lh
 GR = gamma_re-gamma_rh
 I_L = I_R = np.zeros((N,N))
+
 #Pending to avoid this loop
 for i in range(N):
     for j in range(N):
         I_L[i,j] = np.matmul(GL[:,:,i],populations[:,:,i,j]).sum()
         I_R[i,j] = np.matmul(GR[:,:,i],populations[:,:,i,j]).sum()
+print(np.allclose(I_L, I_R))
 
-print(I_L-I_R)
+
+###from now on
+#checking if analytical solution for single electronic level
+#is equal to this matrix approach at delta = 0
+b=10
+g_L = lg * semi_circle(0, VL,w)
+g_R = rg * semi_circle(0, VR,w)
+
+
+#to have have a current I.shape = (101, 101)
+g_L = g_L.reshape(1, -1)
+g_R = g_R.reshape(-1, 1)
+fL = fermi_dirac(0, VL).reshape(1, -1)
+fR = fermi_dirac(0, VR).reshape(-1, 1)
+
+#current for asymmetric coupling in which
+#Gamma_L = Gamma_R =Gamma/2
+# since current invokes gamma we have to add a factor 2.
+I = -2*(g_L * g_R / (g_L + g_R)) *(fR-fL)
+print(np.allclose(I, -I_L))
+
+
+
 #visualization
 plt.rc('text', usetex=True)
 plt.rc('font', family='Bitstream Vera Serif', size=16)
@@ -118,11 +140,10 @@ fig = plt.figure(figsize=(8, 6))
 axes = plt.axes()
 
 # 2d visualization
-
-
 VL, VR = np.meshgrid(VL, VR)
-plt.contourf(VL ,VR, I_L, 20,cmap='RdGy')
+plt.contourf(VL ,VR, -I_L, 20,cmap='RdGy')
 plt.colorbar(label = ''r'$I/e\Gamma$')
 axes.set_xlabel(r'$eV_L$ ')
 axes.set_ylabel(r'$eV_R$')
 
+#plt.savefig('test.pdf')
