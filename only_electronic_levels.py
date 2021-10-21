@@ -9,92 +9,141 @@ b=10
 def fermi_dirac(e,mu):
     return 1/(np.exp((e-mu)*b)+1)
  
-# levels
-nlev=2.
+
 #(0,e,g,2)=(0,1,2,3)
-ed=0.
-delta=1.
-e = np.array([ed,delta])
+#e_g = 0 
+delta = 0.
+
 #here tunneling rates for \Gamma_{Le,lg,re,rg}
-lg=1.
-le=1.
-rg=1.
-re=1.
-tun_rates = np.array([[lg,le],[rg,re]])
+#tunneling rate as semicircle with wide w 
+def semi_circle(e, mu, w):
+    e = np.array(e).reshape(-1, 1)
+    mu = np.array(mu).reshape(1, -1)
+    x = (e - mu) / w # broadcasting                                                                                                                                                                                
+    x = np.clip(x, -1, 1) # values outside the band width should be set to zero
+    y = (1 - x ** 2) ** 0.5
+    return np.squeeze(y)
 
-#electron_holes = a = 0,1
-# 0 if electrons
-# 1 if holes
-#pending to improve this function
-def tunneling_rates(mul,mur,a):
-    rate = np.zeros((2,2))
-    rate[0,0] = tun_rates[0,0] * (a-((fermi_dirac(0, mul))*((-1)**(a+1))))
-    rate[0,1] = tun_rates[0,1] * (a-((fermi_dirac(delta, mul))*((-1)**(a+1))))
-    rate[1,0] = tun_rates[1,0] * (a-((fermi_dirac(0, mur))*((-1)**(a+1))))
-    rate[1,1] = tun_rates[1,1] * (a-((fermi_dirac(delta, mur))*((-1)**(a+1))))
-    return rate 
+lg,le,rg,re=1,1,1,1
 
-print(tunneling_rates(10,10,0))  
-#here we define:
-#gamma_{l,r} matrix for electrons and holes: a
-def trans_rate_in(mul,mur,a):
-         gamma_l = np.zeros((4,4))
-         gamma_r = gamma_l
-         for i in range(1,3):  
-             gamma_l[i,0] = tunneling_rates(mul,mur,a)[0,i-1]
-             gamma_l[3,i-1] = gamma_l[i-1,0]
-             gamma_r[i,0] = tunneling_rates(mul,mur,a)[1,i-1]
-             gamma_r[3,i-1] = gamma_l[i-1,0]
-             i=i+1
-             return gamma_l, gamma_r
-print(trans_rate_in(0.2,-0.2,0)[0]+trans_rate_in(0.2,-0.2,0)[1])      
-#Here a transition rates matrix
-def trans_rate(mul,mur):
-     trans_rate = np.zeros((4,4)) 
-     #we start defining off diagonal elements
-     trans_rate = trans_rate_in(mul,mur,1)[0]+\
-         trans_rate_in(mul,mur,1)[0]+\
-           trans_rate_in(mul,mur,0)[0]+\
-               trans_rate_in(mul,mur,0)[1]      
-     #finally diagonal elements    
-     for i in range(0,3):
-         trans_rate[i,i] = - trans_rate.sum(axis=0)[i]
-         trans_rate[3]=np.array([1,1,1,1])
-         return trans_rate
-#print('rate',trans_rate(1., 1.))
+w=10e100
+
+VL = VR = np.linspace(-12,12, 101)
+N = len(VL)
+tu_Lg = lg * semi_circle(0, VL,w)
+tu_Le = le * semi_circle(delta, VL,w)
+tu_Rg = rg * semi_circle(0, VR,w)
+tu_Re = re * semi_circle(delta, VR,w)
 
 
+#transition rates
+#\Gamma_{\alpa,j}^{+}
+#Gamma_{\alpha,j}^{-}=tun_{\alpha,j} -tun_{\alpha,j}
+tun_Lg = tu_Lg*fermi_dirac(0, VL)
+tun_Le = tu_Le*fermi_dirac(delta, VL)
+tun_Rg = tu_Rg*fermi_dirac(0, VR)
+tun_Re = tu_Re*fermi_dirac(delta, VR)
 
-def populations(mul,mur):
-    #trans_rate(mul, mur)[3]=np.array([1,1,1,1])
-    b = np.array([0, 0,0,1])
-    populations = np.linalg.solve(trans_rate(mul, mur),b)
-    return populations
-#print(populations(1., -1.))
-   
-#Finally electronic current
 
-def current(mul,mur):
-    gamma = trans_rate_in(mul,mur,1)[0]-trans_rate_in(mul,mur,0)[0]
-    current = np.dot(gamma,populations(mul,mur))
-    return current
-#print(current(1.,1.))
+#\Gamma_{\alpha,electrons or holes} 
+#each element of this matrix host all possible values of
+#tun_{\alpha(e, g)}
+gamma_le = gamma_re = np.zeros((4,4,N))
+gamma_le[1,0] = gamma_le[3,2] = tun_Lg
+gamma_le[2,0] = gamma_le[3,1] = tun_Le
+gamma_re[1,0] = gamma_re[3,2] = tun_Rg
+gamma_re[2,0] = gamma_re[3,1] = tun_Re
+
+#pending to implements symmetries here in order to save code-lines
+gamma_lh = gamma_rh = np.zeros((4,4,N))
+gamma_lh[0,1] = gamma_lh[1,3] = tu_Lg-tun_Lg
+gamma_lh[0,2] = gamma_lh[2,3] = tu_Le-tun_Le
+gamma_rh[0,1] = gamma_rh[1,3] = tu_Rg-tun_Rg
+gamma_rh[0,2] = gamma_rh[2,3] = tu_Re-tun_Re
+
+#total gamma is the sum of electrodes and holes gamma
+gamma_l = (gamma_le+gamma_lh)
+gamma_r = (gamma_re+gamma_rh)
+
+
+#we need diagonal elements which are the sum of each column
+#imposing eq 9.26
+for i in range(0,4):
+    gamma_l[i,i] = -gamma_l.sum(axis=0)[i]
+    gamma_r[i,i] = -gamma_r.sum(axis=0)[i]
+    
+#since we have two variables we need to built a 2d map
+#hence, each matrix element of total gamma will be a 
+#len(VL)x\len(VR) 
+gamma_l = gamma_l.reshape(4,4,N,1)
+gamma_r = gamma_r.reshape(4,4,1,N)
+
+gamma = gamma_l+gamma_r
+
+
+
+#we apply the fact that \sum_i p_i=1
+gamma[3,:,:,:] = 1 
+# solve eq 9.22 under above constraint
+populations = b = np.zeros((4,1,N,N))
+b[3,:]=1
+
+#Pending to avoid this loop, problems with linalg.solve manual
+for i in range(N):
+    for j in range(N):
+        populations[:,:,i,j] = \
+            la.solve(gamma[:,:,i,j],b[:,:,i,j])
+
+#If I want to check that sum_i P_i = 1
+#print(populations.sum(axis=0))
+
+
+# finally we solve 9.28
+GL = gamma_le-gamma_lh
+GR = gamma_re-gamma_rh
+I_L = I_R = np.zeros((N,N))
+
+#Pending to avoid this loop
+for i in range(N):
+    for j in range(N):
+        I_L[i,j] = np.matmul(GL[:,:,i],populations[:,:,i,j]).sum()
+        I_R[i,j] = np.matmul(GR[:,:,i],populations[:,:,i,j]).sum()
+print(np.allclose(I_L, I_R))
+
+
+###from now on
+#checking if analytical solution for single electronic level
+#is equal to this matrix approach at delta = 0
+b=10
+g_L = lg * semi_circle(0, VL,w)
+g_R = rg * semi_circle(0, VR,w)
+
+
+#to have have a current I.shape = (101, 101)
+g_L = g_L.reshape(1, -1)
+g_R = g_R.reshape(-1, 1)
+fL = fermi_dirac(0, VL).reshape(1, -1)
+fR = fermi_dirac(0, VR).reshape(-1, 1)
+
+#current for asymmetric coupling in which
+#Gamma_L = Gamma_R =Gamma/2
+# since current invokes gamma we have to add a factor 2.
+I = -2*(g_L * g_R / (g_L + g_R)) *(fR-fL)
+print(np.allclose(I, -I_L))
+
+
+
 #visualization
-#plt.rc('text', usetex=True)
-#plt.rc('font', family='Bitstream Vera Serif', size=16)
-
-#fig = plt.figure(figsize=(8, 6))
-#axes = plt.axes()
-
-#potential = np.linspace(-15.,15.)
-#x, y = np.meshgrid(potential, potential)
-#z =  current(x,y)
+plt.rc('text', usetex=True)
+plt.rc('font', family='Bitstream Vera Serif', size=16)
+fig = plt.figure(figsize=(8, 6))
+axes = plt.axes()
 
 # 2d visualization
+VL, VR = np.meshgrid(VL, VR)
+plt.contourf(VL ,VR, -I_L, 20,cmap='RdGy')
+plt.colorbar(label = ''r'$I/e\Gamma$')
+axes.set_xlabel(r'$eV_L$ ')
+axes.set_ylabel(r'$eV_R$')
 
-#plt.contourf(x ,y, z,20,cmap='RdGy')
-#plt.colorbar(label = ''r'$I/e\Gamma$')
-#axes.set_xlabel(r'$eV_L$ ')
-#axes.set_ylabel(r'$eV_R$')
-
-    
+#plt.savefig('test.pdf')
