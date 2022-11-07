@@ -23,7 +23,7 @@ def operator_basis(A, v):
           M[i]  = A[i].inner(v)
     return M
 
-def fermi_matrix(E, mu):
+def fermi_matrix(E, mu=0):
     r""" Construction of numpy array whose matrix elements are fermi functions evaluated for each energy differences and chemical potential.
     
     Input variables:
@@ -36,9 +36,14 @@ def fermi_matrix(E, mu):
         - [fermi]: fermi function evaluated for all combination of input variables.
     """
     E = np.array(E)
+    mu = np.array(mu)
+    N = len(mu)
+    k = len(E)
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
-    mu = mu.reshape(-1, 1, 1)
-    return fermi(E=DE, mu=mu)
+    mu = mu.reshape(-1, 1, 1) 
+    fL = fermi(E=DE, mu=mu).reshape(1, N, k, k)
+    fR = fermi(E=DE, mu=mu).reshape(N, 1, k, k)
+    return fL+fR
 
 def transition_rate(E, v, A, g, mu=0):
     r""" trasition_rate construct a matrix numpy array with all possible transition rates, where each matrix element represent the transition rate  between two states at given chemical potential.
@@ -57,8 +62,8 @@ def transition_rate(E, v, A, g, mu=0):
         - [Gm]: transition rate matrix for a transition in the system due to the extraction of particles from the system.
     """
     g = np.array(g).reshape(2, 2)
-    fp = fermi_matrix(E, mu)
-    fm = 1 - fermi_matrix(-E, mu)
+    fp = fermi_matrix(E, mu=mu)
+    fm = 1 - fermi_matrix(-E, mu=mu)
     M = operator_basis(A, v)
     G = np.einsum('iab,ij,jab->ab', M.conj(), g, M)
     Gp = fp * G.conj().T
