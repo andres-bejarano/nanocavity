@@ -37,4 +37,6 @@ def test_TLS():
     dataTLA = np.loadtxt("TLA.anlytical.txt", delimiter=" ")
     ITLA = dataTLA[:, 1:]
     ITLN = dataTLN[:, 1:]
-    assert np.allclose(ITLA, ITLN)
+    assert np.allclose(ITLA, ITLN) 
+    return np.allclose(ITLA, ITLN)
+print(test_TLS())
