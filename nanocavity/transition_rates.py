@@ -18,7 +18,7 @@ def matrix_elements(A, v, g):
         - [M]: numpy array with the information of each operator in A written in the basis of v.
     """
     v = np.array(v)
-    g = np.array(g).reshape(2, 2)
+    g = np.array(g).reshape(len(A), len(A))
     M = np.empty((len(A), len(v), len(v)))
     for i in range(len(A)):
           M[i]  = A[i].inner(v)
