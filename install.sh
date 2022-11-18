@@ -1,10 +1,3 @@
-python setup.py sdist
-
-cd \dist
-
-pip install nanocavity-0.1.tar.gz
-
-cd ..\
-
-pytest nanocavity
-
+python setup.py install --prefix=~/.local
+cd ~
+pytest-3 --pyargs nanocavity
