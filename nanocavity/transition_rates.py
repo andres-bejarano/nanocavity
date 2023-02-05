@@ -7,15 +7,14 @@ import matplotlib.pyplot as plt
 
 def matrix_elements(A, v, g):
     r""" Construction of an operator in given basis.
+    Parameters
+    ----------
+    A: list of operators,
+    v: numpy array with basis vectors.
     
-    Input variables:
-
-        - [A]: list of operators,
-        - [v]: numpy array with basis vectors.
-
-    Output variables:
-    
-        - [M]: numpy array with the information of each operator in A written in the basis of v.
+    Returns
+    ----------
+    M: numpy array with the information of each operator in A written in the basis of v.
     """
     v = np.array(v)
     g = np.array(g).reshape(len(A), len(A))
@@ -27,15 +26,14 @@ def matrix_elements(A, v, g):
 
 def fermi_matrix(E, mu=0):
     r""" Construction of numpy array whose matrix elements are fermi functions evaluated for each energy differences and chemical potential.
-    
-    Input variables:
+    Parameters
+    ----------
+    E: all possible energy values,
+    mu: all possible chemical potential energies.
 
-        - [E]: all possible energy values,
-        - [mu]: all possible chemical potential energies.
-        
-    Output variables:
-    
-        - [fermi]: fermi function evaluated for all combination of input variables.
+    Returns
+    ----------
+    fermi: fermi function evaluated for all combination of input variables.
     """
     E = np.array(E)
     mu = np.array(mu)
@@ -48,19 +46,18 @@ def fermi_matrix(E, mu=0):
 
 def transition_rate(E, v, A, g, mu=[0]):
     r""" trasition_rate construct a matrix numpy array with all possible transition rates, where each matrix element represent the transition rate  between two states at given chemical potential.
-
-    Input variables
-
-        - [E]: system eigenvalues,
-        - [v]: system eigenvectors,
-        - [A]: list of all operators which interacts with the environment,
-        - [g]: list of all coupling values between each level and the environment, 
-        - [mu]: all possible chemical potential values.
+    Parameters
+    ----------
+    E: system eigenvalues,
+    v: system eigenvectors,
+    A: list of all operators which interacts with the environment,
+    g: list of all coupling values between each level and the environment, 
+    mu: all possible chemical potential values.
         
-    Output variables:
-    
-        - [Gp]: transition rate matrix for a transition in the system due to the injection of particles from the environment.
-        - [Gm]: transition rate matrix for a transition in the system due to the extraction of particles from the system.
+    Returns
+    ----------
+    Gpr: transition rate matrix for a transition in the system due to the injection of particles from the environment.
+    Gmr: transition rate matrix for a transition in the system due to the extraction of particles from the system.
     """
     fpr = fermi_matrix(E, mu=mu)
     fmr = 1 - fermi_matrix(-E, mu=mu)
@@ -70,11 +67,31 @@ def transition_rate(E, v, A, g, mu=[0]):
     return Gpr, Gmr
 
 def transition_rate_matrix(GL, GR):
+    r""""The sum of transition rates corresponding to two environments must contain all possible values of chemical potential. The case of two left/right environments has been implemented so far.
+    Parameters
+    ----------
+    GL: coming from the output of transtion_rate for left environment
+    GR: coming from the output of transtion_rate for right environment
+
+    Return
+    ----------
+    In progress
+    """
     GL = GL.reshape(1, GL.shape[0], GL.shape[1], GL.shape[2])
     GR = GR.reshape(GR.shape[0], 1, GR.shape[1], GR.shape[2])
     return GL, GR
 
 def populations(Gamma):
+    r""" The stationary solution of rate equation will calculated.
+
+    Parameters
+    ----------
+    Gamma: Transition rates matrix which contain all possible environments
+
+    Return 
+    ----------
+    P: populations
+    """
     N = Gamma.shape[0]
     k = Gamma.shape[2]
     b = np.zeros((N, N, k, 1))
@@ -83,7 +100,23 @@ def populations(Gamma):
     
     Gamma[:, : , k - 1, :] = 1
     b[:, :, k - 1, :] = 1
-    return la.solve(Gamma, b).reshape(N, N, k)
+    
+    P = la.solve(Gamma, b).reshape(N, N, k)
+    return P
 
 def electro_current(Gpr, Gmr, P):
-    return np.einsum('iab,ijb->ij', Gpr - Gmr, P)
+    r"""
+    Electro-current calculated in the lead r = left or right 
+    Parameters
+    ----------
+    Gpr: transition rate matrix for a transition in the system due to the injection of particles from the environment. 
+    Gmr: transition rate matrix for a transition in the system due to the extraction of particles from the system. 
+    See nanocavity.transition_rates.transition_rates
+
+
+    Return 
+    ----------
+    I: electro-current 
+    """
+    I = np.einsum('iab,ijb->ij', Gpr - Gmr, P)
+    return I
