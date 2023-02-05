@@ -46,7 +46,7 @@ def fermi_matrix(E, mu=0):
     f = fermi(E=DE, mu=mu)
     return f
 
-def transition_rate(E, v, A, g, mu=0):
+def transition_rate(E, v, A, g, mu=[0]):
     r""" trasition_rate construct a matrix numpy array with all possible transition rates, where each matrix element represent the transition rate  between two states at given chemical potential.
 
     Input variables
