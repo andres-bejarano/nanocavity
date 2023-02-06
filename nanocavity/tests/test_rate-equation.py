@@ -49,8 +49,6 @@ def test_asymmetrical_bias():
     #chemical potential
     VL = np.linspace(-3, 3, 3)
     VR = np.linspace(-3, 2, 4)
-    vl = len(VL)
-    vr = len(VR)
 
     #leads-exciton couplings
     gr = [[1,0], [0, 1]]
