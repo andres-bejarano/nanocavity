@@ -24,7 +24,7 @@ def matrix_elements(A, v, g):
     MGM = np.einsum('iab,ij,jab->ab', M.conj(), g, M)
     return MGM
 
-def fermi_matrix(E, mu=0):
+def fermi_matrix(E, kBT=0.1, mu=0):
     r""" Construction of numpy array whose matrix elements are fermi functions evaluated for each energy differences and chemical potential.
     Parameters
     ----------
@@ -41,10 +41,10 @@ def fermi_matrix(E, mu=0):
     k = len(E)
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     mu = mu.reshape(-1, 1, 1) 
-    f = fermi(E=DE, mu=mu)
+    f = fermi(E=DE, kBT=kBT, mu=mu)
     return f
 
-def transition_rate(E, v, A, g, mu=[0]):
+def transition_rate(E, v, A, g, kBT=0.1, mu=[0]):
     r""" trasition_rate construct a matrix numpy array with all possible transition rates, where each matrix element represent the transition rate  between two states at given chemical potential.
     Parameters
     ----------
@@ -59,8 +59,8 @@ def transition_rate(E, v, A, g, mu=[0]):
     Gpr: transition rate matrix for a transition in the system due to the injection of particles from the environment.
     Gmr: transition rate matrix for a transition in the system due to the extraction of particles from the system.
     """
-    fpr = fermi_matrix(E, mu=mu)
-    fmr = 1 - fermi_matrix(-E, mu=mu)
+    fpr = fermi_matrix(E, kBT=kBT, mu=mu)
+    fmr = 1 - fermi_matrix(-E, kBT=kBT, mu=mu)
     M = matrix_elements(A, v, g)
     Gpr = fpr * M.conj().T
     Gmr = fmr * M
