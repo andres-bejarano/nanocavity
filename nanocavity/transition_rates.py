@@ -107,11 +107,10 @@ def populations(Gamma):
     
     #conservation of probability \sum_iP_i=1 implies that one equation must be equal to 1
     Gamma[:, : , k - 1, :] = 1 
-    b = np.zeros((vl, vr, k, 1))
-    b[:, :, k - 1, :] = 1
+    b = np.zeros((vl, vr, k))
+    b[:, :, k - 1] = 1
     
-    #la.solve(Gamma, b) has the shape (vl, vr, k, 1)
-    P = la.solve(Gamma, b).reshape(vl, vr, k)
+    P = la.solve(Gamma, b)
     return P
 
 def electro_current(Gpr, Gmr, P):
