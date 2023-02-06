@@ -48,7 +48,7 @@ def test_asymmetrical_bias():
 
     #chemical potential
     VL = np.linspace(-3, 3, 3)
-    VR = np.linspace(-3, 2, 3)
+    VR = np.linspace(-3, 2, 4)
     vl = len(VL)
     vr = len(VR)
 
@@ -70,8 +70,7 @@ def test_asymmetrical_bias():
 
     #populations
     Gamma = GL + GR
-    print(Gamma.shape)
     P = populations(GL + GR)
-    print(P)
-test_asymmetrical_bias()
-
+    for i in range(vl):
+        for j in range(vr):
+            np.allclose(P[i, j].sum(), 1)
