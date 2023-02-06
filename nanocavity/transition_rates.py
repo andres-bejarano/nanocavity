@@ -77,12 +77,18 @@ def transition_rate_matrix(GL, GR):
     ----------
     In progress
     """
-    GL = GL.reshape(1, GL.shape[0], GL.shape[1], GL.shape[2])
-    GR = GR.reshape(GR.shape[0], 1, GR.shape[1], GR.shape[2])
+    #vi: number of chemical potential values for lead i
+    #n: system hamiltonian dimension
+
+    vl, k, _ = GL.shape
+    vr = GR.shape[0]
+
+    GL = GL.reshape(1, vl, k, k)
+    GR = GR.reshape(vr, 1, k, k)
     return GL, GR
 
 def populations(Gamma):
-    r""" The stationary solution of rate equation will calculated.
+    r""" The stationary solution of rate equation will calculated \Gamma P = 0.
 
     Parameters
     ----------
@@ -92,16 +98,20 @@ def populations(Gamma):
     ----------
     P: populations
     """
-    N = Gamma.shape[0]
-    k = Gamma.shape[2]
-    b = np.zeros((N, N, k, 1))
+    vr, vl, k, _ = Gamma.shape
+
+    #The diagonal of transition rate matrix is the - the sum of each column per each bias voltage vl, vr
     for i in range(k):
         Gamma[:, :, i, i] = -Gamma.sum(axis=2)[:, :, i]
     
-    Gamma[:, : , k - 1, :] = 1
+    
+    #conservation of probability \sum_iP_i=1 implies that one equation must be equal to 1
+    Gamma[:, : , k - 1, :] = 1 
+    b = np.zeros((vl, vr, k, 1))
     b[:, :, k - 1, :] = 1
     
-    P = la.solve(Gamma, b).reshape(N, N, k)
+    #la.solve(Gamma, b) has the shape (vl, vr, k, 1)
+    P = la.solve(Gamma, b).reshape(vl, vr, k)
     return P
 
 def electro_current(Gpr, Gmr, P):
