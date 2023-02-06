@@ -43,3 +43,35 @@ def test_populations():
         GL, GR = transition_rate_matrix(Gp + Gm, Gp + Gm)
         P = populations(GL + GR)
         assert np.allclose(P[0, 0].sum(), 1)
+
+def test_asymmetrical_bias():
+
+    #chemical potential
+    VL = np.linspace(-3, 3, 3)
+    VR = np.linspace(-3, 2, 3)
+    vl = len(VL)
+    vr = len(VR)
+
+    #leads-exciton couplings
+    gr = [[1,0], [0, 1]]
+
+    #Two level system operators
+    d, Nf = composite(fermion_modes=2)
+
+    #Hamiltonian diagonalization
+    delta = 1.
+    H = (delta * Nf[1]).toarray()
+    E, v = np.linalg.eigh(H)
+
+    #transition rates matrix
+    GpL, GmL = transition_rate(E, v, d, gr, mu=VL) 
+    GpR, GmR = transition_rate(E, v, d, gr, mu=VR)
+    GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
+
+    #populations
+    Gamma = GL + GR
+    print(Gamma.shape)
+    P = populations(GL + GR)
+    print(P)
+test_asymmetrical_bias()
+
