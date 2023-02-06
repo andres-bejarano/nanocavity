@@ -83,8 +83,8 @@ def transition_rate_matrix(GL, GR):
     vl, k, _ = GL.shape
     vr = GR.shape[0]
 
-    GL = GL.reshape(1, vl, k, k)
-    GR = GR.reshape(vr, 1, k, k)
+    GL = GL.reshape(vl, 1, k, k)
+    GR = GR.reshape(1, vr, k, k)
     return GL, GR
 
 def populations(Gamma):
@@ -98,7 +98,7 @@ def populations(Gamma):
     ----------
     P: populations
     """
-    vr, vl, k, _ = Gamma.shape
+    vl, vr, k, _ = Gamma.shape
 
     #The diagonal of transition rate matrix is the - the sum of each column per each bias voltage vl, vr
     for i in range(k):
