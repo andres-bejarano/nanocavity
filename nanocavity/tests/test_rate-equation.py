@@ -51,7 +51,8 @@ def test_asymmetrical_bias():
     VR = np.linspace(-3, 2, 4)
 
     #leads-exciton couplings
-    gr = [[1,0], [0, 1]]
+    gl = [[1., 0], [0, 0.8]]
+    gr = [[0.4, 0], [0, 0.2]]
 
     #Two level system operators
     d, Nf = composite(fermion_modes=2)
@@ -62,7 +63,7 @@ def test_asymmetrical_bias():
     E, v = np.linalg.eigh(H)
 
     #transition rates matrix
-    GpL, GmL = transition_rate(E, v, d, gr, mu=VL) 
+    GpL, GmL = transition_rate(E, v, d, gl, mu=VL) 
     GpR, GmR = transition_rate(E, v, d, gr, mu=VR)
     GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
 
