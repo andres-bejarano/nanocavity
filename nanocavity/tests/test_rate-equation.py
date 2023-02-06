@@ -71,6 +71,4 @@ def test_asymmetrical_bias():
     #populations
     Gamma = GL + GR
     P = populations(GL + GR)
-    for i in range(vl):
-        for j in range(vr):
-            assert np.allclose(P[i, j].sum(), 1)
+    assert np.allclose(P.sum(axis=2), 1)
