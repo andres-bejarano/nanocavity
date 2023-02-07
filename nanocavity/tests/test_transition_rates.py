@@ -26,7 +26,7 @@ def test_fermi_matrix():
     mu = np.linspace(-1, 1, 3)
     A = fermi_matrix(E=E, mu=mu)  
     DE = np.array(E).reshape(1, -1, 1) - np.array(E).reshape(1, 1, -1)
-    B = fermi(DE, mu=mu.reshape(-1, 1, 1))
+    B = fermi_dirac(DE, mu=mu.reshape(-1, 1, 1))
     assert np.allclose(A, B)
 
 def test_transition_rate():

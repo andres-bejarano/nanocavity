@@ -1,12 +1,12 @@
 import numpy as np
 
 #fermi-dirac distribution
-def fermi(E, kBT=0.1, mu=0):
-    return 1. / (np.exp((E - mu) / kBT) + 1.)
+def fermi_dirac(E, kT=0.1, mu=0):
+    return 1. / (np.exp((E - mu) / kT) + 1.)
 
 #bose-einstein distribution
-def bose(E, kBT=0.1, mu=0):
-    return 1. / (np.exp((E - mu) / kBT) - 1.)
+def bose_einstein(E, kT=0.1, mu=0):
+    return 1. / (np.exp((E - mu) / kT) - 1.)
 
 
 #fininte-band
