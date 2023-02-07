@@ -103,11 +103,12 @@ def test_electronic_current():
     DGR = GpR - GmR
     
     
-    #IL = np.einsum('iab,ijb->ij', DGL, P)
-    #IR = np.einsum('iab,ijb->ij', DGR, P)
-    #print('IL eisum\n', IL)
-    #print('IR einsum\n', IR)
+    ILe = np.einsum('iab,ijb->ij', DGL, P)
+    IRe = np.einsum('jab,ijb->ij', DGR, P)
+    print('IL eisum\n', ILe)
+    print('IR einsum\n', IRe)
 
+    assert np.allclose(ILe, -IRe)
 
     vl, vr = DGL.shape[0], DGR.shape[0]
     print('--------------einsum-------------------------') 
@@ -116,16 +117,13 @@ def test_electronic_current():
 
     for i in range(vl):
         for j in range(vr):
-            print("index", i, j)
-            print('DGL', DGL[i])
-            print('DGR', DGR[j])
-            print('P', P[i, j])
             IL[i,j] = DGL[i].dot(P[i, j]).sum()
             IR[i,j] = DGR[j].dot(P[i, j]).sum()
-           # print('DGP', DG[j].dot(P[i,j]))
-            print('-------------------------------------------------')
 
     print('IL', IL)
     print('IR', IR)
     assert np.allclose(IL, -IR)
+
+    assert np.allclose(ILe, IL)
+    assert np.allclose(IRe, IR)
 test_electronic_current()
