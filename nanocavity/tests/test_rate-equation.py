@@ -76,7 +76,7 @@ def test_electronic_current():
     
     #chemical potential
     VL = np.linspace(-3, 3, 3)
-    VR = np.linspace(-2, 3, 3)
+    VR = np.linspace(-3, 3, 2)
 
     #leads-exciton couplings
     gl = 0.8
