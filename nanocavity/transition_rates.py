@@ -113,20 +113,18 @@ def populations(Gamma):
     P = la.solve(Gamma, b)
     return P
 
-def electro_current(DGL, DGR, P):
+def electro_current_left(DGL, P):
     r"""
-    Electro-current calculated in the lead r = left or right 
+    Electro-current calculated in the lead left
     Parameters
     ----------
-    Gpr: transition rate matrix for a transition in the system due to the injection of particles from the environment. 
-    Gmr: transition rate matrix for a transition in the system due to the extraction of particles from the system. 
-    See nanocavity.transition_rates.transition_rates
-
-
+    DGL: difference between transition rate matrix: transition in the system due to the injection of particles from the environment (GpL) and transition in the system due to the extraction of particles from the system (GpR). DGL = GpL - GpR
     Return 
     ----------
     I: electro-current 
     """
-    IL = np.einsum('iab,ijb->ij', DGL, P)
-    IR = np.einsum('jab,ijb->ij', DGR, P)
-    return IL, IR
+    I = np.einsum('iab,ijb->ij', DGL, P)
+    return I
+
+def electro_current_right(DGR, P):
+    return np.einsum('jab,ijb->ij', DGR, P)

@@ -101,7 +101,6 @@ def test_electronic_current():
     #current
     DGL = GpL - GmL
     DGR = GpR - GmR
-    IL, IR  = electro_current(DGL, DGR, P)
+    IL  = electro_current_left(DGL, P)
+    IR = electro_current_right(DGR, P)
     assert np.allclose(IL, -IR)
-
-test_electronic_current()
