@@ -113,18 +113,19 @@ def populations(Gamma):
     P = la.solve(Gamma, b)
     return P
 
-def electro_current_left(DGL, P):
+def electro_current(DGi, P, electrode):
     r"""
     Electro-current calculated in the lead left
     Parameters
     ----------
-    DGL: difference between transition rate matrix: transition in the system due to the injection of particles from the environment (GpL) and transition in the system due to the extraction of particles from the system (GpR). DGL = GpL - GpR
+    DGi: difference between transition rate matrix: transition in the system due to the injection of particles from the electrode i (Gpi) and transition in the system due to the extraction of particles from the system (Gpi). DGi = Gpi - Gpi
+    P: stationray solution of rate equation, populations
+    electrode: string specifying left or right electrode
     Return 
     ----------
     I: electro-current 
     """
-    I = np.einsum('iab,ijb->ij', DGL, P)
-    return I
-
-def electro_current_right(DGR, P):
-    return np.einsum('jab,ijb->ij', DGR, P)
+    if electrode=='left':
+        return np.einsum('iab,ijb->ij', DGi, P)
+    elif electrode=='right':
+        return np.einsum('jab,ijb->ij', DGi, P)
