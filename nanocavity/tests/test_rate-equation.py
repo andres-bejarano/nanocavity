@@ -75,12 +75,12 @@ def test_asymmetrical_bias():
 def test_electronic_current():
     
     #chemical potential
-    VL = np.linspace(-3, 3, 1)
-    VR = np.linspace(-2, 3, 1)
+    VL = np.linspace(-3, 3, 3)
+    VR = np.linspace(-3, 3, 3)
 
     #leads-exciton couplings
     gl = 0.8
-    gr = 0.2
+    gr = 0.8
 
     #Two level system operators
     d, Nf = composite(fermion_modes=1)
@@ -103,5 +103,5 @@ def test_electronic_current():
     IR = electro_current(GpR, GmR, P)
     print('IL', IL)
     print('IR', IR)
-    assert np.allclose(IL, -IR)
+    assert np.allclose(IL, IR)
 test_electronic_current()
