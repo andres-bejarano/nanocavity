@@ -97,33 +97,11 @@ def test_electronic_current():
     #populations
     Gamma = GL + GR
     P = populations(GL + GR)
-    print('pshape', P.shape)
+    
     #current
     DGL = GpL - GmL
     DGR = GpR - GmR
-    
-    
-    ILe = np.einsum('iab,ijb->ij', DGL, P)
-    IRe = np.einsum('jab,ijb->ij', DGR, P)
-    print('IL eisum\n', ILe)
-    print('IR einsum\n', IRe)
-
-    assert np.allclose(ILe, -IRe)
-
-    vl, vr = DGL.shape[0], DGR.shape[0]
-    print('--------------einsum-------------------------') 
-    IL = np.empty((vl, vr))
-    IR = np.empty((vl, vr))
-
-    for i in range(vl):
-        for j in range(vr):
-            IL[i,j] = DGL[i].dot(P[i, j]).sum()
-            IR[i,j] = DGR[j].dot(P[i, j]).sum()
-
-    print('IL', IL)
-    print('IR', IR)
+    IL, IR  = electro_current(DGL, DGR, P)
     assert np.allclose(IL, -IR)
 
-    assert np.allclose(ILe, IL)
-    assert np.allclose(IRe, IR)
 test_electronic_current()

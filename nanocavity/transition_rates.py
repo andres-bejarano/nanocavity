@@ -113,7 +113,7 @@ def populations(Gamma):
     P = la.solve(Gamma, b)
     return P
 
-def electro_current(Gpr, Gmr, P):
+def electro_current(DGL, DGR, P):
     r"""
     Electro-current calculated in the lead r = left or right 
     Parameters
@@ -127,5 +127,6 @@ def electro_current(Gpr, Gmr, P):
     ----------
     I: electro-current 
     """
-    I = np.einsum('iab,ijb->ij', Gpr - Gmr, P)
-    return I
+    IL = np.einsum('iab,ijb->ij', DGL, P)
+    IR = np.einsum('jab,ijb->ij', DGR, P)
+    return IL, IR
