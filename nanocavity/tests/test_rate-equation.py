@@ -76,11 +76,11 @@ def test_electronic_current():
     
     #chemical potential
     VL = np.linspace(-3, 3, 3)
-    VR = np.linspace(-3, 3, 2)
+    VR = np.linspace(-3, 3, 3)
 
     #leads-exciton couplings
     gl = 0.8
-    gr = 0.8
+    gr = 0.2
 
     #Two level system operators
     d, Nf = composite(fermion_modes=1)
@@ -97,10 +97,34 @@ def test_electronic_current():
     #populations
     Gamma = GL + GR
     P = populations(GL + GR)
-    
+    print('pshape', P.shape)
     #current
-    IL = electro_current(GpL, GmL, P)
-    IR = electro_current(GpR, GmR, P)
+    DGL = GpL - GmL
+    DGR = GpR - GmR
+    
+    
+    #IL = np.einsum('iab,ijb->ij', DGL, P)
+    #IR = np.einsum('iab,ijb->ij', DGR, P)
+    #print('IL eisum\n', IL)
+    #print('IR einsum\n', IR)
+
+
+    vl, vr = DGL.shape[0], DGR.shape[0]
+    print('--------------einsum-------------------------') 
+    IL = np.empty((vl, vr))
+    IR = np.empty((vl, vr))
+
+    for i in range(vl):
+        for j in range(vr):
+            print("index", i, j)
+            print('DGL', DGL[i])
+            print('DGR', DGR[i])
+            print('P', P[i, j])
+            IL[i,j] = DGL[i].dot(P[i, j]).sum()
+            IR[i,j] = DGR[j].dot(P[i, j]).sum()
+           # print('DGP', DG[j].dot(P[i,j]))
+            print('-------------------------------------------------')
+
     print('IL', IL)
     print('IR', IR)
     assert np.allclose(IL, -IR)
