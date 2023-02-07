@@ -3,12 +3,19 @@ from nanocavity.distributions import *
 
 
 def test_fermi(): 
+    assert fermi(-100) == 1.0
+    assert fermi(0) == 0.5
+    assert fermi(100) == 0.0
     assert fermi(-100, 0.1) == 1.0
     assert fermi(0, 0.1) == 0.5
     assert fermi(100, 0.1) == 0.0
 
 def test_fermi_arrays():
     e = np.linspace(-100, 100, 10).reshape((2, 5))
+    nf = fermi(e)
+    assert nf.shape == e.shape
+    nf = fermi(0, mu=e)
+    assert nf.shape == e.shape
     nf = fermi(e, 1)
     assert nf.shape == e.shape
     nf = fermi(0, 1, e)
@@ -17,6 +24,8 @@ def test_fermi_arrays():
     assert nf.shape == e.shape
 
 def test_bose():
+    assert bose(0) == np.inf
+    assert bose(100) == 0.0
     assert bose(0, 0.1) == np.inf
     assert bose(100, 0.1) == 0.0
 
