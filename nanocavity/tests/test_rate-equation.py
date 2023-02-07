@@ -95,14 +95,11 @@ def test_electro_current_single_level():
     GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
 
     #populations
-    Gamma = GL + GR
     P = populations(GL + GR)
     
     #current
-    DGL = GpL - GmL
-    DGR = GpR - GmR
-    IL = electro_current(DGL, P, 'left')
-    IR = electro_current(DGR, P, 'right')
+    IL = electro_current(GpL - GmL, P, 'left')
+    IR = electro_current(GpR - GmR, P, 'right')
     assert np.allclose(IL, -IR)
 
 def test_electro_current_two_level():

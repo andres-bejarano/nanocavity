@@ -113,7 +113,7 @@ def populations(Gamma):
     P = la.solve(Gamma, b)
     return P
 
-def electro_current(DGi, P, electrode):
+def electro_current(DGi, P, electrode='left'):
     r"""
     Electro-current calculated in the lead left
     Parameters
