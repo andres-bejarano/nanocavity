@@ -30,13 +30,29 @@ def test_fermi_matrix():
     B = fermi_dirac(DE, mu=mu.reshape(-1, 1, 1))
     assert np.allclose(A, B)
 
+def test_bose_matrix():
+    E = [-100, 100, 4]
+    mu = np.linspace(-1, 1, 3)
+    A = bose_matrix(E=E, mu=mu)
+    DE = np.array(E).reshape(1, -1, 1) - np.array(E).reshape(1, 1, -1)
+    B = bose(DE, mu=mu.reshape(-1, 1, 1))
+    assert np.allclose(A, B)
+
+
 def test_transition_rate():
     for i in range(1, 4):
         d, e, v, g = rate_parameters(i)
         Gp, Gm = transition_rate(e, v, d, g)
         assert np.allclose(Gp[0].diagonal(), 0)
         assert np.allclose(Gm[0].diagonal(), 0)
-        
+
+def test_transition_rate_radiation():
+    b, Nb = composite(boson_modes=1, max_bosons=5)
+    e, v = la.eigh(Nb[0].toarray())
+    Kp, Km = transition_rate_radiation(e, v, b, k=1, mu=[0.1])
+    assert np.allclose(Kp[0].diagonal(), 0)
+    assert np.allclose(Km[0].diagonal(), 0)
+
 def test_populations():
     for i in range(1, 4):
         d, e, v, g = rate_parameters(i)
