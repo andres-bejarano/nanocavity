@@ -44,7 +44,18 @@ def fermi_matrix(E, kT=0.1, mu=0):
     f = fermi_dirac(E=DE, kT=kT, mu=mu)
     return f
 
-def transition_rate(E, v, A, g, kT=0.1, mu=[0]):
+def bose_matrix(E, kT=0.1, mu=0):
+    E = np.array(E)
+    mu = np.array(mu)
+    N = len(mu)
+    k = len(E)
+    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
+    mu = mu.reshape(-1, 1, 1)
+    nb = bose(E=DE, kBT=kBT, mu=mu)
+    return nb
+
+
+def transition_rate(E, v, A, g, kBT=0.1, mu=[0]):
     r""" trasition_rate construct a matrix numpy array with all possible transition rates, where each matrix element represent the transition rate  between two states at given chemical potential.
     Parameters
     ----------
@@ -65,6 +76,16 @@ def transition_rate(E, v, A, g, kT=0.1, mu=[0]):
     Gpr = fpr * M.conj().T
     Gmr = fmr * M
     return Gpr, Gmr
+
+def transition_rate_radiation(E, v, A, k, kT=0.1, mu=[0]):
+    np = bose_matrix(E, kT=kT, mu=mu)
+    nm = 1 - bose_matrix(E, kT=kT, mu=mu)
+    M = matrix_elements(A, v, k)
+    Kp = np * M.conj().T
+    Km = nm * M
+    return Kp, Km
+
+
 
 def transition_rate_matrix(GL, GR):
     r""""The sum of transition rates corresponding to two environments must contain all possible values of chemical potential. The case of two left/right environments has been implemented so far.
