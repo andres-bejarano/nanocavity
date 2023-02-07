@@ -76,7 +76,7 @@ def test_electronic_current():
     
     #chemical potential
     VL = np.linspace(-3, 3, 3)
-    VR = np.linspace(-3, 3, 3)
+    VR = np.linspace(-2, 4, 5)
 
     #leads-exciton couplings
     gl = 0.8
@@ -118,7 +118,7 @@ def test_electronic_current():
         for j in range(vr):
             print("index", i, j)
             print('DGL', DGL[i])
-            print('DGR', DGR[i])
+            print('DGR', DGR[j])
             print('P', P[i, j])
             IL[i,j] = DGL[i].dot(P[i, j]).sum()
             IR[i,j] = DGR[j].dot(P[i, j]).sum()
