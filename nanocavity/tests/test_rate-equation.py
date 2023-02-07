@@ -71,3 +71,37 @@ def test_asymmetrical_bias():
     Gamma = GL + GR
     P = populations(GL + GR)
     assert np.allclose(P.sum(axis=2), 1)
+
+def test_electronic_current():
+    
+    #chemical potential
+    VL = np.linspace(-3, 3, 1)
+    VR = np.linspace(-2, 3, 1)
+
+    #leads-exciton couplings
+    gl = 0.8
+    gr = 0.2
+
+    #Two level system operators
+    d, Nf = composite(fermion_modes=1)
+
+    #Hamiltonian diagonalization
+    H = Nf[0].toarray()
+    E, v = np.linalg.eigh(H)
+
+    #transition rates matrix
+    GpL, GmL = transition_rate(E, v, d, gl, mu=VL)
+    GpR, GmR = transition_rate(E, v, d, gr, mu=VR)
+    GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
+
+    #populations
+    Gamma = GL + GR
+    P = populations(GL + GR)
+    
+    #current
+    IL = electro_current(GpL, GmL, P)
+    IR = electro_current(GpR, GmR, P)
+    print('IL', IL)
+    print('IR', IR)
+    assert np.allclose(IL, -IR)
+test_electronic_current()
