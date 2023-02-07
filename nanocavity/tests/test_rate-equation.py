@@ -76,7 +76,7 @@ def test_electronic_current():
     
     #chemical potential
     VL = np.linspace(-3, 3, 3)
-    VR = np.linspace(-3, 3, 3)
+    VR = np.linspace(-2, 3, 3)
 
     #leads-exciton couplings
     gl = 0.8
@@ -103,5 +103,5 @@ def test_electronic_current():
     IR = electro_current(GpR, GmR, P)
     print('IL', IL)
     print('IR', IR)
-    assert np.allclose(IL, IR)
+    assert np.allclose(IL, -IR)
 test_electronic_current()
