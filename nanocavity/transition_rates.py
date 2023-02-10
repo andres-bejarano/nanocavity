@@ -79,7 +79,7 @@ def transition_rate(E, v, A, g, kT=0.1, mu=[0]):
 
 def transition_rate_radiation(E, v, A, k, kT=0.1, mu=[0]):
     np = bose_matrix(E, kT=kT, mu=mu)
-    nm = 1 - bose_matrix(E, kT=kT, mu=mu)
+    nm = 1 + bose_matrix(E, kT=kT, mu=mu)
     M = matrix_elements(A, v, k)
     Kp = np * M.conj().T
     Km = nm * M
