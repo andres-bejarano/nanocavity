@@ -51,11 +51,11 @@ def bose_matrix(E, kT=0.1, mu=0):
     k = len(E)
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     mu = mu.reshape(-1, 1, 1)
-    nb = bose(E=DE, kBT=kBT, mu=mu)
+    nb = bose_einstein(E=DE, kT=kT, mu=mu)
     return nb
 
 
-def transition_rate(E, v, A, g, kBT=0.1, mu=[0]):
+def transition_rate(E, v, A, g, kT=0.1, mu=[0]):
     r""" trasition_rate construct a matrix numpy array with all possible transition rates, where each matrix element represent the transition rate  between two states at given chemical potential.
     Parameters
     ----------

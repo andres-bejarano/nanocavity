@@ -35,7 +35,7 @@ def test_bose_matrix():
     mu = np.linspace(-1, 1, 3)
     A = bose_matrix(E=E, mu=mu)
     DE = np.array(E).reshape(1, -1, 1) - np.array(E).reshape(1, 1, -1)
-    B = bose(DE, mu=mu.reshape(-1, 1, 1))
+    B = bose_einstein(DE, mu=mu.reshape(-1, 1, 1))
     assert np.allclose(A, B)
 
 
