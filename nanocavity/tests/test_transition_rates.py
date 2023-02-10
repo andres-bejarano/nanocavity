@@ -1,5 +1,4 @@
 import numpy as np
-import numpy.linalg as la
 from secondquant.composite import *
 from secondquant.operator import Operator
 from nanocavity.transition_rates import *
@@ -11,15 +10,17 @@ def rate_parameters(modes=1):
         g = 0.2
     else: 
         g = np.arange(modes ** 2).reshape(modes, modes)
-    H = np.array(Nf).sum().toarray()
-    e, v = la.eigh(H)
+    H = 0
+    for Nfi in Nf:
+        H += Nfi
+    e, v = H.eigsh()
     return d, e, v, g
 
 def test_matrix_elements():
     for i in range(1, 4):
         d, e, v, g =  rate_parameters(i)
         M = matrix_elements(d, v, g)
-        assert np.allclose(M.shape,(len(v), len(v)))
+        assert M.shape == (len(e), len(e))
 
 def test_fermi_matrix():
     E = [0, 1, 2]
@@ -59,8 +60,8 @@ def test_asymmetrical_bias():
 
     #Hamiltonian diagonalization
     delta = 1.
-    H = (delta * Nf[1]).toarray()
-    E, v = np.linalg.eigh(H)
+    H = delta * Nf[1]
+    E, v = H.eigsh()
 
     #transition rates matrix
     GpL, GmL = transition_rate(E, v, d, gl, mu=VL) 
@@ -86,8 +87,8 @@ def test_electro_current_single_level():
     d, Nf = composite(fermion_modes=1)
 
     #Hamiltonian diagonalization
-    H = Nf[0].toarray()
-    E, v = np.linalg.eigh(H)
+    H = Nf[0]
+    E, v = H.eigsh()
 
     #transition rates matrix
     GpL, GmL = transition_rate(E, v, d, gl, mu=VL)
@@ -116,8 +117,8 @@ def test_electro_current_two_level():
 
     #Hamiltonian diagonalization
     delta = 1.
-    H = (delta * Nf[1]).toarray()
-    E, v = np.linalg.eigh(H)
+    H = delta * Nf[1]
+    E, v = H.eigsh()
 
     #transition rates matrix
     GpL, GmL = transition_rate(E, v, d, gl, mu=VL)

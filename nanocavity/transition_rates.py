@@ -16,11 +16,11 @@ def matrix_elements(A, v, g):
     ----------
     M: numpy array with the information of each operator in A written in the basis of v.
     """
-    v = np.array(v)
     g = np.array(g).reshape(len(A), len(A))
-    M = np.empty((len(A), len(v), len(v)))
+    M = []
     for i in range(len(A)):
-          M[i]  = A[i].inner(v)
+        M.append(A[i].inner(v))
+    M = np.array(M)
     MGM = np.einsum('iab,ij,jab->ab', M.conj(), g, M)
     return MGM
 
