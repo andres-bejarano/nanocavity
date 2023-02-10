@@ -37,21 +37,15 @@ def fermi_matrix(E, kT=0.1, mu=0):
     """
     E = np.array(E)
     mu = np.array(mu)
-    N = len(mu)
-    k = len(E)
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     mu = mu.reshape(-1, 1, 1) 
     f = fermi_dirac(E=DE, kT=kT, mu=mu)
     return f
 
-def bose_matrix(E, kT=0.1, mu=0):
+def bose_matrix(E, kT=0.1):
     E = np.array(E)
-    mu = np.array(mu)
-    N = len(mu)
-    k = len(E)
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
-    mu = mu.reshape(-1, 1, 1)
-    nb = bose_einstein(E=DE, kT=kT, mu=mu)
+    nb = bose_einstein(E=DE, kT=kT)
     return nb
 
 
@@ -77,9 +71,9 @@ def transition_rate(E, v, A, g, kT=0.1, mu=[0]):
     Gmr = fmr * M
     return Gpr, Gmr
 
-def transition_rate_radiation(E, v, A, k, kT=0.1, mu=[0]):
-    np = bose_matrix(E, kT=kT, mu=mu)
-    nm = 1 + bose_matrix(E, kT=kT, mu=mu)
+def transition_rate_radiation(E, v, A, k, kT=0.1):
+    np = bose_matrix(E, kT=kT)
+    nm = 1 + bose_matrix(E, kT=kT)
     M = matrix_elements(A, v, k)
     Kp = np * M.conj().T
     Km = nm * M
