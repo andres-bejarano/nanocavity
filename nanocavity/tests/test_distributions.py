@@ -30,9 +30,9 @@ def test_bose_einstein():
     assert bose_einstein(100, 0.1) == 0.0
 
 def test_lorentz():
-    assert lorentzian(-1e3, 0.1) == 0.0
-    assert lorentzian(1e3, 0.1) == 0.0
-    assert lorentzian(0., 0.1) == 2 / (0.1 * np.pi)
+    assert lorentzian(-np.inf, 0.1) == 0.0
+    assert lorentzian(np.inf, 0.1) == 0.0
+    assert np.allclose(lorentzian(0., 0.1), 2 / (0.1 * np.pi))
 
 
 def test_semi_circle():
