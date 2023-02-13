@@ -8,6 +8,9 @@ def fermi_dirac(E, kT=0.1, mu=0):
 def bose_einstein(E, kT=0.1, mu=0):
     return 1. / (np.exp((E - mu) / kT) - 1.)
 
+#lorentzian
+def lorentzian(E, w):
+    return (1. / np.pi) * ((w / 2.) / ((w ** 2 / 4.) + E ** 2))
 
 #fininte-band
 def semi_circle(e, mu, w):
