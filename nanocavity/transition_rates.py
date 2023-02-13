@@ -44,7 +44,7 @@ def fermi_matrix(E, kT=0.1, mu=0):
 
 def bose_matrix(E, kT=0.1):
     E = np.array(E)
-    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
+    DE = E.reshape(-1, 1) - E.reshape(1, -1)
     nb = bose_einstein(E=DE, kT=kT)
     return nb
 
