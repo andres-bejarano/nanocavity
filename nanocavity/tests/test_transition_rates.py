@@ -46,11 +46,12 @@ def test_transition_rate():
         assert np.allclose(Gm[0].diagonal(), 0)
 
 def test_transition_rate_radiation():
-    b, Nb = composite(boson_modes=1, max_bosons=5)
-    e, v = la.eigh(Nb[0].toarray())
+    b, Nb = composite(boson_modes=1, max_bosons=6)
+    e, v = Nb[0].eigsh()
+    d = v.shape[1]
     Kp, Km = transition_rate_radiation(e, v, b, k=1)
-    assert Kp.shape == v.shape
-    assert Km.shape == v.shape
+    assert Kp.shape == (d, d)
+    assert Km.shape == (d, d)
 
 def test_populations():
     for i in range(1, 4):
