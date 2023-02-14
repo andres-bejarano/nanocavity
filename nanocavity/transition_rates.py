@@ -46,6 +46,7 @@ def bose_matrix(E, kT=0.1):
     E = np.array(E)
     DE = E.reshape(-1, 1) - E.reshape(1, -1)
     nb = bose_einstein(E=DE, kT=kT)
+    np.fill_diagonal(nb, 0)
     return nb
 
 
