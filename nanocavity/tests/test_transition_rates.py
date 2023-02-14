@@ -31,12 +31,12 @@ def test_fermi_matrix():
     assert np.allclose(A, B)
 
 def test_bose_matrix():
-    E = [-100, 100, 4]
+    E = [0, 1, 2]
     A = bose_matrix(E=E)
     DE = np.array(E).reshape(-1, 1) - np.array(E).reshape(1, -1)
     B = bose_einstein(DE)
-    #assert np.allclose(A, B)
-
+    np.fill_diagonal(B, 0)
+    assert np.allclose(A, B)
 
 def test_transition_rate():
     for i in range(1, 4):
