@@ -49,9 +49,8 @@ def test_transition_rate_radiation():
     b, Nb = composite(boson_modes=1, max_bosons=2)
     e, v = Nb[0].eigsh()
     A = np.diag(1 + np.arange(2), 1)
-    nb = bose_matrix(e)
-    KpA = A.T * nb
-    KmA = A * (1 + nb)
+    KpA = A.T * bose_matrix(e)
+    KmA = A * (1 + bose_matrix(-e))
     Kp, Km = transition_rate_radiation(e, v, b, k=1)
     assert np.allclose(Kp, KpA)
     assert np.allclose(Km, KmA)
