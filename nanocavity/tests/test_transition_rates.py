@@ -5,16 +5,20 @@ from nanocavity.transition_rates import *
 from nanocavity.distributions import *
 
 def rate_parameters(modes=1):
+    d = []
+    Nf = []
     d, Nf = composite(fermion_modes=modes)
     if modes == 1: 
         g = 0.2
+        e, v = Nf.eigsh()
+        return [d], e, v, g
     else: 
         g = np.arange(modes ** 2).reshape(modes, modes)
-    H = 0
-    for Nfi in Nf:
-        H += Nfi
-    e, v = H.eigsh()
-    return d, e, v, g
+        H = 0
+        for Nfi in Nf:
+            H += Nfi
+        e, v = H.eigsh()
+        return d, e, v, g
 
 def test_matrix_elements():
     for i in range(1, 4):
@@ -47,11 +51,11 @@ def test_transition_rate():
 
 def test_transition_rate_radiation():
     b, Nb = composite(boson_modes=1, max_bosons=2)
-    e, v = Nb[0].eigsh()
+    e, v = Nb.eigsh()
     A = np.diag(1 + np.arange(2), 1)
     KpA = A.T * bose_matrix(e)
     KmA = A * (1 + bose_matrix(-e))
-    Kp, Km = transition_rate_radiation(e, v, b, k=1)
+    Kp, Km = transition_rate_radiation(e, v, [b], k=1)
     assert np.allclose(Kp, KpA)
     assert np.allclose(Km, KmA)
 
@@ -74,16 +78,16 @@ def test_asymmetrical_bias():
     gr = [[0.4, 0], [0, 0.2]]
 
     #Two level system operators
-    d, Nf = composite(fermion_modes=2)
+    [d1, d2], [Nf1, Nf2] = composite(fermion_modes=2)
 
     #Hamiltonian diagonalization
     delta = 1.
-    H = delta * Nf[1]
+    H = delta * Nf2
     E, v = H.eigsh()
 
     #transition rates matrix
-    GpL, GmL = transition_rate(E, v, d, gl, mu=VL) 
-    GpR, GmR = transition_rate(E, v, d, gr, mu=VR)
+    GpL, GmL = transition_rate(E, v, [d1, d2], gl, mu=VL) 
+    GpR, GmR = transition_rate(E, v, [d1, d2], gr, mu=VR)
     GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
 
     #populations
@@ -105,12 +109,12 @@ def test_electro_current_single_level():
     d, Nf = composite(fermion_modes=1)
 
     #Hamiltonian diagonalization
-    H = Nf[0]
+    H = Nf
     E, v = H.eigsh()
 
     #transition rates matrix
-    GpL, GmL = transition_rate(E, v, d, gl, mu=VL)
-    GpR, GmR = transition_rate(E, v, d, gr, mu=VR)
+    GpL, GmL = transition_rate(E, v, [d], gl, mu=VL)
+    GpR, GmR = transition_rate(E, v, [d], gr, mu=VR)
     GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
 
     #populations
@@ -131,16 +135,16 @@ def test_electro_current_two_level():
     gr = [[0.5, 0], [0, 0.3]]
 
     #Two level system operators
-    d, Nf = composite(fermion_modes=2)
+    [d1, d2], [Nf1, Nf2] = composite(fermion_modes=2)
 
     #Hamiltonian diagonalization
     delta = 1.
-    H = delta * Nf[1]
+    H = delta * Nf2
     E, v = H.eigsh()
 
     #transition rates matrix
-    GpL, GmL = transition_rate(E, v, d, gl, mu=VL)
-    GpR, GmR = transition_rate(E, v, d, gr, mu=VR)
+    GpL, GmL = transition_rate(E, v, [d1, d2], gl, mu=VL)
+    GpR, GmR = transition_rate(E, v, [d1, d2], gr, mu=VR)
     GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
 
     #populations
@@ -151,4 +155,3 @@ def test_electro_current_two_level():
     IR = electro_current(GpR - GmR, P, 'right')
     
     assert np.allclose(IL, -IR)
-
