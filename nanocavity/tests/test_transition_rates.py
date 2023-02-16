@@ -17,7 +17,7 @@ def rate_parameters(modes=1):
         H = 0
         for Nfi in Nf:
             H += Nfi
-            e, v = H.eigsh()
+        e, v = H.eigsh()
         return d, e, v, g
 
 def test_matrix_elements():
