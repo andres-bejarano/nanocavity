@@ -155,3 +155,68 @@ def test_electro_current_two_level():
     IR = electro_current(GpR - GmR, P, 'right')
     
     assert np.allclose(IL, -IR)
+
+def test_power_spectrum():
+    #coupling with leads
+    gl = 1e-3 * np.eye(2)
+    gr = 1e-3 * np.eye(2)
+
+    g = gl[0, 0]
+
+    #light-matter coupling
+    eg = 0.2
+    delta = 0.9
+    omega_c = 1
+    lambd = 0.3
+    theta = 0.5 * np.angle((omega_c - delta) +  lambd*2j)
+
+    #damping
+    kappa = 1
+
+
+    #VL,VR, kBT
+    VL = np.linspace(-3, 3, 5)
+    VR = np.linspace(-3, 3, 2)
+    kT = 1e-2
+
+    #hamiltonian
+    [d1, d2, a], [Nf1, Nf2, Nb] = composite(fermion_modes=2, boson_modes=1, max_bosons=1)
+    H0 = eg * Nf1 + (eg +  delta) * Nf2 + omega_c * Nb
+    Hint = a.d * d1.d * d2 + a * d2.d * d1
+
+    #Hamiltonian diagonalization
+    H = H0 + lambd * Hint
+    e, v = H.eigsh()
+    idx = [0, 1, 2, 5]
+    e = e[idx]
+    v = v[:, idx]
+
+    #electrodes transition rates
+    GpL, GmL = transition_rate(e, v, [d1, d2], gl, mu=VL, kT=kT)
+    GpR, GmR = transition_rate(e, v, [d1, d2], gl, mu=VR, kT=kT)
+    GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
+
+    #damping matrix
+    Kp, Km = transition_rate_radiation(e, v, [a], kappa, kT=kT)
+    K = Kp + Km
+    #transtion rates matrix
+    Gamma = K[np.newaxis, np.newaxis] + GL + GR
+
+    #populations
+    P = populations(Gamma)
+    Pm = P[:, :, 2][np.newaxis]
+    Pp = P[:, :, 3][np.newaxis]
+
+    #photo-current numerical
+    omega = np.linspace(0, 3, 3)
+    Egm = e[2] - e[1]
+    Egp = e[3] - e[1]
+    wide_gm = K[1, 2]
+    wide_gp = K[1, 3]
+    Lm = lorentzian(Egm - omega, wide_gm)[:, np.newaxis, np.newaxis]
+    Lp = lorentzian(Egp - omega, wide_gp)[:, np.newaxis, np.newaxis]
+
+    Ig = np.sin(theta) ** 2 * Pm * Lm + np.cos(theta) ** 2 * Pp * Lp
+    I = power_spectrum(Km, P, e, omega)
+
+    assert np.allclose(Ig, I)
