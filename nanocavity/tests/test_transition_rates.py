@@ -217,6 +217,6 @@ def test_power_spectrum():
     Lp = lorentzian(Egp - omega, wide_gp)[:, np.newaxis, np.newaxis]
 
     Ig = np.sin(theta) ** 2 * Pm * Lm + np.cos(theta) ** 2 * Pp * Lp
-    I = power_spectrum(Km, P, e, omega)
+    I = power_spectrum(Kp, Km, P, e, omega)
 
     assert np.allclose(Ig, I)

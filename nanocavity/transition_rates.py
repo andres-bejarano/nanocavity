@@ -146,9 +146,14 @@ def electro_current(DGi, P, electrode='left'):
     elif electrode=='right':
         return np.einsum('jab,ijb->ij', DGi, P)
 
-def power_spectrum(K, P, E, omega):
-    DE = -(E.reshape(1, -1, 1) - E.reshape(1, 1, -1)) - omega.reshape(-1, 1, 1)
-    L = lorentzian(DE, w=K)
-    np.fill_diagonal(K, 0)
-    K = K[np.newaxis]
-    return np.einsum('iab,jkb->ijk', K * L, P)
+def power_spectrum(Kp, Km, P, E, omega):
+    DE =E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
+    omega = omega.reshape(-1, 1, 1)
+    Lm = lorentzian(-DE - omega, w=Km)
+    Lp = lorentzian(DE - omega, w=Kp)
+    Km = Km[np.newaxis]
+    Kp = Kp[np.newaxis]
+    D = Km * Lm - Kp * Lp
+    for i in range(omega.shape[0]):
+        np.fill_diagonal(D[i, : , :], 0)
+    return np.einsum('iab,jkb->ijk', D, P)
