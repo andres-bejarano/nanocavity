@@ -147,13 +147,28 @@ def electro_current(DGi, P, electrode='left'):
         return np.einsum('jab,ijb->ij', DGi, P)
 
 def power_spectrum(Kp, Km, P, E, omega):
-    DE =E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
+    r""" power spectrum for system whose elements in the master equation corresponding to transition frequencies satisfy $\omega_{ab}-\omega_{cd}<< 1/tau{sys}$.(Secular approximation)
+
+    Parameters
+    ----------
+    Kp: transition rate matrix for a transition in the system due to the injection of particles from the environment.
+    Km: transition rate matrix for a transition in the system due to the extraction of particles from the system.
+    P: stationray solution of rate equation, populations
+    E: eigenstates of the system hamiltonian
+    omega: frequency of the emitted light
+
+    Return 
+    ----------
+    I: power spectrum map depending on left and right voltage $V_L$, $V_R$ and frequency of the emitted light $\omega$
+    """
+    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
     Lm = lorentzian(-DE - omega, w=Km)
     Lp = lorentzian(DE - omega, w=Kp)
     Km = Km[np.newaxis]
     Kp = Kp[np.newaxis]
     D = Km * Lm - Kp * Lp
+    #Ensuring that the diagonal is exactly zero
     for i in range(omega.shape[0]):
         np.fill_diagonal(D[i, : , :], 0)
     return np.einsum('iab,jkb->ijk', D, P)
