@@ -1,7 +1,7 @@
 import numpy as np
 from secondquant.composite import *
 from secondquant.operator import Operator
-from nanocavity.transition_rates import *
+from nanocavity.rate_equation import *
 from nanocavity.distributions import *
 
 def rate_parameters(modes=1):
@@ -49,13 +49,13 @@ def test_transition_rate():
         assert np.allclose(Gp[0].diagonal(), 0)
         assert np.allclose(Gm[0].diagonal(), 0)
 
-def test_transition_rate_radiation():
+def test_transition_rate():
     b, Nb = composite(boson_modes=1, max_bosons=2)
     e, v = Nb.eigsh()
     A = np.diag(1 + np.arange(2), 1)
     KpA = A.T * bose_matrix(e)
     KmA = A * (1 + bose_matrix(-e))
-    Kp, Km = transition_rate_radiation(e, v, [b], k=1)
+    Kp, Km = transition_rate(e, v, [b], g=1, bath='bosonic')
     assert np.allclose(Kp, KpA)
     assert np.allclose(Km, KmA)
 
@@ -197,7 +197,7 @@ def test_power_spectrum():
     GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
 
     #damping matrix
-    Kp, Km = transition_rate_radiation(e, v, [a], kappa, kT=kT)
+    Kp, Km = transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
     K = Kp + Km
     #transtion rates matrix
     Gamma = K[np.newaxis, np.newaxis] + GL + GR
