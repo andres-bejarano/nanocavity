@@ -50,7 +50,7 @@ def bose_matrix(E, kT=0.1):
     return nb
 
 
-def transition_rate(E, v, A, g, kT=0.1, mu=[0]):
+def transition_rate(E, v, A, g, kT=0.1, mu=[0], bath='fermionic'):
     r""" trasition_rate construct a matrix numpy array with all possible transition rates, where each matrix element represent the transition rate  between two states at given chemical potential.
     Parameters
     ----------
@@ -65,22 +65,19 @@ def transition_rate(E, v, A, g, kT=0.1, mu=[0]):
     Gpr: transition rate matrix for a transition in the system due to the injection of particles from the environment.
     Gmr: transition rate matrix for a transition in the system due to the extraction of particles from the system.
     """
-    fpr = fermi_matrix(E, kT=kT, mu=mu)
-    fmr = 1 - fermi_matrix(-E, kT=kT, mu=mu)
     M = matrix_elements(A, v, g)
-    Gpr = fpr * M.conj().T
-    Gmr = fmr * M
-    return Gpr, Gmr
-
-def transition_rate_radiation(E, v, A, k, kT=0.1):
-    np = bose_matrix(E, kT=kT)
-    nm = 1 + bose_matrix(-E, kT=kT)
-    M = matrix_elements(A, v, k)
-    Kp = np * M.conj().T
-    Km = nm * M
-    return Kp, Km
-
-
+    if bath=='fermionic':
+        fpr = fermi_matrix(E, kT=kT, mu=mu)
+        fmr = 1 - fermi_matrix(-E, kT=kT, mu=mu)
+        Gpr = fpr * M.conj().T
+        Gmr = fmr * M
+        return Gpr, Gmr
+    elif bath=='bosonic':
+        np = bose_matrix(E, kT=kT)
+        nm = 1 + bose_matrix(-E, kT=kT)
+        Kp = np * M.conj().T
+        Km = nm * M
+        return Kp, Km
 
 def transition_rate_matrix(GL, GR):
     r""""The sum of transition rates corresponding to two environments must contain all possible values of chemical potential. The case of two left/right environments has been implemented so far.
