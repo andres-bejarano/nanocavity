@@ -220,3 +220,44 @@ def test_power_spectrum():
     I = power_spectrum(Kp, Km, P, e, omega)
 
     assert np.allclose(Ig, I)
+
+def test_photo_current():
+    #parameters
+    omegac = 1
+    delta = 0.9
+    coupling = 0.3
+    g = 1e-3 * np.eye(2)
+    kappa = 1
+    kT = 1e-2
+    VL = 3
+    VR = -3
+    Eg = 0.4
+    omega = np.linspace(-20, 20, 1001)
+
+    [d1, d2, a], [Nf1, Nf2, Nb] = \
+        composite(fermion_modes=2, boson_modes=1, max_bosons=1)
+    H0 = Eg * Nf1 + (Eg +  delta) * Nf2 + omegac * Nb
+    Hint = coupling * (a.d * d1.d * d2 + a * d2.d * d1)
+    H = H0 +  Hint
+    e, v = H.eigh()
+    idx = [0, 1, 3, 4, 5]
+    e = e[idx]
+    v = v[:, idx]
+
+    #electrodes transition rates
+    GpL, GmL = transition_rate(e, v, [d1, d2], g, mu=VL, kT=kT)
+    GpR, GmR = transition_rate(e, v, [d1, d2], g, mu=VR, kT=kT)
+
+    GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
+
+    #damping matrix
+    Kp, Km = transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
+    K = Kp + Km
+
+    #transtion rates matrix
+    Gamma = K[np.newaxis, np.newaxis] + GL + GR
+    P = populations(Gamma)
+
+    I = np.round(photo_current(Kp, Km, P), 4)
+    print(I)
+    assert np.allclose(I, g[0, 0]/2)

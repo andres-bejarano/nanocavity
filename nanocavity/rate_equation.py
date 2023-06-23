@@ -143,6 +143,20 @@ def electro_current(DGi, P, electrode='left'):
     elif electrode=='right':
         return np.einsum('jab,ijb->ij', DGi, P)
 
+def photo_current(Kp, Km, P):
+    r"""
+    photo-current calculated 
+    Parameters
+    ----------
+    Kp: nxn numpy array where n is the dimension of hilbert space. It Is the outcoming transition rate
+    Km: nxn numpy array where n is the dimension of hilbert space. It is the incoming transition rate
+    P: mxqxn numpy array where m,q is the dimension of the left,right hand side chemical potential and n the dimension of hilbert space. P is the population
+    Return 
+    ----------
+    I: mxq numpy array.
+    """
+    return np.einsum('ab,ijb->ij', Km - Kp, P)
+
 def power_spectrum(Kp, Km, P, E, omega):
     r""" power spectrum for system whose elements in the master equation corresponding to transition frequencies satisfy $\omega_{ab}-\omega_{cd}<< 1/tau{sys}$.(Secular approximation)
 
