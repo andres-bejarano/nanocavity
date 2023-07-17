@@ -5,9 +5,10 @@ from secondquant.composite import *
 from nanocavity.distributions import *
 from nanocavity.rate_equation import *
 
-def E_matrix(K, GL, GR, p):
+def E_matrix(Kp, Km, GL, GR, p):
     x = np.linspace(-2*p, 2*p, 5)
     #K[vl, vr, dim(h), dim(h)]
+    K = Kp + Km
     K = K[np.newaxis, np.newaxis]
     Gamma = (GL + GR) + K
     Gout = np.zeros(Gamma.shape)
@@ -17,15 +18,15 @@ def E_matrix(K, GL, GR, p):
     for i in range(Gamma.shape[2]):
         Gout[:, :, i, i] = -Gamma.sum(axis=2)[:, :, i]
 
-    M = (Gout + GL + GR)[np.newaxis] + K[np.newaxis] * \
+    M = (Gout + GL + GR + Kp)[np.newaxis] + Km[np.newaxis] * \
         np.exp(1j * x)[:, np.newaxis, np.newaxis, np.newaxis, np.newaxis]
     #M[chi, vl, vr, dim(H), dim(H)]
     E, _ = np.linalg.eig(M)
     #E[chi, vl, vr, dim(H)]
     return E, x
 
-def current_fcs(K, GL, GR, p):
-    E, x = E_matrix(K, GL, GR, p)
+def current_fcs(Kp, Km, GL, GR, p):
+    E, x = E_matrix(Kp, Km, GL, GR, p)
     #E[chi, vl, vr, dim(H)]
     index = x.size // 2
     #we look at the max real value for chi=0
@@ -37,8 +38,8 @@ def current_fcs(K, GL, GR, p):
     return (E_imag[index + 1] - E_imag[index]) / p
 
 
-def variance_fcs(K, GL, GR, p):
-    E, x = E_matrix(K, GL, GR, p)
+def variance_fcs(Kp, Km, GL, GR, p):
+    E, x = E_matrix(Kp, Km, GL, GR, p)
     index = x.size // 2
     index_M = np.argmax(np.real(E[index]), axis=2)
     index_Mr = np.repeat(index_M[np.newaxis], len(x), axis=0)
