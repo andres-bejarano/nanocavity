@@ -58,15 +58,17 @@ def cumulants(Kp, Km, GL, GpR, GmR, p):
     #the first cumulants is the gradient respect to x and y
     E_imag = np.take_along_axis(np.imag(E), np.expand_dims(nxy, axis=4), axis=4)[:, :, :, :, 0]
     #E[x, y, vl, vr]
-    I_ph = (E_imag[zero+1,  zero] - E_imag[zero, zero]) / p
-    I_el = -(E_imag[zero, zero+1] - E_imag[zero, zero]) / p
+    #the first cumulants are the average number of particles 
+    #per unit T that get in the drain.
+    n_ph = (E_imag[zero+1,  zero] - E_imag[zero, zero]) / p
+    n_el = (E_imag[zero, zero+1] - E_imag[zero, zero]) / p
     
     #second cumulant
     E_real = np.take_along_axis(np.real(E), np.expand_dims(nxy, axis=4), axis=4)[:, :, :, :, 0]
     sigma2_ph = -(E_real[zero+2, zero] + E_real[zero, zero] - 2 * E_real[zero+1, zero]) / p ** 2
     sigma2_el = -(E_real[zero, zero+2] + E_real[zero, zero] - 2 * E_real[zero, zero+1]) / p ** 2
-    covarianze = -(E_real[zero+1, zero+1] + E_real[zero, zero] - E_real[zero, zero+1] - E_real[zero+1, zero]) / p ** 2
+    covariance = -(E_real[zero+1, zero+1] + E_real[zero, zero] - E_real[zero, zero+1] - E_real[zero+1, zero]) / p ** 2
     
-    return I_ph, I_el, sigma2_ph, sigma2_el, covarianze
+    return n_ph, n_el, sigma2_ph, sigma2_el, covariance
 
 

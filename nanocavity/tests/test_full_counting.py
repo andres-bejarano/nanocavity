@@ -42,5 +42,5 @@ def test_cumulants():
     Iel = electro_current(GpR - GmR, P, electrode='right')
     
     assert np.allclose(I_fcs_ph, Iph)
-    assert np.allclose(I_fcs_el, Iel)
+    assert np.allclose(I_fcs_el, -Iel)
 test_cumulants()
