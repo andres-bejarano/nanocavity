@@ -5,8 +5,27 @@ from secondquant.composite import *
 from nanocavity.distributions import *
 from nanocavity.rate_equation import *
 
-def M_matrix(Kp, Km, GL, GpR, GmR, p):
-    x = np.linspace(-2*p, 2*p, 5)
+
+def d1(E, zero, p=1e-3):
+    L = (E[zero] - E[zero-1]) / p
+    R = (E[zero+1] - E[zero]) / p
+    M = (E[zero+1] - E[zero-1]) / (2*p)
+    return L, R, M
+
+def d2(E, zero, p=1e-3):
+    L = (E[zero] + E[zero-2] - 2 * E[zero-1]) / p ** 2
+    R = (E[zero+2] + E[zero] - 2 * E[zero+1]) / p ** 2
+    M = (E[zero+2] + E[zero-2] - 2 * E[zero]) / (4 * p ** 2)
+    return L, R, M
+
+def dxy(E, zero, p=1e-3):
+    L = (E[zero-1, zero-1] + E[zero, zero] - E[zero, zero-1] - E[zero-1, zero]) / p ** 2
+    R = (E[zero+1, zero+1] + E[zero, zero] - E[zero, zero+1] - E[zero+1, zero]) /  p ** 2
+    M = (E[zero+1, zero+1] + E[zero-1, zero-1] - E[zero+1, zero-1] - E[zero-1, zero+1]) / (4 * p ** 2)
+    return L, R, M
+
+def M_matrix(Kp, Km, GL, GpR, GmR, p=1e-3):
+    x = np.linspace(-5*p, 5*p, 11)
     
     #K[dim(h), dim(h)]
     K = Kp + Km
@@ -39,7 +58,7 @@ def M_matrix(Kp, Km, GL, GpR, GmR, p):
     #E[x, y, vl, vr, dim(H)]
     return E, x
 
-def cumulants(Kp, Km, GL, GpR, GmR, p):
+def E_max(Kp, Km, GL, GpR, GmR, p=1e-3):
     E, x = M_matrix(Kp, Km, GL, GpR, GmR, p)
     #E[x, y, vl, vr, dim(H)]
     #we look the position of (x,y) = (0,0)
@@ -54,21 +73,24 @@ def cumulants(Kp, Km, GL, GpR, GmR, p):
     ny = np.repeat(n[np.newaxis], len(x), axis=0)
     nxy = np.repeat(ny[np.newaxis], len(x), axis=0)
     #nx[len(y),vl, vr] and nxy[len(x), len(y), vl, vr]
+    E_max = np.take_along_axis(E, np.expand_dims(nxy, axis=4), axis=4)[:, :, :, :, 0]
+    return E_max, zero
+
+def cumulants(Kp, Km, GL, GpR, GmR, p=1e-3):
+    E, zero = E_max(Kp, Km, GL, GpR, GmR, p)
+    #E[x, y, vl, vr]
+    E_re = np.real(E)
+    E_im = np.imag(E)
 
     #the first cumulants is the gradient respect to x and y
-    E_imag = np.take_along_axis(np.imag(E), np.expand_dims(nxy, axis=4), axis=4)[:, :, :, :, 0]
-    #E[x, y, vl, vr]
     #the first cumulants are the average number of particles 
     #per unit T that get in the drain.
-    n_ph = (E_imag[zero+1,  zero] - E_imag[zero, zero]) / p
-    n_el = (E_imag[zero, zero+1] - E_imag[zero, zero]) / p
+    Nph, _, _ = d1(E_im[:, zero, :, :], zero)
+    Nel, _, _ = d1(E_im[zero, :, :], zero)
     
-    #second cumulant
-    E_real = np.take_along_axis(np.real(E), np.expand_dims(nxy, axis=4), axis=4)[:, :, :, :, 0]
-    sigma2_ph = -(E_real[zero+2, zero] + E_real[zero, zero] - 2 * E_real[zero+1, zero]) / p ** 2
-    sigma2_el = -(E_real[zero, zero+2] + E_real[zero, zero] - 2 * E_real[zero, zero+1]) / p ** 2
-    covariance = -(E_real[zero+1, zero+1] + E_real[zero, zero] - E_real[zero, zero+1] - E_real[zero+1, zero]) / p ** 2
+    #second cumulant Z = sigma2
+    Zph, _, _ = d2(E_re[:, zero, :, :], zero)
+    Zel, _, _ = d2(E_re[zero, :, :, :], zero)
+    covariance, _, _ = dxy(E_re, zero)
     
-    return n_ph, n_el, sigma2_ph, sigma2_el, covariance
-
-
+    return Nph, Nel, -Zph, -Zel, -covariance
