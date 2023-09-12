@@ -3,7 +3,7 @@ from nanocavity.distributions import *
 from nanocavity.operators import *
 from nanocavity.transition_rates import *
 from secondquant.composite import *
-from qutip import (Qobj, about, basis, create, destroy, fock, fock_dm, qeye, sigmax, sigmay, sigmaz, tensor, steadystate)
+from qutip import steadystate
 
 
 def test_Htls_nc_QuTiP():
