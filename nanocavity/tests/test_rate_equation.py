@@ -260,3 +260,38 @@ def test_photo_current():
     I = np.round(nre.photo_current(Kp, Km, P), 4)
     print(I)
     assert np.allclose(I, g[0, 0]/2)
+
+def test_bath_system_bath_rate():
+    #parameters
+    omegac = 1
+    kappa = 1
+    kT = 1e-2
+    VL = np.array(50)
+    VR = np.array(0.)
+    m = 1e-4
+    omega = np.linspace(0, 3, 1001)
+
+    #hamiltonian
+    a, Nb = composite(boson_modes=1, max_bosons=49)
+    e, v = Nb.eigh()
+
+
+    #transtion rates, populations and spectrum
+    Kp, Km = transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
+    K = Kp + Km
+    M = bath_system_bath_rate(e, v, [a + a.d], m, VL=VL, VR=VR, kT=kT)
+    P = populations(K[np.newaxis, np.newaxis]  + M).squeeze()
+
+    #analytics
+
+    def F(x, kT):
+        return x/(1-np.exp(-x/kT))
+
+    Gup = kappa * bose_einstein(omegac, kT=kT) + \
+            m * (F(VL-omegac, kT) + F(-VL-omegac, kT=kT))
+    Gdw = kappa * (1 + bose_einstein(omegac, kT=kT)) + \
+            m * (F(VL+omegac, kT) + F(-VL+omegac, kT=kT))
+    
+    n = np.arange(50)
+    Pn = ((Gdw - Gup) / Gdw) * (Gup/Gdw) ** n
+    np.allclose(P, Pn)

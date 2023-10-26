@@ -98,6 +98,16 @@ def transition_rate_matrix(GL, GR):
     GR = GR.reshape(1, vr, k, k)
     return GL, GR
 
+def bath_system_bath_rate(E, v, A, M, VL, VR, kT=0.1):
+    M_elements = matrix_elements(A, v, M)[np.newaxis, np.newaxis]
+    DE = E.reshape(1, 1, -1, 1) - E.reshape(1, 1, 1, -1)
+    V = VL.reshape(-1, 1, 1, 1) - VR.reshape(1, -1, 1, 1)
+    xp = V-DE
+    xm = -V-DE
+    F = xp/(1-np.exp(-xp/kT)) + xm/(1-np.exp(-xm/kT))
+    return M_elements * F
+
+
 def populations(Gamma):
     r""" The stationary solution of rate equation will calculated \Gamma P = 0.
 
