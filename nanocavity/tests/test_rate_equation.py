@@ -270,7 +270,7 @@ def test_bath_system_bath_rate():
     VL = np.linspace(-105, 5, 101)
     VR = np.linspace(-3, 103, 101)
 
-    m = 1
+    m = 2
     n = np.arange(11)
 
     #hamiltonian
@@ -288,7 +288,7 @@ def test_bath_system_bath_rate():
     E = abs(np.array(omegac).reshape(1, 1, -1))
     bias = abs(VL.reshape(-1, 1, 1) - VR.reshape(1, -1, 1))
     Gup = kappa * bose_einstein(omegac, kT=kT) + \
-            m *  Fermi_cb(bias-E, kT)+ Fermi_cb(-bias-E, kT=kT)
+            m *  (Fermi_cb(bias-E, kT) + Fermi_cb(-bias-E, kT=kT))
     Gdw = kappa * (1 + bose_einstein(omegac, kT=kT)) + \
             m * (Fermi_cb(bias+E, kT) + Fermi_cb(-bias+E, kT=kT))
     x= Gup / Gdw
