@@ -263,37 +263,36 @@ def test_photo_current():
 
 def test_bath_system_bath_rate():
     #parameters
+
     omegac = 1
     kappa = 1
-    kT = 1e-2
-    VL = np.array(50)
-    VR = np.array(0.)
+    kT = 1e-1
+    VL = np.linspace(-105, 5, 101)
+    VR = np.linspace(-3, 103, 101)
+
     m = 1
-    omega = np.linspace(0, 3, 1001)
+    n = np.arange(11)
 
     #hamiltonian
-    a, Nb = composite(boson_modes=1, max_bosons=49)
+    a, Nb = composite(boson_modes=1, max_bosons=max(n))
     e, v = Nb.eigh()
-
 
     #transtion rates, populations and spectrum
     Kp, Km = transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
     K = Kp + Km
     M = bath_system_bath_rate(e, v, [a + a.d], m, VL=VL, VR=VR, kT=kT)
-    P = populations(K[np.newaxis, np.newaxis]  + M).squeeze()
+    P = populations(K[np.newaxis, np.newaxis]  + M)
+
 
     #analytics
-
-    def F(x, kT):
-        return x/(1-np.exp(-x/kT))
-
+    E = abs(np.array(omegac).reshape(1, 1, -1))
+    bias = abs(VL.reshape(-1, 1, 1) - VR.reshape(1, -1, 1))
     Gup = kappa * bose_einstein(omegac, kT=kT) + \
-            m * (F(VL-omegac, kT) + F(-VL-omegac, kT=kT))
+            m *  Fermi_cb(bias-E, kT)+ Fermi_cb(-bias-E, kT=kT)
     Gdw = kappa * (1 + bose_einstein(omegac, kT=kT)) + \
-            m * (F(VL+omegac, kT) + F(-VL+omegac, kT=kT))
-    x = Gup/Gdw
-    n = np.arange(50)
-    N = max(n)
-    gamma = (1 - x) / (1 - x ** (n + 1)) 
+            m * (Fermi_cb(bias+E, kT) + Fermi_cb(-bias+E, kT=kT))
+    x= Gup / Gdw
+    gamma = (1 - x)/(1 - x ** (max(n) + 1))
     Pn = gamma * x ** n
-    np.allclose(P, Pn)
+
+    assert np.allclose(P, Pn)
