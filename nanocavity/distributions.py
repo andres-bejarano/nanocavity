@@ -21,3 +21,7 @@ def semi_circle(e, mu, w):
     y = (1 - x ** 2) ** 0.5
     return np.squeeze(y)
 
+#intregral of two fermi function \int dy f_l(y)(1-f_r(y+x)) = x/1-e^{x/kBT}
+#it appears tipycally in coulomb blockade
+def Fermi_cb(x, kT):
+    return np.where(x == 0, 1/kT, x/(1-np.exp(-x/kT)))
