@@ -268,7 +268,7 @@ def test_bath_system_bath_rate():
     kT = 1e-2
     VL = np.array(50)
     VR = np.array(0.)
-    m = 1e-4
+    m = 1
     omega = np.linspace(0, 3, 1001)
 
     #hamiltonian
@@ -291,7 +291,9 @@ def test_bath_system_bath_rate():
             m * (F(VL-omegac, kT) + F(-VL-omegac, kT=kT))
     Gdw = kappa * (1 + bose_einstein(omegac, kT=kT)) + \
             m * (F(VL+omegac, kT) + F(-VL+omegac, kT=kT))
-    
+    x = Gup/Gdw
     n = np.arange(50)
-    Pn = ((Gdw - Gup) / Gdw) * (Gup/Gdw) ** n
+    N = max(n)
+    gamma = (1 - x) / (1 - x ** (n + 1)) 
+    Pn = gamma * x ** n
     np.allclose(P, Pn)
