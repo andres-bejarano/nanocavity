@@ -1,9 +1,7 @@
 import numpy as np
-from secondquant.composite import *
-from secondquant.operator import Operator
-from nanocavity.distributions import *
+import nanocavity.distributions as ndist
 import numpy.linalg as la
-import matplotlib.pyplot as plt
+
 
 def matrix_elements(A, v, g):
     r""" Construction of an operator in given basis.
@@ -39,13 +37,13 @@ def fermi_matrix(E, kT=0.1, mu=0):
     mu = np.array(mu)
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     mu = mu.reshape(-1, 1, 1) 
-    f = fermi_dirac(E=DE, kT=kT, mu=mu)
+    f = ndist.fermi_dirac(E=DE, kT=kT, mu=mu)
     return f
 
 def bose_matrix(E, kT=0.1):
     E = np.array(E)
     DE = E.reshape(-1, 1) - E.reshape(1, -1)
-    nb = bose_einstein(E=DE, kT=kT)
+    nb = ndist.bose_einstein(E=DE, kT=kT)
     np.fill_diagonal(nb, 0)
     return nb
 
@@ -174,8 +172,8 @@ def power_spectrum(Kp, Km, P, E, omega):
     """
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
-    Lm = lorentzian(-DE - omega, w=Km)
-    Lp = lorentzian(DE - omega, w=Kp)
+    Lm = ndist.lorentzian(-DE - omega, w=Km)
+    Lp = ndist.lorentzian(DE - omega, w=Kp)
     Km = Km[np.newaxis]
     Kp = Kp[np.newaxis]
     D = Km * Lm - Kp * Lp

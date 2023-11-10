@@ -1,13 +1,12 @@
 import numpy as np
-from secondquant.composite import *
-from secondquant.operator import Operator
+import secondquant.composite as sc
 from nanocavity.rate_equation import *
 from nanocavity.distributions import *
 
 def rate_parameters(modes=1):
     d = []
     Nf = []
-    d, Nf = composite(fermion_modes=modes)
+    d, Nf = sc.composite(fermion_modes=modes)
     if modes == 1: 
         g = 0.2
         e, v = Nf.eigsh()
@@ -78,7 +77,7 @@ def test_asymmetrical_bias():
     gr = [[0.4, 0], [0, 0.2]]
 
     #Two level system operators
-    [d1, d2], [Nf1, Nf2] = composite(fermion_modes=2)
+    [d1, d2], [Nf1, Nf2] = sc.composite(fermion_modes=2)
 
     #Hamiltonian diagonalization
     delta = 1.
@@ -106,7 +105,7 @@ def test_electro_current_single_level():
     gr = 0.2
 
     #Two level system operators
-    d, Nf = composite(fermion_modes=1)
+    d, Nf = sc.composite(fermion_modes=1)
 
     #Hamiltonian diagonalization
     H = Nf
@@ -135,7 +134,7 @@ def test_electro_current_two_level():
     gr = [[0.5, 0], [0, 0.3]]
 
     #Two level system operators
-    [d1, d2], [Nf1, Nf2] = composite(fermion_modes=2)
+    [d1, d2], [Nf1, Nf2] = sc.composite(fermion_modes=2)
 
     #Hamiltonian diagonalization
     delta = 1.
@@ -180,7 +179,7 @@ def test_power_spectrum():
     kT = 1e-2
 
     #hamiltonian
-    [d1, d2, a], [Nf1, Nf2, Nb] = composite(fermion_modes=2, boson_modes=1, max_bosons=1)
+    [d1, d2, a], [Nf1, Nf2, Nb] = sc.composite(fermion_modes=2, boson_modes=1, max_bosons=1)
     H0 = eg * Nf1 + (eg +  delta) * Nf2 + omega_c * Nb
     Hint = a.d * d1.d * d2 + a * d2.d * d1
 
@@ -235,7 +234,7 @@ def test_photo_current():
     omega = np.linspace(-20, 20, 1001)
 
     [d1, d2, a], [Nf1, Nf2, Nb] = \
-        composite(fermion_modes=2, boson_modes=1, max_bosons=1)
+        sc.composite(fermion_modes=2, boson_modes=1, max_bosons=1)
     H0 = Eg * Nf1 + (Eg +  delta) * Nf2 + omegac * Nb
     Hint = coupling * (a.d * d1.d * d2 + a * d2.d * d1)
     H = H0 +  Hint
