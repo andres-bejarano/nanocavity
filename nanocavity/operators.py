@@ -1,12 +1,12 @@
 import numpy as np
-from nanocavity.distributions import *
-from secondquant.composite import *
+import nanocavity.distributions as ndist
+import secondquant.composite as sc
 from qutip import (qeye, tensor, destroy)
 
 #two level system coupled to single cavity mode
 def H_tls_nc(Eg, delta, omega, coupling):
     [d1, d2, a], [Nf1, Nf2, Nb] = \
-            composite(fermion_modes=2, boson_modes=1, max_bosons=1)
+            sc.composite(fermion_modes=2, boson_modes=1, max_bosons=1)
     H0 = Eg * Nf1 + (Eg +  delta) * Nf2 + omega * Nb
     Hint = coupling * (a.d * d1.d * d2 + a * d2.d * d1)
     H = H0 +  Hint
@@ -39,8 +39,8 @@ def fermionic_collapses(A_op, E, V, VL, VR, kT, g):
             Mij = (V[i].dag() * A_op * V[j]).full().squeeze() ** 2
             if Mij != 0:
                 dE = abs(E[i]-E[j])
-                fL = fermi_dirac(dE, mu=VL, kT=kT)
-                fR = fermi_dirac(dE, mu=VR, kT=kT)
+                fL = ndist.fermi_dirac(dE, mu=VL, kT=kT)
+                fR = ndist.fermi_dirac(dE, mu=VR, kT=kT)
                 P = V[i] * V[j].dag()
                 c.append(np.sqrt(g * Mij * (1 - fL)) * P)
                 c.append(np.sqrt(g * Mij * (1 - fR)) * P)
@@ -56,7 +56,7 @@ def bosonic_collapses(A_op, E, V, kT, k):
             Mij = (V[i].dag() * A_op * V[j]).full().squeeze() ** 2
             if Mij != 0:
                 dE = abs(E[i]-E[j])
-                nb = bose_einstein(dE, kT=kT)
+                nb = ndist.bose_einstein(dE, kT=kT)
                 P = V[i] * V[j].dag()
                 c.append(np.sqrt(k * Mij * (1 + nb)) * P)
                 c.append(np.sqrt(k * Mij * nb) * P.dag())

@@ -1,9 +1,4 @@
 import numpy as np
-import numpy.linalg as la
-from secondquant.operator import Operator
-from secondquant.composite import *
-from nanocavity.distributions import *
-from nanocavity.rate_equation import *
 
 
 def d1(E, zero, p=1e-3):
