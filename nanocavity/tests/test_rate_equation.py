@@ -1,7 +1,7 @@
 import numpy as np
 import secondquant.composite as sc
-from nanocavity.rate_equation import *
-from nanocavity.distributions import *
+import nanocavity.rate_equation as nre
+import nanocavity.distributions as ndist
 
 def rate_parameters(modes=1):
     d = []
@@ -22,48 +22,48 @@ def rate_parameters(modes=1):
 def test_matrix_elements():
     for i in range(1, 4):
         d, e, v, g =  rate_parameters(i)
-        M = matrix_elements(d, v, g)
+        M = nre.matrix_elements(d, v, g)
         assert M.shape == (len(e), len(e))
 
 def test_fermi_matrix():
     E = [0, 1, 2]
     mu = np.linspace(-1, 1, 3)
-    A = fermi_matrix(E=E, mu=mu)  
+    A = nre.fermi_matrix(E=E, mu=mu) 
     DE = np.array(E).reshape(1, -1, 1) - np.array(E).reshape(1, 1, -1)
-    B = fermi_dirac(DE, mu=mu.reshape(-1, 1, 1))
+    B = ndist.fermi_dirac(DE, mu=mu.reshape(-1, 1, 1))
     assert np.allclose(A, B)
 
 def test_bose_matrix():
     E = [0, 1, 2]
-    A = bose_matrix(E=E)
+    A = nre.bose_matrix(E=E)
     DE = np.array(E).reshape(-1, 1) - np.array(E).reshape(1, -1)
-    B = bose_einstein(DE)
+    B = ndist.bose_einstein(DE)
     np.fill_diagonal(B, 0)
     assert np.allclose(A, B)
 
 def test_transition_rate():
     for i in range(1, 4):
         d, e, v, g = rate_parameters(i)
-        Gp, Gm = transition_rate(e, v, d, g)
+        Gp, Gm = nre.transition_rate(e, v, d, g)
         assert np.allclose(Gp[0].diagonal(), 0)
         assert np.allclose(Gm[0].diagonal(), 0)
 
 def test_transition_rate():
-    b, Nb = composite(boson_modes=1, max_bosons=2)
+    b, Nb = sc.composite(boson_modes=1, max_bosons=2)
     e, v = Nb.eigsh()
     A = np.diag(1 + np.arange(2), 1)
-    KpA = A.T * bose_matrix(e)
-    KmA = A * (1 + bose_matrix(-e))
-    Kp, Km = transition_rate(e, v, [b], g=1, bath='bosonic')
+    KpA = A.T * nre.bose_matrix(e)
+    KmA = A * (1 + nre.bose_matrix(-e))
+    Kp, Km = nre.transition_rate(e, v, [b], g=1, bath='bosonic')
     assert np.allclose(Kp, KpA)
     assert np.allclose(Km, KmA)
 
 def test_populations():
     for i in range(1, 4):
         d, e, v, g = rate_parameters(i)
-        Gp, Gm = transition_rate(e, v, d, g)
-        GL, GR = transition_rate_matrix(Gp + Gm, Gp + Gm)
-        P = populations(GL + GR)
+        Gp, Gm = nre.transition_rate(e, v, d, g)
+        GL, GR = nre.transition_rate_matrix(Gp + Gm, Gp + Gm)
+        P = nre.populations(GL + GR)
         assert np.allclose(P[0, 0].sum(), 1)
 
 def test_asymmetrical_bias():
@@ -85,13 +85,13 @@ def test_asymmetrical_bias():
     E, v = H.eigsh()
 
     #transition rates matrix
-    GpL, GmL = transition_rate(E, v, [d1, d2], gl, mu=VL) 
-    GpR, GmR = transition_rate(E, v, [d1, d2], gr, mu=VR)
-    GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
+    GpL, GmL = nre.transition_rate(E, v, [d1, d2], gl, mu=VL)
+    GpR, GmR = nre.transition_rate(E, v, [d1, d2], gr, mu=VR)
+    GL, GR = nre.transition_rate_matrix(GpL + GmL, GpR + GmR)
 
     #populations
     Gamma = GL + GR
-    P = populations(GL + GR)
+    P = nre.populations(GL + GR)
     assert np.allclose(P.sum(axis=2), 1)
 
 def test_electro_current_single_level():
@@ -112,16 +112,16 @@ def test_electro_current_single_level():
     E, v = H.eigsh()
 
     #transition rates matrix
-    GpL, GmL = transition_rate(E, v, [d], gl, mu=VL)
-    GpR, GmR = transition_rate(E, v, [d], gr, mu=VR)
-    GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
+    GpL, GmL = nre.transition_rate(E, v, [d], gl, mu=VL)
+    GpR, GmR = nre.transition_rate(E, v, [d], gr, mu=VR)
+    GL, GR = nre.transition_rate_matrix(GpL + GmL, GpR + GmR)
 
     #populations
-    P = populations(GL + GR)
+    P = nre.populations(GL + GR)
     
     #current
-    IL = electro_current(GpL - GmL, P, 'left')
-    IR = electro_current(GpR - GmR, P, 'right')
+    IL = nre.electro_current(GpL - GmL, P, 'left')
+    IR = nre.electro_current(GpR - GmR, P, 'right')
     assert np.allclose(IL, -IR)
 
 def test_electro_current_two_level():
@@ -142,16 +142,16 @@ def test_electro_current_two_level():
     E, v = H.eigsh()
 
     #transition rates matrix
-    GpL, GmL = transition_rate(E, v, [d1, d2], gl, mu=VL)
-    GpR, GmR = transition_rate(E, v, [d1, d2], gr, mu=VR)
-    GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
+    GpL, GmL = nre.transition_rate(E, v, [d1, d2], gl, mu=VL)
+    GpR, GmR = nre.transition_rate(E, v, [d1, d2], gr, mu=VR)
+    GL, GR = nre.transition_rate_matrix(GpL + GmL, GpR + GmR)
 
     #populations
-    P = populations(GL + GR)
+    P = nre.populations(GL + GR)
 
     #current
-    IL = electro_current(GpL - GmL, P, 'left')
-    IR = electro_current(GpR - GmR, P, 'right')
+    IL = nre.electro_current(GpL - GmL, P, 'left')
+    IR = nre.electro_current(GpR - GmR, P, 'right')
     
     assert np.allclose(IL, -IR)
 
@@ -191,18 +191,18 @@ def test_power_spectrum():
     v = v[:, idx]
 
     #electrodes transition rates
-    GpL, GmL = transition_rate(e, v, [d1, d2], gl, mu=VL, kT=kT)
-    GpR, GmR = transition_rate(e, v, [d1, d2], gl, mu=VR, kT=kT)
-    GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
+    GpL, GmL = nre.transition_rate(e, v, [d1, d2], gl, mu=VL, kT=kT)
+    GpR, GmR = nre.transition_rate(e, v, [d1, d2], gl, mu=VR, kT=kT)
+    GL, GR = nre.transition_rate_matrix(GpL + GmL, GpR + GmR)
 
     #damping matrix
-    Kp, Km = transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
+    Kp, Km = nre.transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
     K = Kp + Km
     #transtion rates matrix
     Gamma = K[np.newaxis, np.newaxis] + GL + GR
 
     #populations
-    P = populations(Gamma)
+    P = nre.populations(Gamma)
     Pm = P[:, :, 2][np.newaxis]
     Pp = P[:, :, 3][np.newaxis]
 
@@ -212,11 +212,11 @@ def test_power_spectrum():
     Egp = e[3] - e[1]
     wide_gm = K[1, 2]
     wide_gp = K[1, 3]
-    Lm = lorentzian(Egm - omega, wide_gm)[:, np.newaxis, np.newaxis]
-    Lp = lorentzian(Egp - omega, wide_gp)[:, np.newaxis, np.newaxis]
+    Lm = ndist.lorentzian(Egm - omega, wide_gm)[:, np.newaxis, np.newaxis]
+    Lp = ndist.lorentzian(Egp - omega, wide_gp)[:, np.newaxis, np.newaxis]
 
     Ig = np.sin(theta) ** 2 * Pm * Lm + np.cos(theta) ** 2 * Pp * Lp
-    I = power_spectrum(Kp, Km, P, e, omega)
+    I = nre.power_spectrum(Kp, Km, P, e, omega)
 
     assert np.allclose(Ig, I)
 
@@ -244,19 +244,19 @@ def test_photo_current():
     v = v[:, idx]
 
     #electrodes transition rates
-    GpL, GmL = transition_rate(e, v, [d1, d2], g, mu=VL, kT=kT)
-    GpR, GmR = transition_rate(e, v, [d1, d2], g, mu=VR, kT=kT)
+    GpL, GmL = nre.transition_rate(e, v, [d1, d2], g, mu=VL, kT=kT)
+    GpR, GmR = nre.transition_rate(e, v, [d1, d2], g, mu=VR, kT=kT)
 
-    GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
+    GL, GR = nre.transition_rate_matrix(GpL + GmL, GpR + GmR)
 
     #damping matrix
-    Kp, Km = transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
+    Kp, Km = nre.transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
     K = Kp + Km
 
     #transtion rates matrix
     Gamma = K[np.newaxis, np.newaxis] + GL + GR
-    P = populations(Gamma)
+    P = nre.populations(Gamma)
 
-    I = np.round(photo_current(Kp, Km, P), 4)
+    I = np.round(nre.photo_current(Kp, Km, P), 4)
     print(I)
     assert np.allclose(I, g[0, 0]/2)
