@@ -274,23 +274,23 @@ def test_bath_system_bath_rate():
     n = np.arange(11)
 
     #hamiltonian
-    a, Nb = composite(boson_modes=1, max_bosons=max(n))
+    a, Nb = sc.composite(boson_modes=1, max_bosons=max(n))
     e, v = Nb.eigh()
 
     #transtion rates, populations and spectrum
-    Kp, Km = transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
+    Kp, Km = nre.transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
     K = Kp + Km
-    M = bath_system_bath_rate(e, v, [a + a.d], m, VL=VL, VR=VR, kT=kT)
-    P = populations(K[np.newaxis, np.newaxis]  + M)
+    M = nre.bath_system_bath_rate(e, v, [a + a.d], m, VL=VL, VR=VR, kT=kT)
+    P = nre.populations(K[np.newaxis, np.newaxis]  + M)
 
 
     #analytics
     E = abs(np.array(omegac).reshape(1, 1, -1))
     bias = abs(VL.reshape(-1, 1, 1) - VR.reshape(1, -1, 1))
-    Gup = kappa * bose_einstein(omegac, kT=kT) + \
-            m *  (Fermi_cb(bias-E, kT) + Fermi_cb(-bias-E, kT=kT))
-    Gdw = kappa * (1 + bose_einstein(omegac, kT=kT)) + \
-            m * (Fermi_cb(bias+E, kT) + Fermi_cb(-bias+E, kT=kT))
+    Gup = kappa * ndist.bose_einstein(omegac, kT=kT) + \
+            m *  (ndist.Fermi_cb(bias-E, kT) + ndist.Fermi_cb(-bias-E, kT=kT))
+    Gdw = kappa * (1 + ndist.bose_einstein(omegac, kT=kT)) + \
+            m * (ndist.Fermi_cb(bias+E, kT) + ndist.Fermi_cb(-bias+E, kT=kT))
     x= Gup / Gdw
     gamma = (1 - x)/(1 - x ** (max(n) + 1))
     Pn = gamma * x ** n

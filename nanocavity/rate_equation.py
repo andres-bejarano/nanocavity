@@ -102,8 +102,8 @@ def bath_system_bath_rate(E, v, A, M, VL, VR, kT=0.1):
     M_elements = matrix_elements(A, v, M)[np.newaxis, np.newaxis]
     DE = E.reshape(1, 1, -1, 1) - E.reshape(1, 1, 1, -1)
     V = VL.reshape(-1, 1, 1, 1) - VR.reshape(1, -1, 1, 1)
-    Fp = Fermi_cb(V-DE, kT)
-    Fm = Fermi_cb(-V-DE, kT=kT)
+    Fp = ndist.Fermi_cb(V-DE, kT)
+    Fm = ndist.Fermi_cb(-V-DE, kT=kT)
     F = Fp + Fm
     return M_elements * F
 
