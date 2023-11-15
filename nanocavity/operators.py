@@ -18,14 +18,17 @@ def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
 
 #two level system coupled to single cavity mode in QuTiP
 
-def H_tls_QuTiP(Eg, delta, omega, coupling):
+def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True):
     N = 2
     dg = tensor(destroy(2), qeye(2), qeye(N))
     de = tensor(qeye(2), destroy(2), qeye(N))
     a = tensor(qeye(2), qeye(2), destroy(N))
     
     H0 = Eg * dg.dag() * dg + (Eg + delta)* de.dag() * de + omega * a.dag() * a
-    Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
+    if rwa:
+        Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
+    else:
+        Hint = coupling * (a + a.dag()) * (dg.dag() * de + de.dag() * dg)
     H = H0 + Hint
     E, V = H.eigenstates()
     L = [a, dg, de]
