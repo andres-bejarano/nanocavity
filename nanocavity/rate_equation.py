@@ -102,15 +102,15 @@ def populations(Gamma):
     vl, vr, k, _ = Gamma.shape
 
     #The diagonal of transition rate matrix is the - the sum of each column per each bias voltage vl, vr
+    column_sum = Gamma.sum(axis=2)
     for i in range(k):
-        Gamma[:, :, i, i] = -Gamma.sum(axis=2)[:, :, i]
-    
-    
+        Gamma[:, :, i, i] = -column_sum[:, :, i]
+
     #conservation of probability \sum_iP_i=1 implies that one equation must be equal to 1
-    Gamma[:, : , k - 1, :] = 1 
+    Gamma[:, : , k - 1, :] = 1
     b = np.zeros((vl, vr, k))
     b[:, :, k - 1] = 1
-    
+
     P = la.solve(Gamma, b)
     return P
 
