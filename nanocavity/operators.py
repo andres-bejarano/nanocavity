@@ -5,14 +5,13 @@ from qutip import (qeye, tensor, destroy)
 
 #two level system coupled to single cavity mode
 def H_tls_nc(Eg, delta, omega, coupling):
-    [d1, d2, a], [Nf1, Nf2, Nb] = \
+    [dg, de, a], [Nfg, Nfe, Nb] = \
             sc.composite(fermion_modes=2, boson_modes=1, max_bosons=1)
-    H0 = Eg * Nf1 + (Eg +  delta) * Nf2 + omega * Nb
-    Hint = coupling * (a.d * d1.d * d2 + a * d2.d * d1)
+    H0 = Eg * Nfg + (Eg +  delta) * Nfe + omega * Nb
+    Hint = coupling * (a.d * dg.d * de + a * de.d * dg)
     H = H0 +  Hint
-    La = [a]
-    Ld = [d1, d2]
-    return H, La, Ld
+    L = [a, dg, de]
+    return H, L
 
 #two level system coupled to single cavity mode in QuTiP
 

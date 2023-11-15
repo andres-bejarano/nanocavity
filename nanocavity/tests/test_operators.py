@@ -10,7 +10,7 @@ def test_Htls_nc_QuTiP():
     delta = 0.9
     coupling = 0.3
     
-    Hnc, _, _ = no.H_tls_nc(Eg, delta, omega, coupling)
+    Hnc, _ = no.H_tls_nc(Eg, delta, omega, coupling)
     Hqt,_ = no.H_tls_QuTiP(Eg, delta, omega, coupling)
 
     Enc, _ = Hnc.eigh()
@@ -30,15 +30,15 @@ def test_collapses():
     VR = -3
 
     #nanocav-populations
-    Hnc, La, Ld = no.H_tls_nc(Eg, delta, omega, coupling)
+    Hnc, Lnc = no.H_tls_nc(Eg, delta, omega, coupling)
     Enc, Vnc = Hnc.eigh()
-    GpL, GmL = nre.transition_rate(Enc, Vnc, Ld, gamma, mu=VL, kT=kT)
-    GpR, GmR = nre.transition_rate(Enc, Vnc, Ld, gamma, mu=VR, kT=kT)
+    GpL, GmL = nre.transition_rate(Enc, Vnc, Lnc[1:], gamma, mu=VL, kT=kT)
+    GpR, GmR = nre.transition_rate(Enc, Vnc, Lnc[1:], gamma, mu=VR, kT=kT)
 
     GL, GR = nre.transition_rate_matrix(GpL + GmL, GpR + GmR)
 
     #damping matrix
-    Kp, Km = nre.transition_rate(Enc, Vnc, La, kappa, kT=kT, bath='bosonic')
+    Kp, Km = nre.transition_rate(Enc, Vnc, Lnc[:1], kappa, kT=kT, bath='bosonic')
     K = Kp + Km
 
     #transtion rates matrix
