@@ -80,12 +80,12 @@ def cumulants(Kp, Km, GL, GpR, GmR, p=1e-3):
     #the first cumulants is the gradient respect to x and y
     #the first cumulants are the average number of particles 
     #per unit T that get in the drain.
-    Nph, _, _ = d1(E_im[:, zero, :, :], zero)
-    Nel, _, _ = d1(E_im[zero, :, :], zero)
+    Nph, _, _ = d1(E_im[:, zero, :, :], zero, p)
+    Nel, _, _ = d1(E_im[zero, :, :], zero, p)
     
     #second cumulant Z = sigma2
-    Zph, _, _ = d2(E_re[:, zero, :, :], zero)
-    Zel, _, _ = d2(E_re[zero, :, :, :], zero)
-    covariance, _, _ = dxy(E_re, zero)
+    Zph, _, _ = d2(E_re[:, zero, :, :], zero, p)
+    Zel, _, _ = d2(E_re[zero, :, :, :], zero, p)
+    covariance, _, _ = dxy(E_re, zero, p)
     
     return Nph, Nel, -Zph, -Zel, -covariance
