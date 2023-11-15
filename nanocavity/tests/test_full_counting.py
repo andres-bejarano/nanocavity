@@ -82,6 +82,3 @@ def test_cumulants():
     #then we have compare with -Iel to remove the charge '-e'
     assert np.allclose(Nph, Iph)
     assert np.allclose(Nel, -Iel)
-
-jc_rates()
-test_E_max()
