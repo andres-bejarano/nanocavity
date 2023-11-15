@@ -34,8 +34,8 @@ def test_collapses():
     Enc, Vnc = Hnc.eigh()
     GpL, GmL = nre.transition_rate(Enc, Vnc, Lnc[1:], gamma, mu=VL, kT=kT)
     GpR, GmR = nre.transition_rate(Enc, Vnc, Lnc[1:], gamma, mu=VR, kT=kT)
-
-    GL, GR = nre.transition_rate_matrix(GpL + GmL, GpR + GmR)
+    GL = (GpL + GmL)[:, None]  # VL, VR
+    GR = (GpR + GmR)[None, :]
 
     #damping matrix
     Kp, Km = nre.transition_rate(Enc, Vnc, Lnc[:1], kappa, kT=kT, bath='bosonic')

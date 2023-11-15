@@ -62,7 +62,9 @@ def test_populations():
     for i in range(1, 4):
         d, e, v, g = rate_parameters(i)
         Gp, Gm = nre.transition_rate(e, v, d, g)
-        GL, GR = nre.transition_rate_matrix(Gp + Gm, Gp + Gm)
+        G = Gp + Gm
+        GL = G[:, None]  # VL, VR
+        GR = G[None, :]
         P = nre.populations(GL + GR)
         assert np.allclose(P[0, 0].sum(), 1)
 
@@ -84,10 +86,11 @@ def test_asymmetrical_bias():
     H = delta * Nf2
     E, v = H.eigsh()
 
-    #transition rates matrix
+    #transition rates
     GpL, GmL = nre.transition_rate(E, v, [d1, d2], gl, mu=VL)
     GpR, GmR = nre.transition_rate(E, v, [d1, d2], gr, mu=VR)
-    GL, GR = nre.transition_rate_matrix(GpL + GmL, GpR + GmR)
+    GL = (GpL + GmL)[:, None]  # VL, VR
+    GR = (GpR + GmR)[None, :]
 
     #populations
     Gamma = GL + GR
@@ -114,7 +117,8 @@ def test_electro_current_single_level():
     #transition rates matrix
     GpL, GmL = nre.transition_rate(E, v, [d], gl, mu=VL)
     GpR, GmR = nre.transition_rate(E, v, [d], gr, mu=VR)
-    GL, GR = nre.transition_rate_matrix(GpL + GmL, GpR + GmR)
+    GL = (GpL + GmL)[:, None]  # VL, VR
+    GR = (GpR + GmR)[None, :]
 
     #populations
     P = nre.populations(GL + GR)
@@ -141,10 +145,11 @@ def test_electro_current_two_level():
     H = delta * Nf2
     E, v = H.eigsh()
 
-    #transition rates matrix
+    #transition rates
     GpL, GmL = nre.transition_rate(E, v, [d1, d2], gl, mu=VL)
     GpR, GmR = nre.transition_rate(E, v, [d1, d2], gr, mu=VR)
-    GL, GR = nre.transition_rate_matrix(GpL + GmL, GpR + GmR)
+    GL = (GpL + GmL)[:, None]  # VL, VR
+    GR = (GpR + GmR)[None, :]
 
     #populations
     P = nre.populations(GL + GR)
@@ -193,12 +198,13 @@ def test_power_spectrum():
     #electrodes transition rates
     GpL, GmL = nre.transition_rate(e, v, [d1, d2], gl, mu=VL, kT=kT)
     GpR, GmR = nre.transition_rate(e, v, [d1, d2], gl, mu=VR, kT=kT)
-    GL, GR = nre.transition_rate_matrix(GpL + GmL, GpR + GmR)
+    GL = (GpL + GmL)[:, None]  # VL, VR
+    GR = (GpR + GmR)[None, :]
 
     #damping matrix
     Kp, Km = nre.transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
     K = Kp + Km
-    #transtion rates matrix
+    #transtion rates
     Gamma = K[np.newaxis, np.newaxis] + GL + GR
 
     #populations
@@ -246,14 +252,14 @@ def test_photo_current():
     #electrodes transition rates
     GpL, GmL = nre.transition_rate(e, v, [d1, d2], g, mu=VL, kT=kT)
     GpR, GmR = nre.transition_rate(e, v, [d1, d2], g, mu=VR, kT=kT)
-
-    GL, GR = nre.transition_rate_matrix(GpL + GmL, GpR + GmR)
+    GL = (GpL + GmL)[:, None]  # VL, VR
+    GR = (GpR + GmR)[None, :]
 
     #damping matrix
     Kp, Km = nre.transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
     K = Kp + Km
 
-    #transtion rates matrix
+    #transtion rates
     Gamma = K[np.newaxis, np.newaxis] + GL + GR
     P = nre.populations(Gamma)
 

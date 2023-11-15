@@ -72,8 +72,8 @@ def test_E_max():
 def test_cumulants():
     Kp, Km, GpL, GmL, GpR, GmR = jc_rates()
     Nph, Nel, _, _, _ = cumulants(Kp, Km, GpL, GmL, GpR, GmR, 1e-3)
-  
-    GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
+    GL = (GpL + GmL)[:, None]  # VL, VR
+    GR = (GpR + GmR)[None, :]
     Gamma = (Kp + Km)[np.newaxis, np.newaxis] + GL + GR
     P = populations(Gamma)
     Iph = photo_current(Kp, Km, P)
