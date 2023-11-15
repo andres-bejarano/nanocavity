@@ -18,16 +18,15 @@ def jc_rates():
     #electrodes transition rates
     GpL, GmL = transition_rate(e, v, [d1, d2], 1e-3*np.eye(2), mu=VL, kT=1e-2)
     GpR, GmR = transition_rate(e, v, [d1, d2], 1e-3*np.eye(2), mu=VR, kT=1e-2)
-    GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
 
     #damping matrix
     Kp, Km = transition_rate(e, v, [a], 1, kT=1e-2, bath='bosonic')
     K = Kp + Km
-    return Kp, Km, GL, GpR, GmR
+    return Kp, Km, GpL, GmL, GpR, GmR
 
 def test_M_matrix():
-    Kp, Km, GL, GpR, GmR = jc_rates()
-    E, x = M_matrix(Kp, Km, GL, GpR, GmR)
+    Kp, Km, GpL, GmL, GpR, GmR = jc_rates()
+    E, x = M_matrix(Kp, Km, GpL, GmL, GpR, GmR)
     index = x.size // 2
     #As the probability is conserved all eigenvalues at \chi= has to be <=0
     assert np.all(np.round(np.real(E[index, index]), 10) <= 0) 
@@ -36,8 +35,8 @@ def test_M_matrix():
 #the real part of E is linear in a range of 1e-6
 #whereas the real part is parabolic in 1e-9
 def test_E_max():
-    Kp, Km, GL, GpR, GmR = jc_rates()
-    E, zero = E_max(Kp, Km, GL, GpR, GmR)
+    Kp, Km, GpL, GmL, GpR, GmR = jc_rates()
+    E, zero = E_max(Kp, Km, GpL, GmL, GpR, GmR)
     E_re = np.real(E)
     E_im = np.imag(E)
     
@@ -71,11 +70,10 @@ def test_E_max():
 
 
 def test_cumulants():
-    Kp, Km, GL, GpR, GmR = jc_rates()
-    Nph, Nel, _, _, _ = cumulants(Kp, Km, GL, GpR, GmR, 1e-3)
-   
-    vr, k, _ = GpR.shape
-    GR = (GpR + GmR).reshape(1, vr, k, k)
+    Kp, Km, GpL, GmL, GpR, GmR = jc_rates()
+    Nph, Nel, _, _, _ = cumulants(Kp, Km, GpL, GmL, GpR, GmR, 1e-3)
+  
+    GL, GR = transition_rate_matrix(GpL + GmL, GpR + GmR)
     Gamma = (Kp + Km)[np.newaxis, np.newaxis] + GL + GR
     P = populations(Gamma)
     Iph = photo_current(Kp, Km, P)
