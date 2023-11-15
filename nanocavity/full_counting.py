@@ -19,7 +19,7 @@ def dxy(E, zero, p=1e-3):
     M = (E[zero+1, zero+1] + E[zero-1, zero-1] - E[zero+1, zero-1] - E[zero-1, zero+1]) / (4 * p ** 2)
     return L, R, M
 
-def M_matrix(Kp, Km, GL, GpR, GmR, p=1e-3):
+def M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
     x = np.linspace(-5*p, 5*p, 11)
     
     #K[dim(h), dim(h)]
@@ -27,13 +27,17 @@ def M_matrix(Kp, Km, GL, GpR, GmR, p=1e-3):
     K = K[np.newaxis, np.newaxis]
     #K[vl, vr, dim(h), dim(h)]
 
-    #GL[vl, vr, dim(H), dim(H)]
+    #GpL[vl, dim(H), dim(H)]
     #Gpr[vr, dim(H), dim(H)]
     vr, k, _ = GpR.shape
+    vl, _, _ = GpL.shape
     GpR = GpR.reshape(1, vr, k, k)
     GmR = GmR.reshape(1, vr, k, k)
+    GpL = GpL.reshape(vl, 1, k, k)
+    GmL = GmL.reshape(vl, 1, k, k)
     GR = GpR + GmR
-    #GR[vl, vr, dim(H), dim(H)]
+    GL = GpL + GmL
+
 
     #we write the diagonal
     Gamma = (GL + GR) + K
@@ -53,8 +57,8 @@ def M_matrix(Kp, Km, GL, GpR, GmR, p=1e-3):
     #E[x, y, vl, vr, dim(H)]
     return E, x
 
-def E_max(Kp, Km, GL, GpR, GmR, p=1e-3):
-    E, x = M_matrix(Kp, Km, GL, GpR, GmR, p)
+def E_max(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
+    E, x = M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p)
     #E[x, y, vl, vr, dim(H)]
     #we look the position of (x,y) = (0,0)
     zero = x.size // 2
@@ -71,8 +75,8 @@ def E_max(Kp, Km, GL, GpR, GmR, p=1e-3):
     E_max = np.take_along_axis(E, np.expand_dims(nxy, axis=4), axis=4)[:, :, :, :, 0]
     return E_max, zero
 
-def cumulants(Kp, Km, GL, GpR, GmR, p=1e-3):
-    E, zero = E_max(Kp, Km, GL, GpR, GmR, p)
+def cumulants(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
+    E, zero = E_max(Kp, Km, GpL, GmL, GpR, GmR, p)
     #E[x, y, vl, vr]
     E_re = np.real(E)
     E_im = np.imag(E)
