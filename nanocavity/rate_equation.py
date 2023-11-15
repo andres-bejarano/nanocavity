@@ -77,26 +77,6 @@ def transition_rate(E, v, A, g, kT=0.1, mu=[0], bath='fermionic'):
         Km = nm * M
         return Kp, Km
 
-def transition_rate_matrix(GL, GR):
-    r""""The sum of transition rates corresponding to two environments must contain all possible values of chemical potential. The case of two left/right environments has been implemented so far.
-    Parameters
-    ----------
-    GL: coming from the output of transtion_rate for left environment
-    GR: coming from the output of transtion_rate for right environment
-
-    Return
-    ----------
-    In progress
-    """
-    #vi: number of chemical potential values for lead i
-    #n: system hamiltonian dimension
-
-    vl, k, _ = GL.shape
-    vr = GR.shape[0]
-
-    GL = GL.reshape(vl, 1, k, k)
-    GR = GR.reshape(1, vr, k, k)
-    return GL, GR
 
 def bath_system_bath_rate(E, v, A, M, VL, VR, kT=0.1):
     M_elements = matrix_elements(A, v, M)[np.newaxis, np.newaxis]
