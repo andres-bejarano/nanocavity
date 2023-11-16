@@ -13,8 +13,8 @@ def jc_rates():
     Hint = 0.3 * (a.d * d1.d * d2 + a * d2.d * d1)
     H = H0 +  Hint
     e, v = H.eigh()
-    VL = np.linspace(-3, 3, 101)
-    VR = 0
+    VL = np.linspace(-3, 3, 4)
+    VR = np.linspace(-3, 3, 3)
     #electrodes transition rates
     GpL, GmL = transition_rate(e, v, [d1, d2], 1e-3*np.eye(2), mu=VL, kT=1e-2)
     GpR, GmR = transition_rate(e, v, [d1, d2], 1e-3*np.eye(2), mu=VR, kT=1e-2)
@@ -81,4 +81,6 @@ def test_cumulants():
     #we are counting the number of electrons that get in the right electrode
     #then we have compare with -Iel to remove the charge '-e'
     assert np.allclose(Nph, Iph)
+    print(Nel)
+    print(Iel)
     assert np.allclose(Nel, -Iel)
