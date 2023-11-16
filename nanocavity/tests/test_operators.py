@@ -33,13 +33,13 @@ def test_collapses():
     #nanocav-populations
     Hnc, Lnc = no.H_tls_nc(Eg, delta, omega, coupling)
     Enc, Vnc = Hnc.eigh()
-    GpL, GmL = nre.transition_rate(Enc, Vnc, Lnc[1:], gamma, mu=VL, kT=kT)
-    GpR, GmR = nre.transition_rate(Enc, Vnc, Lnc[1:], gamma, mu=VR, kT=kT)
+    GpL, GmL = nre.transition_rate(Enc, Vnc, Lnc[:2], gamma, mu=VL, kT=kT)
+    GpR, GmR = nre.transition_rate(Enc, Vnc, Lnc[:2], gamma, mu=VR, kT=kT)
     GL = (GpL + GmL)[:, None]  # VL, VR
     GR = (GpR + GmR)[None, :]
 
     #damping matrix
-    Kp, Km = nre.transition_rate(Enc, Vnc, Lnc[:1], kappa, kT=kT, bath='bosonic')
+    Kp, Km = nre.transition_rate(Enc, Vnc, Lnc[2], kappa, kT=kT, bath='bosonic')
     K = Kp + Km
 
     #transtion rates matrix
@@ -50,9 +50,9 @@ def test_collapses():
 
     Hqt, L = no.H_tls_QuTiP(Eg, delta, omega,  coupling)
     Eqt, Vqt = Hqt.eigenstates()
-    collapses_cavity = no.bosonic_collapses(L[0], E=Eqt, V=Vqt, kT=kT, k=kappa)
-    collapses_ground = no.fermionic_collapses(L[1], E=Eqt, V=Vqt, VL=VL, VR=VR, kT=1e-2, g=gamma[0, 0])
-    collapses_excited = no.fermionic_collapses(L[2], E=Eqt, V=Vqt, VL=VL, VR=VR, kT=1e-2 ,g=gamma[0, 0])
+    collapses_ground = no.fermionic_collapses(L[0], E=Eqt, V=Vqt, VL=VL, VR=VR, kT=1e-2, g=gamma[0, 0])
+    collapses_excited = no.fermionic_collapses(L[1], E=Eqt, V=Vqt, VL=VL, VR=VR, kT=1e-2 ,g=gamma[0, 0])
+    collapses_cavity = no.bosonic_collapses(L[2], E=Eqt, V=Vqt, kT=kT, k=kappa)
     c_ops = collapses_cavity + collapses_ground + collapses_excited
     A = steadystate(Hqt, c_ops).full()
     Pqt = np.linalg.eigh(A)[0]

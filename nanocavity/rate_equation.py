@@ -63,6 +63,8 @@ def transition_rate(E, v, A, g, kT=0.1, mu=[0], bath='fermionic'):
     Gpr: transition rate matrix for a transition in the system due to the injection of particles from the environment.
     Gmr: transition rate matrix for a transition in the system due to the extraction of particles from the system.
     """
+    if not isinstance(A, list):
+        A = [A]
     M = matrix_elements(A, v, g)
     if bath=='fermionic':
         fpr = fermi_matrix(E, kT=kT, mu=mu)
