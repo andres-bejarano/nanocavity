@@ -4,7 +4,7 @@ import secondquant.composite as sc
 from qutip import (qeye, tensor, destroy)
 
 #two level system coupled to single cavity mode
-def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
+def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1, ret_nop=False):
     [dg, de, a], [Nfg, Nfe, Nb] = \
             sc.composite(fermion_modes=2, boson_modes=1, max_bosons=max_bosons)
     H0 = Eg * Nfg + (Eg +  delta) * Nfe + omega * Nb
@@ -14,6 +14,8 @@ def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
         Hint = coupling * (a + a.d) * (dg.d * de + de.d * dg)
     H = H0 +  Hint
     L = [dg, de, a]
+    if ret_nop:
+        return H, L, [Nfg, Nfe, Nb]
     return H, L
 
 #two level system coupled to single cavity mode in QuTiP
