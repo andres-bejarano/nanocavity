@@ -13,7 +13,7 @@ def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
     else:
         Hint = coupling * (a + a.d) * (dg.d * de + de.d * dg)
     H = H0 +  Hint
-    L = [a, dg, de]
+    L = [dg, de, a]
     return H, L
 
 #two level system coupled to single cavity mode in QuTiP
@@ -31,7 +31,7 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
         Hint = coupling * (a + a.dag()) * (dg.dag() * de + de.dag() * dg)
     H = H0 + Hint
     E, V = H.eigenstates()
-    L = [a, dg, de]
+    L = [dg, de, a]
     return H, L
 
 
