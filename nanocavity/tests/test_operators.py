@@ -9,13 +9,14 @@ def test_Htls_nc_QuTiP():
     omega = 1
     delta = 0.9
     coupling = 0.3
-    
-    Hnc, _ = no.H_tls_nc(Eg, delta, omega, coupling)
-    Hqt,_ = no.H_tls_QuTiP(Eg, delta, omega, coupling)
 
-    Enc, _ = Hnc.eigh()
-    Eqt, _ = Hqt.eigenstates()
-    assert np.allclose(Enc, Eqt)
+    for rwa in (True, False):
+        for n in (1, 2):
+            Hnc, _ = no.H_tls_nc(Eg, delta, omega, coupling, rwa=rwa, max_bosons=n)
+            Hqt,_ = no.H_tls_QuTiP(Eg, delta, omega, coupling, rwa=rwa, max_bosons=n)
+            Enc, _ = Hnc.eigh()
+            Eqt, _ = Hqt.eigenstates()
+            assert np.allclose(Enc, Eqt)
 
 def test_collapses():
     Eg = 0.4
