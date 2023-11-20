@@ -147,7 +147,7 @@ def photo_current(Kp, Km, P):
     """
     return np.einsum('ab,ijb->ij', Km - Kp, P)
 
-def power_spectrum(Kp, Km, P, E, omega):
+def power_spectrum(Kp, Km, P, E, omega, state_resolved=False):
     r""" power spectrum for system whose elements in the master equation corresponding to transition frequencies satisfy $\omega_{ab}-\omega_{cd}<< 1/tau{sys}$.(Secular approximation)
 
     Parameters
@@ -172,4 +172,6 @@ def power_spectrum(Kp, Km, P, E, omega):
     #Ensuring that the diagonal is exactly zero
     for i in range(omega.shape[0]):
         np.fill_diagonal(D[i, : , :], 0)
+    if state_resolved:
+        return np.einsum('iab,jkb->bijk', D, P)
     return np.einsum('iab,jkb->ijk', D, P)
