@@ -8,10 +8,8 @@ import nanocavity.operators as no
 def jc_rates():
     H, L = no.H_tls_nc(Eg=0.4, delta=0.9, omega=1.0, coupling=0.3)
     e, v = H.eigh()
-    #VL = np.linspace(-3, 3, 2)
-    #VR = np.linspace(-3, 3, 3)
-    VL = -3
-    VR = 3
+    VL = np.linspace(-2, 3, 2)
+    VR = np.linspace(-3, 4, 2)
     #electrodes transition rates
     GpL, GmL = nre.transition_rate(e, v, L[:2], 1e-3*np.eye(2), mu=VL, kT=1e-2)
     GpR, GmR = nre.transition_rate(e, v, L[:2], 1e-3*np.eye(2), mu=VR, kT=1e-2)
@@ -38,36 +36,39 @@ def test_E_max():
     
     NphL, NphR, NphM = nfcs.d1(E_im[:, zero, :, :], zero)
     
-    #assert np.allclose(NphL, NphR)
-    #assert np.allclose(NphL, NphM)
+    assert np.allclose(NphL, NphR)
+    assert np.allclose(NphL, NphM)
 
 
     NelL, NelR, NelM = nfcs.d1(E_im[zero, :, :, :], zero)
 
-    #assert np.allclose(NelL, NelR)
-    #assert np.allclose(NelL, NelM)
+    assert np.allclose(NelL, NelR)
+    assert np.allclose(NelL, NelM)
     
-    ZphL, ZphR, ZphM = nfcs.d2(E_re[:, zero, :, :], zero)
+    ZphL, ZphR, ZphM = nfcs.d2(E_re[:, zero, :, :], zero, p=1e-12)
 
-    #assert np.allclose(ZphL, ZphR)
+    assert np.allclose(ZphL, ZphR)
     #assert np.allclose(ZphL, ZphM)
+    
+    print(ZphL)
+    print(ZphM)
 
     ZelL, ZelR, ZelM = nfcs.d2(E_re[zero, :, :, :], zero)
 
-    #assert np.allclose(ZelL, ZelR)
-    #assert np.allclose(ZelL, ZelM)
+    assert np.allclose(ZelL, ZelR)
+    assert np.allclose(ZelL, ZelM)
 
 
 
     covL, covR, covM = nfcs.dxy(E_re, zero)
 
-    #assert np.allclose(covL, covR)
-    #assert np.allclose(covL, covM)
+    assert np.allclose(covL, covR)
+    assert np.allclose(covL, covM)
 
 
 def test_cumulants():
     Kp, Km, GpL, GmL, GpR, GmR = jc_rates()
-    Nph, Nel, _, _, _ = nfcs.cumulants(Kp, Km, GpL, GmL, GpR, GmR, 1e-5)
+    Nph, Nel, _, _, _ = nfcs.cumulants(Kp, Km, GpL, GmL, GpR, GmR, 1e-9)
     GL = (GpL + GmL)[:, None]  # VL, VR
     GR = (GpR + GmR)[None, :]
     Gamma = (Kp + Km)[np.newaxis, np.newaxis] + GL + GR
@@ -77,6 +78,4 @@ def test_cumulants():
     #we are counting the number of electrons that get in the right electrode
     #then we have compare with -Iel to remove the charge '-e'
     assert np.allclose(Nph, Iph)
-    print(Nel)
-    print(Iel)
     assert np.allclose(Nel, Iel)

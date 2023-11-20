@@ -48,10 +48,11 @@ def M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
     
     #we define couting fields with [x=phfield, y=x=elfield, vl, vr, dim(H), dim(H)]
     ph_field = np.exp(1j * x)[:, np.newaxis, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
-    el_field = np.exp(1j * x)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
+    el_fieldp = np.exp(1j * x)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
+    el_fieldm = np.exp(-1j * x)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis, np.newaxis]
 
-    M = (Gout + GL + GpR + Kp)[np.newaxis, np.newaxis] +\
-            Km[np.newaxis, np.newaxis] * ph_field + GmR[np.newaxis, np.newaxis] * el_field
+    M = (Gout + GL + Kp)[np.newaxis, np.newaxis] +\
+            Km[np.newaxis, np.newaxis] * ph_field + GmR[np.newaxis, np.newaxis] * el_fieldp + GpR[np.newaxis, np.newaxis] * el_fieldm
     #M[x, y, vl, vr, dim(H), dim(H)]
     E, _ = np.linalg.eig(M)
     #E[x, y, vl, vr, dim(H)]
