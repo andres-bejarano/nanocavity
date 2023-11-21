@@ -2,13 +2,14 @@ import numpy as np
 import nanocavity.full_counting as nfcs
 import nanocavity.rate_equation as nre
 import nanocavity.operators as no
+import matplotlib.pyplot as plt
 
 
 
 def jc_rates():
     H, L = no.H_tls_nc(Eg=0.4, delta=0.9, omega=1.0, coupling=0.3)
     e, v = H.eigh()
-    VL = np.linspace(-2, 3, 2)
+    VL = np.linspace(-2, 3, 3)
     VR = np.linspace(-3, 4, 2)
     #electrodes transition rates
     GpL, GmL = nre.transition_rate(e, v, L[:2], 1e-3*np.eye(2), mu=VL, kT=1e-2)
@@ -29,8 +30,10 @@ def test_M_matrix():
 #the real part of E is linear in a range of 1e-6
 #whereas the real part is parabolic in 1e-9
 def test_E_max():
+    p = 1e-15
+    n = 12
     Kp, Km, GpL, GmL, GpR, GmR = jc_rates()
-    E, zero = nfcs.E_max(Kp, Km, GpL, GmL, GpR, GmR)
+    E, zero = nfcs.E_max(Kp, Km, GpL, GmL, GpR, GmR, p=p, ninter=n)
     E_re = np.real(E)
     E_im = np.imag(E)
     
@@ -44,15 +47,14 @@ def test_E_max():
 
     assert np.allclose(NelL, NelR)
     assert np.allclose(NelL, NelM)
-    
-    ZphL, ZphR, ZphM = nfcs.d2(E_re[:, zero, :, :], zero, p=1e-12)
+    x = np.linspace(-5*p, 5*p, n+1)
+    nd1 = np.gradient(E_re, x, axis=0)
+    nd2 = np.gradient(nd1, x, axis=0)[x.size//2, x.size//2]
+    ZphL, ZphR, ZphM = nfcs.d2(E_re[:, zero, :, :], zero, p=p)
 
     assert np.allclose(ZphL, ZphR)
-    #assert np.allclose(ZphL, ZphM)
+    assert np.allclose(ZphL, ZphM)
     
-    print(ZphL)
-    print(ZphM)
-
     ZelL, ZelR, ZelM = nfcs.d2(E_re[zero, :, :, :], zero)
 
     assert np.allclose(ZelL, ZelR)
@@ -68,7 +70,7 @@ def test_E_max():
 
 def test_cumulants():
     Kp, Km, GpL, GmL, GpR, GmR = jc_rates()
-    Nph, Nel, _, _, _ = nfcs.cumulants(Kp, Km, GpL, GmL, GpR, GmR, 1e-9)
+    Nph, Nel, _, _, _ = nfcs.cumulants(Kp, Km, GpL, GmL, GpR, GmR, p=1e-9)
     GL = (GpL + GmL)[:, None]  # VL, VR
     GR = (GpR + GmR)[None, :]
     Gamma = (Kp + Km)[np.newaxis, np.newaxis] + GL + GR
