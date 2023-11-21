@@ -19,8 +19,9 @@ def dxy(E, zero, p=1e-3):
     M = (E[zero+1, zero+1] + E[zero-1, zero-1] - E[zero+1, zero-1] - E[zero-1, zero+1]) / (4 * p ** 2)
     return L, R, M
 
-def M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
-    x = np.linspace(-5*p, 5*p, 11)
+
+def M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3, ninter=10):
+    x = np.linspace(-5*p, 5*p, ninter + 1)
     
     #K[dim(h), dim(h)]
     K = Kp + Km
@@ -47,19 +48,25 @@ def M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
         Gout[:, :, i, i] = -Gamma.sum(axis=2)[:, :, i]
     
     #we define couting fields with [x=phfield, y=x=elfield, vl, vr, dim(H), dim(H)]
-    ph_field = np.exp(1j * x)[:, np.newaxis, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
-    el_fieldp = np.exp(1j * x)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
-    el_fieldm = np.exp(-1j * x)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis, np.newaxis]
+    xp = np.exp(1j * x)[:, np.newaxis, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
+    xm = np.exp(-1j * x)[:, np.newaxis, np.newaxis, np.newaxis, np.newaxis, np.newaxis]
+    yp = np.exp(1j * x)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
+    ym = np.exp(-1j * x)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
+    Km = Km[np.newaxis, np.newaxis]
+    Kp = Kp[np.newaxis, np.newaxis]
+    GmR = GmR[np.newaxis, np.newaxis]
+    GpR = GpR[np.newaxis, np.newaxis]
+    Gout = Gout[np.newaxis, np.newaxis]
+    GL = GL[np.newaxis, np.newaxis]
+    M = Gout + GL + Km * xp + Kp * xm + GmR * yp + GpR * ym
 
-    M = (Gout + GL + Kp)[np.newaxis, np.newaxis] +\
-            Km[np.newaxis, np.newaxis] * ph_field + GmR[np.newaxis, np.newaxis] * el_fieldp + GpR[np.newaxis, np.newaxis] * el_fieldm
     #M[x, y, vl, vr, dim(H), dim(H)]
     E, _ = np.linalg.eig(M)
     #E[x, y, vl, vr, dim(H)]
     return E, x
 
-def E_max(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
-    E, x = M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p)
+def E_max(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3, ninter=10):
+    E, x = M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p, ninter)
     #E[x, y, vl, vr, dim(H)]
     #we look the position of (x,y) = (0,0)
     zero = x.size // 2
@@ -76,8 +83,8 @@ def E_max(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
     E_max = np.take_along_axis(E, np.expand_dims(nxy, axis=4), axis=4)[:, :, :, :, 0]
     return E_max, zero
 
-def cumulants(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
-    E, zero = E_max(Kp, Km, GpL, GmL, GpR, GmR, p)
+def cumulants(Kp, Km, GpL, GmL, GpR, GmR, p, ninter=10):
+    E, zero = E_max(Kp, Km, GpL, GmL, GpR, GmR, p, ninter)
     #E[x, y, vl, vr]
     E_re = np.real(E)
     E_im = np.imag(E)
@@ -85,12 +92,12 @@ def cumulants(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
     #the first cumulants is the gradient respect to x and y
     #the first cumulants are the average number of particles 
     #per unit T that get in the drain.
-    Nph, _, _ = d1(E_im[:, zero, :, :], zero, p)
-    Nel, _, _ = d1(E_im[zero, :, :], zero, p)
+    _, _, Nph = d1(E_im[:, zero, :, :], zero, p)
+    _, _, Nel = d1(E_im[zero, :, :], zero, p)
     
     #second cumulant Z = sigma2
-    Zph, _, _ = d2(E_re[:, zero, :, :], zero, p)
-    Zel, _, _ = d2(E_re[zero, :, :, :], zero, p)
-    covariance, _, _ = dxy(E_re, zero, p)
+    _, _, Zph = d2(E_re[:, zero, :, :], zero, p)
+    _, _, Zel = d2(E_re[zero, :, :, :], zero, p)
+    _, _, covariance = dxy(E_re, zero, p)
     
     return Nph, Nel, -Zph, -Zel, -covariance
