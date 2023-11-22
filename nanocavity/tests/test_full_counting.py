@@ -2,7 +2,6 @@ import numpy as np
 import nanocavity.full_counting as nfcs
 import nanocavity.rate_equation as nre
 import nanocavity.operators as no
-import matplotlib.pyplot as plt
 
 
 
@@ -47,9 +46,7 @@ def test_E_max():
 
     assert np.allclose(NelL, NelR)
     assert np.allclose(NelL, NelM)
-    x = np.linspace(-5*p, 5*p, n+1)
-    nd1 = np.gradient(E_re, x, axis=0)
-    nd2 = np.gradient(nd1, x, axis=0)[x.size//2, x.size//2]
+    
     ZphL, ZphR, ZphM = nfcs.d2(E_re[:, zero, :, :], zero, p=p)
 
     assert np.allclose(ZphL, ZphR)
