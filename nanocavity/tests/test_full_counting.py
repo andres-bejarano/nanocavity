@@ -16,7 +16,7 @@ def jc_rates():
     Kp, Km = nre.transition_rate(e, v, L[2], 1, kT=1e-2, bath='bosonic')
     return Kp, Km, GpL, GmL, GpR, GmR
 
-def test_M_matrix():
+def test_transition_rates_fourier():
     Kp, Km, GpL, GmL, GpR, GmR = jc_rates()
     E, x = nfcs.transition_rates_fourier(Kp, Km, GpL, GmL, GpR, GmR)
     index = x.size // 2
