@@ -1,26 +1,7 @@
 import numpy as np
 
-
-def d1(E, zero, p=1e-3):
-    L = (E[zero] - E[zero-1]) / p
-    R = (E[zero+1] - E[zero]) / p
-    M = (E[zero+1] - E[zero-1]) / (2*p)
-    return L, R, M
-
-def d2(E, zero, p=1e-3):
-    L = (E[zero] + E[zero-2] - 2 * E[zero-1]) / p ** 2
-    R = (E[zero+2] + E[zero] - 2 * E[zero+1]) / p ** 2
-    M = (E[zero+2] + E[zero-2] - 2 * E[zero]) / (4 * p ** 2)
-    return L, R, M
-
-def dxy(E, zero, p=1e-3):
-    L = (E[zero-1, zero-1] + E[zero, zero] - E[zero, zero-1] - E[zero-1, zero]) / p ** 2
-    R = (E[zero+1, zero+1] + E[zero, zero] - E[zero, zero+1] - E[zero+1, zero]) /  p ** 2
-    M = (E[zero+1, zero+1] + E[zero-1, zero-1] - E[zero+1, zero-1] - E[zero-1, zero+1]) / (4 * p ** 2)
-    return L, R, M
-
-def M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
-    x = np.linspace(-5*p, 5*p, 11)
+def transition_rates_fourier(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
+    x = p * np.linspace(-2, 2, 5)
     
     #K[dim(h), dim(h)]
     K = Kp + Km
@@ -47,18 +28,25 @@ def M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
         Gout[:, :, i, i] = -Gamma.sum(axis=2)[:, :, i]
     
     #we define couting fields with [x=phfield, y=x=elfield, vl, vr, dim(H), dim(H)]
-    ph_field = np.exp(1j * x)[:, np.newaxis, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
-    el_field = np.exp(1j * x)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
+    xp = np.exp(1j * x)[:, np.newaxis, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
+    xm = np.exp(-1j * x)[:, np.newaxis, np.newaxis, np.newaxis, np.newaxis, np.newaxis]
+    yp = np.exp(1j * x)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
+    ym = np.exp(-1j * x)[np.newaxis, :, np.newaxis, np.newaxis, np.newaxis, np.newaxis] 
+    Km = Km[np.newaxis, np.newaxis]
+    Kp = Kp[np.newaxis, np.newaxis]
+    GmR = GmR[np.newaxis, np.newaxis]
+    GpR = GpR[np.newaxis, np.newaxis]
+    Gout = Gout[np.newaxis, np.newaxis]
+    GL = GL[np.newaxis, np.newaxis]
+    M = Gout + GL + Km * xp + Kp * xm + GmR * yp + GpR * ym
 
-    M = (Gout + GL + GpR + Kp)[np.newaxis, np.newaxis] +\
-            Km[np.newaxis, np.newaxis] * ph_field + GmR[np.newaxis, np.newaxis] * el_field
     #M[x, y, vl, vr, dim(H), dim(H)]
     E, _ = np.linalg.eig(M)
     #E[x, y, vl, vr, dim(H)]
     return E, x
 
 def E_max(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
-    E, x = M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p)
+    E, x = transition_rates_fourier(Kp, Km, GpL, GmL, GpR, GmR, p)
     #E[x, y, vl, vr, dim(H)]
     #we look the position of (x,y) = (0,0)
     zero = x.size // 2
@@ -73,23 +61,31 @@ def E_max(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
     nxy = np.repeat(ny[np.newaxis], len(x), axis=0)
     #nx[len(y),vl, vr] and nxy[len(x), len(y), vl, vr]
     E_max = np.take_along_axis(E, np.expand_dims(nxy, axis=4), axis=4)[:, :, :, :, 0]
-    return E_max, zero
+    return E_max, zero, x
 
-def cumulants(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
-    E, zero = E_max(Kp, Km, GpL, GmL, GpR, GmR, p)
+def cumulants(Kp, Km, GpL, GmL, GpR, GmR, p):
+    E, zero, x = E_max(Kp, Km, GpL, GmL, GpR, GmR, p)
     #E[x, y, vl, vr]
-    E_re = np.real(E)
-    E_im = np.imag(E)
+    dx = np.gradient(E, x, axis=0)
+    dy = np.gradient(E, x, axis=1)
+    dxx = np.gradient(dx[:, zero], x, axis=0)[zero]
+    dyy = np.gradient(dy[zero], x, axis=0)[zero]
+    dxy = np.gradient(dx[zero], x, axis=0)[zero]
 
-    #the first cumulants is the gradient respect to x and y
-    #the first cumulants are the average number of particles 
-    #per unit T that get in the drain.
-    Nph, _, _ = d1(E_im[:, zero, :, :], zero, p)
-    Nel, _, _ = d1(E_im[zero, :, :], zero, p)
+    # I_k = -i\sigma_k \partial_x_k E = -\sigma_k<\dot{n}_k>
+    #where E eigenvalues which is a complex number
+    #\sigma_e = -e and \sigma_\gamma = 1, e=electron and \gamma = photon
+    #The presence of the complex unit i makes that the real part becomes complex
+    # and the other way around. Thus for first cumulant de derivative of real
+    #has to be zero and the complex part is the current. 
+    Iph = np.imag(dx[zero, zero])
+    Iel = -np.imag(dy[zero, zero])
     
-    #second cumulant Z = sigma2
-    Zph, _, _ = d2(E_re[:, zero, :, :], zero, p)
-    Zel, _, _ = d2(E_re[zero, :, :, :], zero, p)
-    covariance, _, _ = dxy(E_re, zero, p)
+    #s_kk' = -\sigma_kk' \partial_{x_k, x_k'} E = 
+    #= -\sigma_k\sigma_k'd/dt (<n_k n_k'> -<n_k><n_k'>)
+    #in this case we have to write minus in the second derivatives of cumulants
+    Zph = -np.real(dxx)
+    Zel = -np.real(dyy)
+    covariance = -np.real(dxy)
     
-    return Nph, Nel, -Zph, -Zel, -covariance
+    return Iph, Iel, Zph, Zel, covariance
