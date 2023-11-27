@@ -3,8 +3,6 @@ import nanocavity.full_counting as nfcs
 import nanocavity.rate_equation as nre
 import nanocavity.operators as no
 
-
-
 def jc_rates():
     H, L = no.H_tls_nc(Eg=0.4, delta=0.9, omega=1.0, coupling=0.3)
     e, v = H.eigh()
@@ -25,8 +23,19 @@ def test_M_matrix():
     #As the probability is conserved all eigenvalues at \chi= has to be <=0
     assert np.all(np.round(np.real(E[index, index]), 10) <= 0) 
 
-
-
+def test_E_max():
+    Kp, Km, GpL, GmL, GpR, GmR = jc_rates()
+    E, x = nfcs.M_matrix(Kp, Km, GpL, GmL, GpR, GmR)
+    Emax, zero, x = nfcs.E_max(Kp, Km, GpL, GmL, GpR, GmR)
+    
+    #E[x, y, vl, vr, dim(H)]
+    Nx = E.shape[0]
+    Nvl = E.shape[2]
+    Nvr = E.shape[3]
+    for i, j, k, l in zip(range(Nx), range(Nx), range(Nvl), range(Nvr)):
+       
+       assert Emax[i, j, k, l] == max(E[i, j, k, l])
+       
 def test_cumulants():
     Kp, Km, GpL, GmL, GpR, GmR = jc_rates()
     Iphfcs, Ielfcs, _, _, _ = nfcs.cumulants(Kp, Km, GpL, GmL, GpR, GmR, p=1e-9)
