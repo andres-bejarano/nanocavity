@@ -18,14 +18,14 @@ def jc_rates():
 
 def test_M_matrix():
     Kp, Km, GpL, GmL, GpR, GmR = jc_rates()
-    E, x = nfcs.M_matrix(Kp, Km, GpL, GmL, GpR, GmR)
+    E, x = nfcs.transition_rates_fourier(Kp, Km, GpL, GmL, GpR, GmR)
     index = x.size // 2
     #As the probability is conserved all eigenvalues at \chi= has to be <=0
     assert np.all(np.round(np.real(E[index, index]), 10) <= 0) 
 
 def test_E_max():
     Kp, Km, GpL, GmL, GpR, GmR = jc_rates()
-    E, x = nfcs.M_matrix(Kp, Km, GpL, GmL, GpR, GmR)
+    E, x = nfcs.transition_rates_fourier(Kp, Km, GpL, GmL, GpR, GmR)
     Emax, zero, x = nfcs.E_max(Kp, Km, GpL, GmL, GpR, GmR)
     
     #E[x, y, vl, vr, dim(H)]

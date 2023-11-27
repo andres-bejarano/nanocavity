@@ -1,6 +1,6 @@
 import numpy as np
 
-def M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
+def transition_rates_fourier(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
     x = p * np.linspace(-2, 2, 5)
     
     #K[dim(h), dim(h)]
@@ -46,7 +46,7 @@ def M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
     return E, x
 
 def E_max(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
-    E, x = M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p)
+    E, x = transition_rates_fourier(Kp, Km, GpL, GmL, GpR, GmR, p)
     #E[x, y, vl, vr, dim(H)]
     #we look the position of (x,y) = (0,0)
     zero = x.size // 2
