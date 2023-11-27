@@ -68,9 +68,9 @@ def cumulants(Kp, Km, GpL, GmL, GpR, GmR, p):
     #E[x, y, vl, vr]
     dx = np.gradient(E, x, axis=0)
     dy = np.gradient(E, x, axis=1)
-    dxx = np.gradient(dx[:, zero, :, :], x, axis=0)[zero]
-    dyy = np.gradient(dy[zero, :, :, :], x, axis=0)[zero]
-    dxy = np.gradient(dx[zero, :, :, : ], x, axis=0)[zero]
+    dxx = np.gradient(dx[:, zero], x, axis=0)[zero]
+    dyy = np.gradient(dy[zero], x, axis=0)[zero]
+    dxy = np.gradient(dx[zero], x, axis=0)[zero]
 
     #the first cumulants is the gradient respect to x and y
     #the first cumulants are the average number of particles 
