@@ -1,6 +1,6 @@
 import numpy as np
 
-def M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3, ninter=10):
+def M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
     x = p * np.linspace(-2, 2, 5)
     
     #K[dim(h), dim(h)]
@@ -45,8 +45,8 @@ def M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3, ninter=10):
     #E[x, y, vl, vr, dim(H)]
     return E, x
 
-def E_max(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3, ninter=10):
-    E, x = M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p, ninter)
+def E_max(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3):
+    E, x = M_matrix(Kp, Km, GpL, GmL, GpR, GmR, p)
     #E[x, y, vl, vr, dim(H)]
     #we look the position of (x,y) = (0,0)
     zero = x.size // 2
@@ -63,8 +63,8 @@ def E_max(Kp, Km, GpL, GmL, GpR, GmR, p=1e-3, ninter=10):
     E_max = np.take_along_axis(E, np.expand_dims(nxy, axis=4), axis=4)[:, :, :, :, 0]
     return E_max, zero, x
 
-def cumulants(Kp, Km, GpL, GmL, GpR, GmR, p, ninter=10):
-    E, zero, x = E_max(Kp, Km, GpL, GmL, GpR, GmR, p, ninter)
+def cumulants(Kp, Km, GpL, GmL, GpR, GmR, p):
+    E, zero, x = E_max(Kp, Km, GpL, GmL, GpR, GmR, p)
     #E[x, y, vl, vr]
     dx = np.gradient(E, x, axis=0)
     dy = np.gradient(E, x, axis=1)
