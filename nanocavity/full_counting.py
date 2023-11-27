@@ -72,13 +72,18 @@ def cumulants(Kp, Km, GpL, GmL, GpR, GmR, p):
     dyy = np.gradient(dy[zero], x, axis=0)[zero]
     dxy = np.gradient(dx[zero], x, axis=0)[zero]
 
-    #the first cumulants is the gradient respect to x and y
-    #the first cumulants are the average number of particles 
-    #per unit T that get in the drain.
+    # I_k = -i\sigma_k \partial_x_k E = -\sigma_k<\dot{n}_k>
+    #where E eigenvalues which is a complex number
+    #\sigma_e = -e and \sigma_\gamma = 1, e=electron and \gamma = photon
+    #The presence of the complex unit i makes that the real part becomes complex
+    # and the other way around. Thus for first cumulant de derivative of real
+    #has to be zero and the complex part is the current. 
     Iph = np.imag(dx[zero, zero])
     Iel = -np.imag(dy[zero, zero])
     
-    #second cumulant Z = sigma2/T
+    #s_kk' = -\sigma_kk' \partial_{x_k, x_k'} E = 
+    #= -\sigma_k\sigma_k'd/dt (<n_k n_k'> -<n_k><n_k'>)
+    #in this case we have to write minus in the second derivatives of cumulants
     Zph = -np.real(dxx)
     Zel = -np.real(dyy)
     covariance = -np.real(dxy)
