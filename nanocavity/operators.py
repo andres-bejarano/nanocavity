@@ -39,7 +39,7 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
 
 #collapses operators
 
-def fermionic_collapses(A_op, E, V, VL, VR, kT, g):
+def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
     c = []
     for i in range(len(E)):
         for j in range(len(E)):
@@ -49,10 +49,10 @@ def fermionic_collapses(A_op, E, V, VL, VR, kT, g):
                 fL = ndist.fermi_dirac(dE, mu=VL, kT=kT)
                 fR = ndist.fermi_dirac(dE, mu=VR, kT=kT)
                 P = V[i] * V[j].dag()
-                c.append(np.sqrt(g * Mij * (1 - fL)) * P)
-                c.append(np.sqrt(g * Mij * (1 - fR)) * P)
-                c.append(np.sqrt(g * Mij * fL) * P.dag())
-                c.append(np.sqrt(g * Mij * fR) * P.dag())
+                c.append(np.sqrt(gL * Mij * (1 - fL)) * P)
+                c.append(np.sqrt(gR * Mij * (1 - fR)) * P)
+                c.append(np.sqrt(gL * Mij * fL) * P.dag())
+                c.append(np.sqrt(gR * Mij * fR) * P.dag())
     return c
 
 
