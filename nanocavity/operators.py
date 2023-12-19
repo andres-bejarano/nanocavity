@@ -48,7 +48,7 @@ def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
                 dE = abs(E[i]-E[j])
                 fL = ndist.fermi_dirac(dE, mu=VL, kT=kT)
                 fR = ndist.fermi_dirac(dE, mu=VR, kT=kT)
-                P = V[i] * V[j].dag()
+                P = (V[i] * V[j].dag()).transform(V)
                 c.append(np.sqrt(gL * Mij * (1 - fL)) * P)
                 c.append(np.sqrt(gR * Mij * (1 - fR)) * P)
                 c.append(np.sqrt(gL * Mij * fL) * P.dag())
@@ -64,7 +64,7 @@ def bosonic_collapses(A_op, E, V, kT, k):
             if Mij != 0:
                 dE = abs(E[i]-E[j])
                 nb = ndist.bose_einstein(dE, kT=kT)
-                P = V[i] * V[j].dag()
+                P = (V[i] * V[j].dag()).transform(V)
                 c.append(np.sqrt(k * Mij * (1 + nb)) * P)
                 c.append(np.sqrt(k * Mij * nb) * P.dag())
     return c
