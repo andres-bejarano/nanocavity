@@ -1,0 +1,31 @@
+[build-system]
+requires = [
+    "wheel",
+    "setuptools>=46",
+    "setuptools_scm[toml]>=6.2",
+]
+build-backend = "setuptools.build_meta"
+
+
+[project]
+requires-python = ">=3.6"
+dependencies = [
+    "secondquant>=0.3.0",
+]
+name = "nanocavity"
+description = "Python package for light emission and quantum transport in plasmonic nanocavities"
+readme = "README.md"
+license = {text = "GPL"}
+keywords = ["light emission", "quantum transport", "plasmonic nanocavities"]
+authors = [
+    {name = "Andres Bejarano", email = "andres.bejarano@dipc.org"},
+]
+maintainers = [
+    {name = "Andres Bejarano", email = "andres.bejarano@dipc.org"},
+]
+dynamic = ["version"]
+
+
+[tool.setuptools_scm]
+version_file = "nanocavity/_version.py"
+fallback_version = "0.0.0.dev"
