@@ -55,7 +55,7 @@ def test_collapses():
     collapses_excited = no.fermionic_collapses(L[1], E=Eqt, V=Vqt, VL=VL, VR=VR, kT=1e-2 ,gL=gammaL[0, 0], gR=gammaR[0, 0])
     collapses_cavity = no.bosonic_collapses(L[2], E=Eqt, V=Vqt, kT=kT, k=kappa)
     c_ops = collapses_cavity + collapses_ground + collapses_excited
-    A = steadystate(Hqt, c_ops).full()
-    Pqt = np.linalg.eigh(A)[0]
+    A = steadystate(Hqt.transform(Vqt), c_ops).full()
+    Pqt = A.diagonal()
 
-    assert np.allclose(Pnc, Pqt)
+    assert np.allclose(Pnc, np.sort(Pqt))
