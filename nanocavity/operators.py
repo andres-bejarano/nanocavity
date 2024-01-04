@@ -69,3 +69,18 @@ def bosonic_collapses(A_op, E, V, kT, k):
                 c.append(np.sqrt(k * Mij * nb) * P.dag())
     return c
 
+def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
+    c = []
+    for i in range(len(E)):
+        for j in range(len(E)):
+            Mij = (V[i].dag() * A_op * V[j]).full().squeeze() ** 2
+            if Mij != 0:
+                dE = abs(E[i]-E[j])
+                dist1 = ndist.Fermi_cb(VL-VR-dE, kT)
+                dist2 = ndist.Fermi_cb(VR-VL-dE, kT)
+                dist = dist1 + dist2
+                coef = np.sqrt(m * dist * Mij) 
+                P = (V[i] * V[j].dag()).transform(V)
+                c.append(coef * P)
+                c.append(coef * P.dag())
+    return c
