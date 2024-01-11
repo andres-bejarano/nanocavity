@@ -35,22 +35,27 @@ def fermi_matrix(E, kT=0.1, mu=0):
     ----------
     fermi: fermi function evaluated for all combination of input variables.
     """
-    E = np.array(E)
-    mu = np.array(mu)
+    if not isinstance(E, np.ndarray):
+        E = np.array(E)
+
+    if not isinstance(mu, np.ndarray):
+        mu = np.array(mu)
+    
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     mu = mu.reshape(-1, 1, 1) 
     f = ndist.fermi_dirac(E=DE, kT=kT, mu=mu)
     return f
 
 def bose_matrix(E, kT=0.1):
-    E = np.array(E)
+    if not isinstance(E, np.ndarray):
+        E = np.array(E)
     DE = E.reshape(-1, 1) - E.reshape(1, -1)
     nb = ndist.bose_einstein(E=DE, kT=kT)
     np.fill_diagonal(nb, 0)
     return nb
 
 
-def transition_rate(E, v, A, g, kT=0.1, mu=[0], bath='fermionic'):
+def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     r""" trasition_rate construct a matrix numpy array with all possible transition rates, where each matrix element represent the transition rate  between two states at given chemical potential.
     Parameters
     ----------
@@ -81,6 +86,13 @@ def transition_rate(E, v, A, g, kT=0.1, mu=[0], bath='fermionic'):
 
 
 def bath_system_bath_rate(E, v, A, M, VL, VR, kT=0.1):
+    if not isinstance(E, np.ndarray):
+        E = np.array(E)
+    if not isinstance(VL, np.ndarray):
+        VL = np.array(VL)
+    if not isinstance(VR, np.ndarray):
+        VR = np.array(VR)
+
     M_elements = matrix_elements(A, v, M)[np.newaxis, np.newaxis]
     DE = E.reshape(1, 1, -1, 1) - E.reshape(1, 1, 1, -1)
     V = VL.reshape(-1, 1, 1, 1) - VR.reshape(1, -1, 1, 1)
