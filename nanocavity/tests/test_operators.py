@@ -28,8 +28,8 @@ def test_collapses():
     gammaR = 2e-3 * np.eye(2)
     kappa =  1
     kT = 1e-2
-    VL = np.array(3)
-    VR = np.array(-3)
+    VL = 3
+    VR = -3
     m = 2.5e-2
     
     #nanocav-populations
