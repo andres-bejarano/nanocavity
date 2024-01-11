@@ -28,9 +28,10 @@ def test_collapses():
     gammaR = 2e-3 * np.eye(2)
     kappa =  1
     kT = 1e-2
-    VL = 3
-    VR = -3
-
+    VL = np.array(3)
+    VR = np.array(-3)
+    m = 2.5e-2
+    
     #nanocav-populations
     Hnc, Lnc = no.H_tls_nc(Eg, delta, omega, coupling)
     Enc, Vnc = Hnc.eigh()
@@ -42,20 +43,24 @@ def test_collapses():
     #damping matrix
     Kp, Km = nre.transition_rate(Enc, Vnc, Lnc[2], kappa, kT=kT, bath='bosonic')
     K = Kp + Km
+    
+    #M direct tunneling
+    M = nre.bath_system_bath_rate(Enc, Vnc, Lnc[2] + Lnc[2].d, m, VL, VR, kT=kT)
+
 
     #transtion rates matrix
-    Gamma = K[np.newaxis, np.newaxis] + GL + GR
+    Gamma = K[np.newaxis, np.newaxis] + GL + GR + M
     Pnc = np.sort(nre.populations(Gamma))
 
     #QuTiP populations
 
     Hqt, L = no.H_tls_QuTiP(Eg, delta, omega,  coupling)
     Eqt, Vqt = Hqt.eigenstates()
-    collapses_ground = no.fermionic_collapses(L[0], E=Eqt, V=Vqt, VL=VL, VR=VR, kT=1e-2, gL=gammaL[0, 0], gR=gammaR[0, 0] )
-    collapses_excited = no.fermionic_collapses(L[1], E=Eqt, V=Vqt, VL=VL, VR=VR, kT=1e-2 ,gL=gammaL[0, 0], gR=gammaR[0, 0])
-    collapses_cavity = no.bosonic_collapses(L[2], E=Eqt, V=Vqt, kT=kT, k=kappa)
-    c_ops = collapses_cavity + collapses_ground + collapses_excited
+    collapses_ground = no.fermionic_collapses(L[0], Eqt, Vqt, VL, VR, kT, gL=gammaL[0, 0], gR=gammaR[0, 0] )
+    collapses_excited = no.fermionic_collapses(L[1], Eqt, Vqt, VL, VR, kT, gL=gammaL[0, 0], gR=gammaR[0, 0])
+    collapses_cavity = no.bosonic_collapses(L[2], Eqt, Vqt, kT, kappa)
+    collapses_lcl = no.lead_cavity_lead_collapses(L[2] + L[2].dag(), Eqt, Vqt, VL, VR, kT, m)
+    c_ops = collapses_cavity + collapses_ground + collapses_excited + collapses_lcl
     A = steadystate(Hqt.transform(Vqt), c_ops).full()
     Pqt = A.diagonal()
-
     assert np.allclose(Pnc, np.sort(Pqt))
