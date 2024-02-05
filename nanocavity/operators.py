@@ -41,11 +41,11 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
 
 def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
     c = []
-    for i in range(len(E)):
-        for j in range(len(E)):
+    for i, Ei in enumerate(E):
+        for j, Ej in enumerate(E):
             Mij = (V[i].dag() * A_op * V[j]).full().squeeze() ** 2
             if Mij != 0:
-                dE = abs(E[i]-E[j])
+                dE = abs(Ei-Ej)
                 fL = ndist.fermi_dirac(dE, mu=VL, kT=kT)
                 fR = ndist.fermi_dirac(dE, mu=VR, kT=kT)
                 P = (V[i] * V[j].dag()).transform(V)
@@ -58,11 +58,11 @@ def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
 
 def bosonic_collapses(A_op, E, V, kT, k):
     c = []
-    for i in range(len(E)):
-        for j in range(len(E)):
+    for i, Ei in enumerate(E):
+        for j, Ej in enumerate(E):
             Mij = (V[i].dag() * A_op * V[j]).full().squeeze() ** 2
             if Mij != 0:
-                dE = abs(E[i]-E[j])
+                dE = abs(Ei-Ej)
                 nb = ndist.bose_einstein(dE, kT=kT)
                 P = (V[i] * V[j].dag()).transform(V)
                 c.append(np.sqrt(k * Mij * (1 + nb)) * P)
@@ -71,11 +71,11 @@ def bosonic_collapses(A_op, E, V, kT, k):
 
 def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
     c = []
-    for i in range(len(E)):
-        for j in range(len(E)):
+    for i, Ei in enumerate(E):
+        for j, Ej in enumerate(E):
             Mij = (V[i].dag() * A_op * V[j]).full().squeeze() ** 2
             if Mij != 0:
-                dE = E[i]-E[j]
+                dE = Ei-Ej
                 dist1 = ndist.Fermi_cb(VL-VR-dE, kT)
                 dist2 = ndist.Fermi_cb(VR-VL-dE, kT)
                 dist = dist1 + dist2
