@@ -59,7 +59,7 @@ def test_collapses():
     collapses_ground = no.fermionic_collapses(L[0], Eqt, Vqt, VL, VR, kT, gL=gammaL[0, 0], gR=gammaR[0, 0] )
     collapses_excited = no.fermionic_collapses(L[1], Eqt, Vqt, VL, VR, kT, gL=gammaL[0, 0], gR=gammaR[0, 0])
     collapses_cavity = no.bosonic_collapses(L[2], Eqt, Vqt, kT, kappa)
-    collapses_lcl = no.lead_cavity_lead_collapses(L[2] + L[2].dag(), Eqt, Vqt, VL, VR, kT, m)
+    collapses_lcl = no.lead_cavity_lead_collapses(L[2], Eqt, Vqt, VL, VR, kT, m)
     c_ops = collapses_cavity + collapses_ground + collapses_excited + collapses_lcl
     A = steadystate(Hqt.transform(Vqt), c_ops).full()
     Pqt = A.diagonal()
