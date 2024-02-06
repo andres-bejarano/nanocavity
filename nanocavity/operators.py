@@ -40,6 +40,47 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
 #collapses operators
 
 def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
+"""
+    To identify the collapse operators, we must write the dissipator of our problem 
+        \\mathcal{L}^+[\\rho] = \\sum_{ij} \\Gamma f^+(E_{ij}) d_{ji}^\\dagger\\rho d_{ij} - \\frac{1}{2}\\{d_{ij} d^\\dagger_{ji}, \\rho\\}
+
+         \\mathcal{L}^-[\\rho] = \\sum_{ij} \\Gamma f^-(E_{ij}) d_{ji}^\\dagger\\rho d_{ij} - \\frac{1}{2}\\{d_{ij}^\dagger d_{ji}, \\rho\\}
+
+
+    where d_{ij} is a molecular eigenoperator 
+
+    d_ij = \\langle i \\rvert d \\lvert j \\rangle \\lvert i \\rangle \\langle j \\rvert   
+
+    the collapse is defined as:
+
+    C^+ = \\sqrt{\Gamma f^+(E_{ij}) } \\lvert \\langle i \\rvert d^\dagger \\lvert j \\rangle\\rvert \\lvert i \\rangle \\langle j \\rvert
+
+    C^- = \\sqrt{\Gamma f^-(E_{ij}) } \\lvert \\langle i \\rvert d \\lvert j \\rangle\\rvert \\lvert i \\rangle \\langle j \\rvert
+
+    Parameters
+    ----------
+    A_op : Qobj or QobjEvo
+           Annihilation operator for fermions.
+
+    E, V : Qobj
+           Eigenvalues and eigenstates of system hamiltonian
+
+    VL, VR: float
+            Left/Right chemical potential (VL, VR)
+
+    kT: float
+        Temperature of the bath
+
+    gL, gR: float
+            Left/Right tunneling rate
+
+
+    Returns
+    -------
+    D : List of Qobj
+        Collpases operators.
+    """
+
     c = []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
@@ -59,6 +100,44 @@ def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
 
 
 def bosonic_collapses(A_op, E, V, kT, k):
+"""
+    To identify the collapse operators, we must write the dissipator of our problem 
+        \\mathcal{D}^+[\\rho] = \\sum_{ij} \\kappa n_B+(E_{ij}) a_{ji}^\\dagger\\rho a_{ij} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
+
+         \\mathcal{D}^-[\\rho] = \\sum_{ij} \\kappa n_B^-(E_{ij}) a_{ji}^\\dagger\\rho a_{ij} - \\frac{1}{2}\\{a_{ij}^\\dagger a_{ji}, \\rho\\}
+
+
+    where a_{ij} is a system cavity eigenoperator
+
+    d_ij = \\langle i \\rvert d \\lvert j \\rangle \\lvert i \\rangle \\langle j \\rvert   
+
+    the collapse is defined as:
+
+    C^+ = \\sqrt{\kappa n_B^+(E_{ij}) } \\lvert \\langle i \\rvert a^\dagger \\lvert j \\rangle\\rvert \\lvert i \\rangle \\langle j \\rvert
+
+    C^- = \\sqrt{\kappa n_B^-(E_{ij}) } \\lvert \\langle i \\rvert a \\lvert j \\rangle\\rvert \\lvert i \\rangle \\langle j \\rvert
+
+    Parameters
+    ----------
+    A_op : Qobj or QobjEvo
+           Annihilation operator for fermions.
+
+    E, V : Qobj
+           Eigenvalues and eigenstates of system hamiltonian
+
+    kT: float
+        Temperature of the bath
+
+    k:  float
+        damping rate 
+
+
+    Returns
+    -------
+    D : List of Qobj
+        Collpases operators.
+    """
+
     c = []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
