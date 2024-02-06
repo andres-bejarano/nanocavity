@@ -40,7 +40,8 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
 #collapses operators
 
 def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
-"""
+    """
+    This script computes the collapses for the tunneling electrons from a given lead to a given fermionic level.
     To identify the collapse operators, we must write the dissipator of our problem 
         \\mathcal{L}^+[\\rho] = \\sum_{ij} \\Gamma f^+(E_{ij}) d_{ji}^\\dagger\\rho d_{ij} - \\frac{1}{2}\\{d_{ij} d^\\dagger_{ji}, \\rho\\}
 
@@ -100,7 +101,8 @@ def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
 
 
 def bosonic_collapses(A_op, E, V, kT, k):
-"""
+    """
+    This script account for the losses of the system by coupling cavity mode to an eexternal radiation field.
     To identify the collapse operators, we must write the dissipator of our problem 
         \\mathcal{D}^+[\\rho] = \\sum_{ij} \\kappa n_B+(E_{ij}) a_{ji}^\\dagger\\rho a_{ij} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
 
@@ -109,7 +111,7 @@ def bosonic_collapses(A_op, E, V, kT, k):
 
     where a_{ij} is a system cavity eigenoperator
 
-    d_ij = \\langle i \\rvert d \\lvert j \\rangle \\lvert i \\rangle \\langle j \\rvert   
+    a_ij = \\langle i \\rvert a \\lvert j \\rangle \\lvert i \\rangle \\langle j \\rvert   
 
     the collapse is defined as:
 
@@ -120,16 +122,16 @@ def bosonic_collapses(A_op, E, V, kT, k):
     Parameters
     ----------
     A_op : Qobj or QobjEvo
-           Annihilation operator for fermions.
+           Annihilation operator for cavity.
 
     E, V : Qobj
-           Eigenvalues and eigenstates of system hamiltonian
+           Eigenvalues and eigenstates of system hamiltonian.
 
-    kT: float
-        Temperature of the bath
+    kT : float
+         Temperature of the bath.
 
-    k:  float
-        damping rate 
+    k :  float
+         Damping rate.
 
 
     Returns
@@ -152,6 +154,53 @@ def bosonic_collapses(A_op, E, V, kT, k):
     return c
 
 def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
+    """
+    This collapses represent the tunneling electron from left/right to right/left electrode interacting with the cavity mode.
+
+    To identify the collapse operators, we must write the dissipator of our problem 
+        \\mathcal{L}^+[\\rho] = \\sum_{ij} M F(E_{ij}) a_{ji}^\\dagger\\rho a_{ij} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
+
+         \\mathcal{L}^-[\\rho] = \\sum_{ij} M F(E_{ij}) a_{ji}^\\dagger\\rho a_{ij} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
+
+
+    where a_{ij} is a cavity system eigenoperator
+
+    a_ij = \\langle i \\rvert a \\lvert j \\rangle \\lvert i \\rangle \\langle j \\rvert   
+
+    the collapse is defined as:
+
+    C^+ = \\sqrt{M F(E_{ij}) } \\lvert \\langle i \\rvert a^\dagger \\lvert j \\rangle\\rvert \\lvert i \\rangle \\langle j \\rvert
+
+    C^- = \\sqrt{M F(E_{ij}) } \\lvert \\langle i \\rvert a \\lvert j \\rangle\\rvert \\lvert i \\rangle \\langle j \\rvert
+
+    
+    where F(x) = \\frac{x}{1-e^{-x/k_BT}}
+
+    Parameters
+    ----------
+    A_op : Qobj or QobjEvo
+           Annihilation operator for bosons.
+
+    E, V : Qobj
+           Eigenvalues and eigenstates of system hamiltonian.
+
+    VL, VR: float
+            Left/Right chemical potential (VL, VR).
+
+    kT: float
+        Temperature of the bath
+
+    M: float
+       Coupling between leads
+
+
+    Returns
+    -------
+    D : List of Qobj
+        Collpases operators.
+    """
+
+
     c = []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
