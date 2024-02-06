@@ -45,14 +45,16 @@ def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
         for j, Ej in enumerate(E):
             Mij = A_op.matrix_element(V[i], V[j]) ** 2
             if Mij != 0:
-                dE = abs(Ei-Ej)
-                fL = ndist.fermi_dirac(dE, mu=VL, kT=kT)
-                fR = ndist.fermi_dirac(dE, mu=VR, kT=kT)
+                Eij = Ei-Ej
+                fLm = 1 - ndist.fermi_dirac(Eij, mu=VL, kT=kT)
+                fRm = 1 - ndist.fermi_dirac(Eij, mu=VR, kT=kT)
+                fLp = ndist.fermi_dirac(-Eij, mu=VL, kT=kT)
+                fRp = ndist.fermi_dirac(-Eij, mu=VR, kT=kT)
                 P = (V[i] * V[j].dag()).transform(V)
-                c.append(np.sqrt(gL * Mij * (1 - fL)) * P)
-                c.append(np.sqrt(gR * Mij * (1 - fR)) * P)
-                c.append(np.sqrt(gL * Mij * fL) * P.dag())
-                c.append(np.sqrt(gR * Mij * fR) * P.dag())
+                c.append(np.sqrt(gL * Mij * fLm) * P)
+                c.append(np.sqrt(gR * Mij * fRm) * P)
+                c.append(np.sqrt(gL * Mij * fLp) * P.dag())
+                c.append(np.sqrt(gR * Mij * fRp) * P.dag())
     return c
 
 
@@ -60,10 +62,11 @@ def bosonic_collapses(A_op, E, V, kT, k):
     c = []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
-            Mij = A_op.matrix_element(V[i], V[j]) ** 2
+            Mij = A_op.matrix_element(V[i], V[j]) ** 2 
             if Mij != 0:
-                dE = abs(Ei-Ej)
-                nb = ndist.bose_einstein(dE, kT=kT)
+                Eij = Ei-Ej
+                nb = 1 + ndist.bose_einstein(Eij, kT=kT)
+                nb = ndist.bose_einstein(-Eij, kT=kT)
                 P = (V[i] * V[j].dag()).transform(V)
                 c.append(np.sqrt(k * Mij * (1 + nb)) * P)
                 c.append(np.sqrt(k * Mij * nb) * P.dag())
