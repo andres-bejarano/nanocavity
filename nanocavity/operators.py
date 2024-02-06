@@ -43,7 +43,7 @@ def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
     c = []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
-            Mij = (V[i].dag() * A_op * V[j]).full().squeeze() ** 2
+            Mij = A_op.matrix_element(V[i], V[j]) ** 2
             if Mij != 0:
                 dE = abs(Ei-Ej)
                 fL = ndist.fermi_dirac(dE, mu=VL, kT=kT)
@@ -60,7 +60,7 @@ def bosonic_collapses(A_op, E, V, kT, k):
     c = []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
-            Mij = (V[i].dag() * A_op * V[j]).full().squeeze() ** 2
+            Mij = A_op.matrix_element(V[i], V[j]) ** 2
             if Mij != 0:
                 dE = abs(Ei-Ej)
                 nb = ndist.bose_einstein(dE, kT=kT)
@@ -73,7 +73,7 @@ def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
     c = []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
-            Mij = (V[i].dag() * A_op * V[j]).full().squeeze() ** 2
+            Mij = A_op.matrix_element(V[i], V[j]) ** 2
             if Mij != 0:
                 dE = Ei-Ej
                 dist1 = ndist.Fermi_cb(VL-VR-dE, kT)
