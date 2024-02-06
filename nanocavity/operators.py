@@ -206,11 +206,18 @@ def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
         for j, Ej in enumerate(E):
             Mij = A_op.matrix_element(V[i], V[j]) ** 2
             if Mij != 0:
-                dE = Ei-Ej
-                dist1 = ndist.Fermi_cb(VL-VR-dE, kT)
-                dist2 = ndist.Fermi_cb(VR-VL-dE, kT)
-                dist = dist1 + dist2
-                coef = np.sqrt(m * dist * Mij) 
+                Eij = Ei-Ej
+
+                Fm1 = ndist.Fermi_cb(VL-VR-Eij, kT)
+                Fm2 = ndist.Fermi_cb(VR-VL-Eij, kT)
+                coefm = np.sqrt(m * (Fm1 + Fm2) * Mij)
+
+
+                Fp1 = ndist.Fermi_cb(VL-VR+Eij, kT)
+                Fp2 = ndist.Fermi_cb(VR-VL+Eij, kT)
+                coefp = np.sqrt(m * (Fp1 + Fp2) * Mij) 
+                
                 P = (V[i] * V[j].dag()).transform(V)
-                c.append(coef * P)
+                c.append(coefm * P)
+                c.append(coefp * P.dag())
     return c
