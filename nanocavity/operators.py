@@ -43,9 +43,9 @@ def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
     """
     This script computes the collapses for the tunneling electrons from a given lead to a given fermionic level.
     To identify the collapse operators, we must write the dissipator of our problem 
-        \\mathcal{L}^+[\\rho] = \\sum_{ij} \\Gamma f^+(E_{ij}) d_{ji}^\\dagger\\rho d_{ij} - \\frac{1}{2}\\{d_{ij} d^\\dagger_{ji}, \\rho\\}
+        \\mathcal{L}^+[\\rho] = \\sum_{ij} \\Gamma f^+(E_{ji}) d_{ij}^\\dagger\\rho d_{ji} - \\frac{1}{2}\\{d_{ji} d^\\dagger_{ij}, \\rho\\}
 
-         \\mathcal{L}^-[\\rho] = \\sum_{ij} \\Gamma f^-(E_{ij}) d_{ji}^\\dagger\\rho d_{ij} - \\frac{1}{2}\\{d_{ij}^\dagger d_{ji}, \\rho\\}
+         \\mathcal{L}^-[\\rho] = \\sum_{ij} \\Gamma f^-(E_{ji}) d_{ij}\\rho d_{ji}^\dagger - \\frac{1}{2}\\{d_{ji}^\dagger d_{ij}, \\rho\\}
 
 
     where d_{ij} is a molecular eigenoperator 
@@ -54,9 +54,11 @@ def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
 
     the collapse is defined as:
 
-    C^+ = \\sqrt{\Gamma f^+(E_{ij}) } \\lvert \\langle i \\rvert d^\dagger \\lvert j \\rangle\\rvert \\lvert i \\rangle \\langle j \\rvert
+    C^+ = \\sqrt{\Gamma f^+(E_{ji}) } \\lvert \\langle i \\rvert d^\dagger \\lvert j \\rangle\\rvert ^2 \\lvert i \\rangle \\langle j \\rvert
 
-    C^- = \\sqrt{\Gamma f^-(E_{ij}) } \\lvert \\langle i \\rvert d \\lvert j \\rangle\\rvert \\lvert i \\rangle \\langle j \\rvert
+    C^- = \\sqrt{\Gamma f^-(E_{ji}) } \\lvert \\langle i \\rvert d \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
+
+    where f^-(x) = 1 - f^+(x) and f(x) = f^+(x) is the fermi-dirac distribution.
 
     Parameters
     ----------
@@ -87,16 +89,14 @@ def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
         for j, Ej in enumerate(E):
             Mij = A_op.matrix_element(V[i], V[j]) ** 2
             if Mij != 0:
-                Eij = Ei-Ej
-                fLm = 1 - ndist.fermi_dirac(Eij, mu=VL, kT=kT)
-                fRm = 1 - ndist.fermi_dirac(Eij, mu=VR, kT=kT)
-                fLp = ndist.fermi_dirac(-Eij, mu=VL, kT=kT)
-                fRp = ndist.fermi_dirac(-Eij, mu=VR, kT=kT)
+                Eji = Ej - Ei
+                fL = ndist.fermi_dirac(Eji, mu=VL, kT=kT)
+                fR = ndist.fermi_dirac(Eji, mu=VR, kT=kT)
                 P = (V[i] * V[j].dag()).transform(V)
-                c.append(np.sqrt(gL * Mij * fLm) * P)
-                c.append(np.sqrt(gR * Mij * fRm) * P)
-                c.append(np.sqrt(gL * Mij * fLp) * P.dag())
-                c.append(np.sqrt(gR * Mij * fRp) * P.dag())
+                c.append(np.sqrt(gL * Mij * (1 - fL)) * P)
+                c.append(np.sqrt(gR * Mij * (1 - fR)) * P)
+                c.append(np.sqrt(gL * Mij * fL) * P.dag())
+                c.append(np.sqrt(gR * Mij * fR) * P.dag())
     return c
 
 
@@ -104,9 +104,9 @@ def bosonic_collapses(A_op, E, V, kT, k):
     """
     This script account for the losses of the system by coupling cavity mode to an eexternal radiation field.
     To identify the collapse operators, we must write the dissipator of our problem 
-        \\mathcal{D}^+[\\rho] = \\sum_{ij} \\kappa n_B+(E_{ij}) a_{ji}^\\dagger\\rho a_{ij} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
+        \\mathcal{D}^+[\\rho] = \\sum_{ij} \\kappa n_B+(E_{ji}) a_{ij}^\\dagger\\rho a_{ji} - \\frac{1}{2}\\{a_{ji} a^\\dagger_{ij}, \\rho\\}
 
-         \\mathcal{D}^-[\\rho] = \\sum_{ij} \\kappa n_B^-(E_{ij}) a_{ji}^\\dagger\\rho a_{ij} - \\frac{1}{2}\\{a_{ij}^\\dagger a_{ji}, \\rho\\}
+         \\mathcal{D}^-[\\rho] = \\sum_{ij} \\kappa n_B^-(E_{ji}) a_{ij}\\rho a_{ji}^\dagger - \\frac{1}{2}\\{a_{ji}^\\dagger a_{ij}, \\rho\\}
 
 
     where a_{ij} is a system cavity eigenoperator
@@ -115,9 +115,11 @@ def bosonic_collapses(A_op, E, V, kT, k):
 
     the collapse is defined as:
 
-    C^+ = \\sqrt{\kappa n_B^+(E_{ij}) } \\lvert \\langle i \\rvert a^\dagger \\lvert j \\rangle\\rvert \\lvert i \\rangle \\langle j \\rvert
+    C^+ = \\sqrt{\kappa n_B^+(E_{ji}) } \\lvert \\langle i \\rvert a^\dagger \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
 
-    C^- = \\sqrt{\kappa n_B^-(E_{ij}) } \\lvert \\langle i \\rvert a \\lvert j \\rangle\\rvert \\lvert i \\rangle \\langle j \\rvert
+    C^- = \\sqrt{\kappa n_B^-(E_{ji}) } \\lvert \\langle i \\rvert a \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
+
+    where n_B^-(x) = 1 + n_B^+(x) and n_B(x) = n_B^+(x) is the bose-einstein distribution
 
     Parameters
     ----------
@@ -145,9 +147,8 @@ def bosonic_collapses(A_op, E, V, kT, k):
         for j, Ej in enumerate(E):
             Mij = A_op.matrix_element(V[i], V[j]) ** 2 
             if Mij != 0:
-                Eij = Ei-Ej
-                nb = 1 + ndist.bose_einstein(Eij, kT=kT)
-                nb = ndist.bose_einstein(-Eij, kT=kT)
+                Eji = Ej - Ei
+                nb =  ndist.bose_einstein(Eji, kT=kT)
                 P = (V[i] * V[j].dag()).transform(V)
                 c.append(np.sqrt(k * Mij * (1 + nb)) * P)
                 c.append(np.sqrt(k * Mij * nb) * P.dag())
@@ -158,9 +159,9 @@ def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
     This collapses represent the tunneling electron from left/right to right/left electrode interacting with the cavity mode.
 
     To identify the collapse operators, we must write the dissipator of our problem 
-        \\mathcal{L}^+[\\rho] = \\sum_{ij} M F(E_{ij}) a_{ji}^\\dagger\\rho a_{ij} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
+        \\mathcal{L}^+[\\rho] = \\sum_{ij} M F(E_{ji}) a_{ij}^\\dagger\\rho a_{ji} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
 
-         \\mathcal{L}^-[\\rho] = \\sum_{ij} M F(E_{ij}) a_{ji}^\\dagger\\rho a_{ij} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
+         \\mathcal{L}^-[\\rho] = \\sum_{ij} M F(E_{ji}) a_{ij}^\\dagger\\rho a_{ji} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
 
 
     where a_{ij} is a cavity system eigenoperator
@@ -169,12 +170,12 @@ def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
 
     the collapse is defined as:
 
-    C^+ = \\sqrt{M F(E_{ij}) } \\lvert \\langle i \\rvert a^\dagger \\lvert j \\rangle\\rvert \\lvert i \\rangle \\langle j \\rvert
+    C^+ = \\sqrt{M F(E_{ji}) } \\lvert \\langle i \\rvert a^\dagger \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
 
-    C^- = \\sqrt{M F(E_{ij}) } \\lvert \\langle i \\rvert a \\lvert j \\rangle\\rvert \\lvert i \\rangle \\langle j \\rvert
+    C^- = \\sqrt{M F(E_{ji}) } \\lvert \\langle i \\rvert a \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
 
     
-    where F(x) = \\frac{x}{1-e^{-x/k_BT}}
+    where F(x) = \\sum_{s=L,R}\\frac{V_{s} - V_{\\bar{s}} +  x}{1-e^{-(V_{s} - V_{\\bar{s}} +  x)/k_BT}}
 
     Parameters
     ----------
@@ -204,20 +205,19 @@ def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
     c = []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
-            Mij = A_op.matrix_element(V[i], V[j]) ** 2
+            #As the distribution functions is the same for both dissipator
+            #we can write at the same time both collapses. 
+            #Each time that we create o remove a photon 
+            #we have no zero value for Mij and then we create the collapse.
+            Mij = (A_op + A_op.dag()).matrix_element(V[i], V[j]) ** 2
             if Mij != 0:
-                Eij = Ei-Ej
-
-                Fm1 = ndist.Fermi_cb(VL-VR-Eij, kT)
-                Fm2 = ndist.Fermi_cb(VR-VL-Eij, kT)
-                coefm = np.sqrt(m * (Fm1 + Fm2) * Mij)
-
-
-                Fp1 = ndist.Fermi_cb(VL-VR+Eij, kT)
-                Fp2 = ndist.Fermi_cb(VR-VL+Eij, kT)
-                coefp = np.sqrt(m * (Fp1 + Fp2) * Mij) 
-                
+                Eji = Ej - Ei
+                VLR = VL - VR
+    
+                F1 = ndist.Fermi_cb(VLR+Eji, kT)
+                F2 = ndist.Fermi_cb(-VLR+Eji, kT)
+                coef = np.sqrt(m * (F1 + F2) * Mij)
+    
                 P = (V[i] * V[j].dag()).transform(V)
-                c.append(coefm * P)
-                c.append(coefp * P.dag())
+                c.append(coef * P)
     return c
