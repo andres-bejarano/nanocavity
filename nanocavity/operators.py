@@ -1,7 +1,7 @@
 import numpy as np
 import nanocavity.distributions as ndist
 import secondquant.composite as sc
-from qutip import (qeye, tensor, destroy)
+from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector
 
 #two level system coupled to single cavity mode
 def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1, ret_nop=False):
@@ -221,3 +221,22 @@ def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
                 P = (V[i] * V[j].dag()).transform(V)
                 c.append(coef * P)
     return c
+
+
+
+def jump_op_bosonic(A_op, B_op, E, V, kappa, kT=0.1, rate='in'):
+    JB = 0
+    Bv = operator_to_vector(B_op)
+    for i, Ei in enumerate(E):
+        for j, Ej in enumerate(E):
+            Mij = A_op.matrix_element(V[i], V[j])
+            if Mij != 0:
+                Eji = Ej-Ei
+                if rate=='in':
+                    nb = ndist.bose_einstein(Eji, kT=kT)
+                elif rate=='out':
+                        nb = 1 + ndist.bose_einstein(Eji, kT=kT)
+                aij = Mij * (V[i] * V[j].dag()).transform(V)
+                JB +=  nb * sprepost(aij, aij.dag()) * Bv
+    return kappa * vector_to_operator(JB)
+
