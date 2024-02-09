@@ -240,3 +240,19 @@ def jump_op_bosonic(A_op, B_op, E, V, kappa, kT=0.1, rate='in'):
                 JB +=  nb * sprepost(aij, aij.dag()) * Bv
     return kappa * vector_to_operator(JB)
 
+def jump_op_fermionic(A_op, B_op, E, V, gamma, mu, kT=0.1, rate='in'):
+    JB = 0
+    Bv = operator_to_vector(B_op)
+    for i, Ei in enumerate(E):
+        for j, Ej in enumerate(E):
+            Mij = A_op.matrix_element(V[i], V[j])
+            if Mij != 0:
+                Eji = Ej-Ei
+                if rate=='in':
+                    f = ndist.fermi_dirac(Eji, mu=mu, kT=kT)
+                elif rate=='out':
+                    f = 1 + ndist.fermi_dirac(Eji, mu=mu, kT=kT)
+                aij = Mij * (V[i] * V[j].dag()).transform(V)
+                JB +=  f * sprepost(aij, aij.dag()) * Bv
+    return gamma * vector_to_operator(JB)
+

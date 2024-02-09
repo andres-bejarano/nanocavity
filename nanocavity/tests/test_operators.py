@@ -44,7 +44,7 @@ def Nanocav(VL, VR, rwa='False'):
     M = nre.bath_system_bath_rate(Enc, Vnc, a+a.d, m, VL, VR, kT=kT)
     #transtion rates matrix
     Gamma = K[np.newaxis, np.newaxis] + GL + GR + M
-    return nre.populations(Gamma), Kp, Km
+    return nre.populations(Gamma), Kp, Km, GpL, GpR
 
 def qt(VL, VR, rwa='False'):
     
@@ -65,7 +65,7 @@ def qt(VL, VR, rwa='False'):
     return Hqt, Vqt, Eqt, c_ops, L
 
 def test_collapses():
-    Pnc, _, _ = Nanocav(VL, VR)
+    Pnc, _, _, _, _ = Nanocav(VL, VR)
     Hqt, Vqt, _, c_ops, _ = qt(VL, VR)
     Pqt = steadystate(Hqt.transform(Vqt), c_ops).full().diagonal()
     assert np.allclose(np.sort(Pnc), np.sort(Pqt))
@@ -73,15 +73,28 @@ def test_collapses():
 def test_jump_op_bosonic():
 
     m = 0
-    Pnc, Kp, Km = Nanocav(VL, VR)
+    glq = gammaL[0, 0]
+    
+    Pnc, Kp, Km, GpL, GpR = Nanocav(VL, VR)
+    Ig_nc = nre.photo_current(Kp, Km, Pnc)
+    Ie_nc = nre.electro_current(GpL - GpR, Pnc)
 
-    Inc = nre.photo_current(Kp, Km, Pnc)
 
     Hqt, Vqt, Eqt, c_ops, L = qt(VL, VR)
-    
-    a = L[2]
-    rho_ss = steadystate(Hqt.transform(Vqt), c_ops)
-    Jrho = no.jump_op_bosonic(a, rho_ss, Eqt, Vqt, kappa, kT, rate='out')
+    [dg, de, a] = L
 
-    assert Inc, Jrho.tr()
+    rho_ss = steadystate(Hqt.transform(Vqt), c_ops)
+    
+    Jrho_a = no.jump_op_bosonic(a, rho_ss, Eqt, Vqt, kappa, kT, rate='out')
+    Jrho_dgde_plus = no.jump_op_fermionic(dg.dag(), rho_ss, Eqt, Vqt, glq, VL, kT, rate='in') + \
+            no.jump_op_fermionic(de.dag(), rho_ss, Eqt, Vqt, glq, VL, kT, rate='in')
+    Jrho_dgde_minus = no.jump_op_fermionic(dg, rho_ss, Eqt, Vqt, glq, VL, kT, rate='out') + \
+             no.jump_op_fermionic(de, rho_ss, Eqt, Vqt, glq, VL, kT, rate='out')
+    
+    Ig_qt = Jrho_a.tr()
+    Ie_qt = (Jrho_dgde_plus - Jrho_dgde_minus).tr()
+
+
+    assert Ig_nc, Ig_qt
+    assert Ie_nc, Ie_qt
 
