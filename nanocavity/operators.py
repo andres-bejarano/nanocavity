@@ -256,3 +256,23 @@ def jump_op_fermionic(A_op, B_op, E, V, gamma, mu, kT=0.1, rate='in'):
                 JB +=  f * sprepost(aij, aij.dag()) * Bv
     return gamma * vector_to_operator(JB)
 
+
+def jump_op_lead_to_lead(A_op, B_op, E, V, m, eV, kT=0.1, rate='in'):
+    JB = 0
+    Bv = operator_to_vector(B_op)
+    for i, Ei in enumerate(E):
+        for j, Ej in enumerate(E):
+            Mij = A_op.matrix_element(V[i], V[j])
+            if Mij != 0:
+                Eji = Ej-Ei
+                if rate=='in':
+                    F1 = ndist.Fermi_cb(eV-Eji, kT)
+                    F2 = ndist.Fermi_cb(-eV-Eji, kT)
+                elif rate=='out':
+                    F1 = ndist.Fermi_cb(eV+Eji, kT)
+                    F2 = ndist.Fermi_cb(-eV+Eji, kT)
+                F = F1 + F2
+                aij = Mij * (V[i] * V[j].dag()).transform(V)
+                JB +=  F * sprepost(aij, aij.dag()) * Bv
+    return m * vector_to_operator(JB)
+

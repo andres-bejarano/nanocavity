@@ -72,9 +72,8 @@ def test_collapses():
 
 def test_jump_op_bosonic():
 
-    m = 0
     glq = gammaL[0, 0]
-    
+    eV = VL - VR 
     Pnc, Kp, Km, GpL, GpR = Nanocav(VL, VR)
     Ig_nc = nre.photo_current(Kp, Km, Pnc)
     Ie_nc = nre.electro_current(GpL - GpR, Pnc)
@@ -85,7 +84,11 @@ def test_jump_op_bosonic():
 
     rho_ss = steadystate(Hqt.transform(Vqt), c_ops)
     
-    Jrho_a = no.jump_op_bosonic(a, rho_ss, Eqt, Vqt, kappa, kT, rate='out')
+    Jrho_a = no.jump_op_bosonic(a, rho_ss, Eqt, Vqt, kappa, kT, rate='out') + \
+             no.jump_op_lead_to_lead(a, rho_ss, Eqt, Vqt, m, eV, kT, rate='out') - \
+              no.jump_op_lead_to_lead(a.dag(), rho_ss, Eqt, Vqt, m, eV, kT, rate='in')
+    
+
     Jrho_dgde_plus = no.jump_op_fermionic(dg.dag(), rho_ss, Eqt, Vqt, glq, VL, kT, rate='in') + \
             no.jump_op_fermionic(de.dag(), rho_ss, Eqt, Vqt, glq, VL, kT, rate='in')
     Jrho_dgde_minus = no.jump_op_fermionic(dg, rho_ss, Eqt, Vqt, glq, VL, kT, rate='out') + \
