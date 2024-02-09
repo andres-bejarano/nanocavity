@@ -235,7 +235,7 @@ def jump_op_bosonic(A_op, B_op, E, V, kappa, kT=0.1, rate='in'):
                 if rate=='in':
                     nb = ndist.bose_einstein(Eji, kT=kT)
                 elif rate=='out':
-                        nb = 1 + ndist.bose_einstein(Eji, kT=kT)
+                    nb = 1 + ndist.bose_einstein(Eji, kT=kT)
                 aij = Mij * (V[i] * V[j].dag()).transform(V)
                 JB +=  nb * sprepost(aij, aij.dag()) * Bv
     return kappa * vector_to_operator(JB)
