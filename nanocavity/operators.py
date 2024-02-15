@@ -233,7 +233,7 @@ def jump_op_bosonic(A_op, B_op, E, V, kappa, kT=0.1, rate='in'):
             if Mij != 0:
                 Eji = Ej-Ei
                 if rate=='in':
-                    nb = ndist.bose_einstein(Eji, kT=kT)
+                    nb = ndist.bose_einstein(-Eji, kT=kT)
                 elif rate=='out':
                     nb = 1 + ndist.bose_einstein(Eji, kT=kT)
                 aij = Mij * (V[i] * V[j].dag()).transform(V)
@@ -249,9 +249,9 @@ def jump_op_fermionic(A_op, B_op, E, V, gamma, mu, kT=0.1, rate='in'):
             if Mij != 0:
                 Eji = Ej-Ei
                 if rate=='in':
-                    f = ndist.fermi_dirac(Eji, mu=mu, kT=kT)
+                    f = ndist.fermi_dirac(-Eji, mu=mu, kT=kT)
                 elif rate=='out':
-                    f = 1 + ndist.fermi_dirac(Eji, mu=mu, kT=kT)
+                    f = 1 - ndist.fermi_dirac(Eji, mu=mu, kT=kT)
                 aij = Mij * (V[i] * V[j].dag()).transform(V)
                 JB +=  f * sprepost(aij, aij.dag()) * Bv
     return gamma * vector_to_operator(JB)
@@ -266,11 +266,11 @@ def jump_op_lead_to_lead(A_op, B_op, E, V, m, eV, kT=0.1, rate='in'):
             if Mij != 0:
                 Eji = Ej-Ei
                 if rate=='in':
-                    F1 = ndist.Fermi_cb(eV-Eji, kT)
-                    F2 = ndist.Fermi_cb(-eV-Eji, kT)
-                elif rate=='out':
                     F1 = ndist.Fermi_cb(eV+Eji, kT)
                     F2 = ndist.Fermi_cb(-eV+Eji, kT)
+                elif rate=='out':
+                    F1 = ndist.Fermi_cb(eV-Eji, kT)
+                    F2 = ndist.Fermi_cb(-eV-Eji, kT)
                 F = F1 + F2
                 aij = Mij * (V[i] * V[j].dag()).transform(V)
                 JB +=  F * sprepost(aij, aij.dag()) * Bv
