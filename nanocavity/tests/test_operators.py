@@ -12,7 +12,7 @@ coupling = 0.3
 
 gammaL = 1e-3 * np.eye(2)
 gammaR = 2e-3 * np.eye(2)
-kappa =  1
+kappa =  0.1
 kT = 0.1
 VL = 3
 VR = -3
@@ -28,7 +28,7 @@ def test_Htls_nc_QuTiP():
             assert np.allclose(Enc, Eqt)
 
 
-def Nanocav(VL, VR, rwa='False'):
+def Nanocav(VL, VR):
 
     #nanocav-populations
     Hnc, [dg, de, a] = no.H_tls_nc(Eg, delta, omega, coupling)
@@ -41,12 +41,12 @@ def Nanocav(VL, VR, rwa='False'):
     Kp, Km = nre.transition_rate(Enc, Vnc, a, kappa, kT=kT, bath='bosonic')
     K = Kp + Km
     #M direct tunneling
-    M = nre.bath_system_bath_rate(Enc, Vnc, a+a.d, m, VL, VR, kT=kT)
+    M = nre.bath_system_bath_rate(Enc, Vnc, a+a.d, m, VL, VR, kT)
     #transtion rates matrix
     Gamma = K[np.newaxis, np.newaxis] + GL + GR + M
-    return nre.populations(Gamma), Kp, Km, GpL, GpR
+    return nre.populations(Gamma), Kp, Km, GpL, GmL
 
-def qt(VL, VR, rwa='False'):
+def qt(VL, VR):
     
     glq = gammaL[0, 0]
     grq = gammaR[0, 0]
@@ -54,8 +54,8 @@ def qt(VL, VR, rwa='False'):
     Hqt, [dg, de, a] = no.H_tls_QuTiP(Eg, delta, omega,  coupling)
     Eqt, Vqt = Hqt.eigenstates()
 
-    c_g = no.fermionic_collapses(dg, Eqt, Vqt, VL, VR, kT, gL=glq, gR=grq)
-    c_e = no.fermionic_collapses(de, Eqt, Vqt, VL, VR, kT, gL=glq, gR=grq)
+    c_g = no.fermionic_collapses(dg, Eqt, Vqt, VL, VR, kT, glq, grq)
+    c_e = no.fermionic_collapses(de, Eqt, Vqt, VL, VR, kT, glq, grq)
     c_a = no.bosonic_collapses(a, Eqt, Vqt, kT, kappa) + \
             no.lead_cavity_lead_collapses(a, Eqt, Vqt, VL, VR, kT, m)
 
@@ -73,31 +73,38 @@ def test_collapses():
 def test_jump_op_bosonic():
 
     glq = gammaL[0, 0]
-    eV = VL - VR 
-    Pnc, Kp, Km, GpL, GpR = Nanocav(VL, VR)
-    Ig_nc = nre.photo_current(Kp, Km, Pnc)
-    Ie_nc = nre.electro_current(GpL - GpR, Pnc)
 
 
-    Hqt, Vqt, Eqt, c_ops, L = qt(VL, VR)
-    [dg, de, a] = L
+    for VL in [-1, 1, 2]:
+        for VR in [0, -1, -2]:
+            m = 0
+            eV = VL - VR 
+            Pnc, Kp, Km, GpL, GmL = Nanocav(VL, VR)
+            Ig_nc = nre.photo_current(Kp, Km, Pnc)
+            Ie_nc = nre.electro_current(GpL - GmL, Pnc)
 
-    rho_ss = steadystate(Hqt.transform(Vqt), c_ops)
+            Hqt, Vqt, Eqt, c_ops, L = qt(VL, VR)
+            [dg, de, a] = L
+
+            rho_ss = steadystate(Hqt.transform(Vqt), c_ops)
     
-    Jrho_a = no.jump_op_bosonic(a, rho_ss, Eqt, Vqt, kappa, kT, rate='out') + \
-             no.jump_op_lead_to_lead(a, rho_ss, Eqt, Vqt, m, eV, kT, rate='out') - \
-              no.jump_op_lead_to_lead(a.dag(), rho_ss, Eqt, Vqt, m, eV, kT, rate='in')
+            Jrho_a = no.jump_op_bosonic(a, rho_ss, Eqt, Vqt, kappa, kT, rate='out') - \
+                    no.jump_op_bosonic(a.dag(), rho_ss, Eqt, Vqt, kappa, kT, rate='in') + \
+                    no.jump_op_lead_to_lead(a, rho_ss, Eqt, Vqt, m, eV, kT, rate='out') - \
+                    no.jump_op_lead_to_lead(a.dag(), rho_ss, Eqt, Vqt, m, eV, kT, rate='in')
+    
+            Jrho_dgde_plus = no.jump_op_fermionic(dg.dag(), rho_ss, Eqt, Vqt, glq, VL, kT, rate='in') + \
+                    no.jump_op_fermionic(de.dag(), rho_ss, Eqt, Vqt, glq, VL, kT, rate='in')
+                    
+            Jrho_dgde_minus = no.jump_op_fermionic(dg, rho_ss, Eqt, Vqt, glq, VL, kT, rate='out') + \
+                    no.jump_op_fermionic(de, rho_ss, Eqt, Vqt, glq, VL, kT, rate='out')
+    
+            Ig_qt = Jrho_a.tr()
+            Ie_qt = (Jrho_dgde_plus - Jrho_dgde_minus).tr()
     
 
-    Jrho_dgde_plus = no.jump_op_fermionic(dg.dag(), rho_ss, Eqt, Vqt, glq, VL, kT, rate='in') + \
-            no.jump_op_fermionic(de.dag(), rho_ss, Eqt, Vqt, glq, VL, kT, rate='in')
-    Jrho_dgde_minus = no.jump_op_fermionic(dg, rho_ss, Eqt, Vqt, glq, VL, kT, rate='out') + \
-             no.jump_op_fermionic(de, rho_ss, Eqt, Vqt, glq, VL, kT, rate='out')
-    
-    Ig_qt = Jrho_a.tr()
-    Ie_qt = (Jrho_dgde_plus - Jrho_dgde_minus).tr()
-
-
-    assert Ig_nc, Ig_qt
-    assert Ie_nc, Ie_qt
-
+            #print(Ig_qt, Ig_nc)
+            print(Ie_qt, Ie_nc)
+            assert np.allclose(Ig_nc, Ig_qt)
+            assert np.allclose(Ie_nc, Ie_qt)
+test_jump_op_bosonic()
