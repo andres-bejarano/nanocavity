@@ -70,15 +70,10 @@ def test_collapses():
     Pqt = steadystate(Hqt.transform(Vqt), c_ops).full().diagonal()
     assert np.allclose(np.sort(Pnc), np.sort(Pqt))
 
-def test_jump_op_bosonic():
-
-    glq = gammaL[0, 0]
-
+def test_jump_operator():
 
     for VL in [-1, 1, 2]:
         for VR in [0, -1, -2]:
-            m = 0
-            eV = VL - VR 
             Pnc, Kp, Km, GpL, GmL = Nanocav(VL, VR)
             Ig_nc = nre.photo_current(Kp, Km, Pnc)
             Ie_nc = nre.electro_current(GpL - GmL, Pnc)
@@ -88,23 +83,17 @@ def test_jump_op_bosonic():
 
             rho_ss = steadystate(Hqt.transform(Vqt), c_ops)
     
-            Jrho_a = no.jump_op_bosonic(a, rho_ss, Eqt, Vqt, kappa, kT, rate='out') - \
-                    no.jump_op_bosonic(a.dag(), rho_ss, Eqt, Vqt, kappa, kT, rate='in') + \
-                    no.jump_op_lead_to_lead(a, rho_ss, Eqt, Vqt, m, eV, kT, rate='out') - \
-                    no.jump_op_lead_to_lead(a.dag(), rho_ss, Eqt, Vqt, m, eV, kT, rate='in')
+            Jrho_a = no.jump_bosonic(a, rho_ss, Eqt, Vqt, kT, rate='out') - \
+                    no.jump_bosonic(a.dag(), rho_ss, Eqt, Vqt, kT, rate='in')
     
-            Jrho_dgde_plus = no.jump_op_fermionic(dg.dag(), rho_ss, Eqt, Vqt, glq, VL, kT, rate='in') + \
-                    no.jump_op_fermionic(de.dag(), rho_ss, Eqt, Vqt, glq, VL, kT, rate='in')
+            Jrho_dgde_plus = no.jump_fermionic(dg.dag(), rho_ss, Eqt, Vqt, VL, kT, rate='in') + \
+                    no.jump_fermionic(de.dag(), rho_ss, Eqt, Vqt, VL, kT, rate='in')
                     
-            Jrho_dgde_minus = no.jump_op_fermionic(dg, rho_ss, Eqt, Vqt, glq, VL, kT, rate='out') + \
-                    no.jump_op_fermionic(de, rho_ss, Eqt, Vqt, glq, VL, kT, rate='out')
+            Jrho_dgde_minus = no.jump_fermionic(dg, rho_ss, Eqt, Vqt, VL, kT, rate='out') + \
+                    no.jump_fermionic(de, rho_ss, Eqt, Vqt, VL, kT, rate='out')
     
-            Ig_qt = Jrho_a.tr()
-            Ie_qt = (Jrho_dgde_plus - Jrho_dgde_minus).tr()
+            Ig_qt = kappa * Jrho_a.tr()
+            Ie_qt = gammaL[0, 0] * (Jrho_dgde_plus - Jrho_dgde_minus).tr()
     
-
-            #print(Ig_qt, Ig_nc)
-            print(Ie_qt, Ie_nc)
             assert np.allclose(Ig_nc, Ig_qt)
             assert np.allclose(Ie_nc, Ie_qt)
-test_jump_op_bosonic()
