@@ -12,7 +12,7 @@ coupling = 0.3
 
 gammaL = 1e-3 * np.eye(2)
 gammaR = 2e-3 * np.eye(2)
-kappa =  1
+kappa =  0.1
 kT = 0.1
 VL = 3
 VR = -3
@@ -28,7 +28,7 @@ def test_Htls_nc_QuTiP():
             assert np.allclose(Enc, Eqt)
 
 
-def Nanocav(VL, VR, rwa='False'):
+def Nanocav(VL, VR):
 
     #nanocav-populations
     Hnc, [dg, de, a] = no.H_tls_nc(Eg, delta, omega, coupling)
@@ -41,12 +41,12 @@ def Nanocav(VL, VR, rwa='False'):
     Kp, Km = nre.transition_rate(Enc, Vnc, a, kappa, kT=kT, bath='bosonic')
     K = Kp + Km
     #M direct tunneling
-    M = nre.bath_system_bath_rate(Enc, Vnc, a+a.d, m, VL, VR, kT=kT)
+    M = nre.bath_system_bath_rate(Enc, Vnc, a+a.d, m, VL, VR, kT)
     #transtion rates matrix
     Gamma = K[np.newaxis, np.newaxis] + GL + GR + M
-    return nre.populations(Gamma)
+    return nre.populations(Gamma), Kp, Km, GpL, GmL
 
-def qt(VL, VR, rwa='False'):
+def qt(VL, VR):
     
     glq = gammaL[0, 0]
     grq = gammaR[0, 0]
@@ -54,16 +54,46 @@ def qt(VL, VR, rwa='False'):
     Hqt, [dg, de, a] = no.H_tls_QuTiP(Eg, delta, omega,  coupling)
     Eqt, Vqt = Hqt.eigenstates()
 
-    c_g = no.fermionic_collapses(dg, Eqt, Vqt, VL, VR, kT, gL=glq, gR=grq)
-    c_e = no.fermionic_collapses(de, Eqt, Vqt, VL, VR, kT, gL=glq, gR=grq)
+    c_g = no.fermionic_collapses(dg, Eqt, Vqt, VL, VR, kT, glq, grq)
+    c_e = no.fermionic_collapses(de, Eqt, Vqt, VL, VR, kT, glq, grq)
     c_a = no.bosonic_collapses(a, Eqt, Vqt, kT, kappa) + \
             no.lead_cavity_lead_collapses(a, Eqt, Vqt, VL, VR, kT, m)
 
     c_ops = c_g + c_e + c_a
-    return Hqt, Vqt, c_ops
+    L = [dg, de, a]
+
+    return Hqt, Vqt, Eqt, c_ops, L
 
 def test_collapses():
-    Pnc = np.sort(Nanocav(VL, VR))
-    Hqt, Vqt, c_ops = qt(VL, VR)
+    Pnc, _, _, _, _ = Nanocav(VL, VR)
+    Hqt, Vqt, _, c_ops, _ = qt(VL, VR)
     Pqt = steadystate(Hqt.transform(Vqt), c_ops).full().diagonal()
-    assert np.allclose(Pnc, np.sort(Pqt))
+    assert np.allclose(np.sort(Pnc), np.sort(Pqt))
+
+def test_jump_operator():
+
+    for VL in [-1, 1, 2]:
+        for VR in [0, -1, -2]:
+            Pnc, Kp, Km, GpL, GmL = Nanocav(VL, VR)
+            Ig_nc = nre.photo_current(Kp, Km, Pnc)
+            Ie_nc = nre.electro_current(GpL - GmL, Pnc)
+
+            Hqt, Vqt, Eqt, c_ops, L = qt(VL, VR)
+            [dg, de, a] = L
+
+            rho_ss = steadystate(Hqt.transform(Vqt), c_ops)
+    
+            Jrho_a = no.jump_bosonic(a, rho_ss, Eqt, Vqt, kT, rate='out') - \
+                    no.jump_bosonic(a.dag(), rho_ss, Eqt, Vqt, kT, rate='in')
+    
+            Jrho_dgde_plus = no.jump_fermionic(dg.dag(), rho_ss, Eqt, Vqt, VL, kT, rate='in') + \
+                    no.jump_fermionic(de.dag(), rho_ss, Eqt, Vqt, VL, kT, rate='in')
+                    
+            Jrho_dgde_minus = no.jump_fermionic(dg, rho_ss, Eqt, Vqt, VL, kT, rate='out') + \
+                    no.jump_fermionic(de, rho_ss, Eqt, Vqt, VL, kT, rate='out')
+    
+            Ig_qt = kappa * Jrho_a.tr()
+            Ie_qt = gammaL[0, 0] * (Jrho_dgde_plus - Jrho_dgde_minus).tr()
+    
+            assert np.allclose(Ig_nc, Ig_qt)
+            assert np.allclose(Ie_nc, Ie_qt)
