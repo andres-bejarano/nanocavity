@@ -224,55 +224,31 @@ def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
 
 
 
-def jump_op_bosonic(A_op, B_op, E, V, kappa, kT=0.1, rate='in'):
+def jump_operator(A_op, B_op, E, V, distribution):
     JB = 0
     Bv = operator_to_vector(B_op)
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
             Mij = A_op.matrix_element(V[i], V[j])
             if Mij != 0:
-                Eji = Ej-Ei
-                if rate=='in':
-                    nb = ndist.bose_einstein(-Eji, kT=kT)
-                elif rate=='out':
-                    nb = 1 + ndist.bose_einstein(Eji, kT=kT)
                 aij = Mij * (V[i] * V[j].dag()).transform(V)
-                JB +=  nb * sprepost(aij, aij.dag()) * Bv
-    return kappa * vector_to_operator(JB)
+                JB += distribution(Ej - Ei) * sprepost(aij, aij.dag()) * Bv
+    return vector_to_operator(JB)
 
-def jump_op_fermionic(A_op, B_op, E, V, gamma, mu, kT=0.1, rate='in'):
-    JB = 0
-    Bv = operator_to_vector(B_op)
-    for i, Ei in enumerate(E):
-        for j, Ej in enumerate(E):
-            Mij = A_op.matrix_element(V[i], V[j])
-            if Mij != 0:
-                Eji = Ej-Ei
-                if rate=='in':
-                    f = ndist.fermi_dirac(-Eji, mu=mu, kT=kT)
-                elif rate=='out':
-                    f = 1 - ndist.fermi_dirac(Eji, mu=mu, kT=kT)
-                aij = Mij * (V[i] * V[j].dag()).transform(V)
-                JB +=  f * sprepost(aij, aij.dag()) * Bv
-    return gamma * vector_to_operator(JB)
+def jump_bosonic(A_op, B_op, E, V, kT, rate='in'):
+    if rate == 'in':
+        def dist(E):
+            return ndist.bose_einstein(-E, kT)
+    elif rate == 'out':
+        def dist(E):
+            return 1 + ndist.bose_einstein(E, kT)
+    return jump_operator(A_op, B_op, E, V, dist)
 
-
-def jump_op_lead_to_lead(A_op, B_op, E, V, m, eV, kT=0.1, rate='in'):
-    JB = 0
-    Bv = operator_to_vector(B_op)
-    for i, Ei in enumerate(E):
-        for j, Ej in enumerate(E):
-            Mij = A_op.matrix_element(V[i], V[j])
-            if Mij != 0:
-                Eji = Ej-Ei
-                if rate=='in':
-                    F1 = ndist.Fermi_cb(eV+Eji, kT)
-                    F2 = ndist.Fermi_cb(-eV+Eji, kT)
-                elif rate=='out':
-                    F1 = ndist.Fermi_cb(eV-Eji, kT)
-                    F2 = ndist.Fermi_cb(-eV-Eji, kT)
-                F = F1 + F2
-                aij = Mij * (V[i] * V[j].dag()).transform(V)
-                JB +=  F * sprepost(aij, aij.dag()) * Bv
-    return m * vector_to_operator(JB)
-
+def jump_fermionic(A_op, B_op, E, V, mu, kT, rate='in'):
+    if rate == 'in':
+        def dist(E):
+            return ndist.fermi_dirac(-E, kT, mu)
+    elif rate == 'out':
+        def dist(E):
+            return 1 - ndist.fermi_dirac(E, kT, mu)
+    return jump_operator(A_op, B_op, E, V, dist)
