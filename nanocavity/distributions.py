@@ -8,6 +8,23 @@ def fermi_dirac(E, kT=0.1, mu=0):
 def bose_einstein(E, kT=0.1, mu=0):
     return 1. / (np.exp((E - mu) / kT) - 1.)
 
+def bath_dist(E, kT, rate, bath, mu=0):
+    if bath == 'bosonic':
+        if rate == 'in':
+            def dist(E):
+                return bose_einstein(-E, kT)
+        elif rate == 'out':
+            def dist(E):
+                return 1 + bose_einstein(E, kT)
+    elif bath == 'fermionic':
+        if rate == 'in':
+            def dist(E):
+                return fermi_dirac(-E, kT, mu)
+        elif rate == 'out':
+            def dist(E):
+                return 1 - fermi_dirac(E, kT, mu)
+    return dist
+
 #lorentzian
 def lorentzian(E, w):
     return (1. / np.pi) * ((w / 2.) / ((w ** 2 / 4.) + E ** 2))
