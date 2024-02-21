@@ -1,7 +1,7 @@
 import numpy as np
 import nanocavity.distributions as ndist
 import secondquant.composite as sc
-from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector
+from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector, spre, spost
 
 #two level system coupled to single cavity mode
 def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1, ret_nop=False):
@@ -223,7 +223,6 @@ def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
     return c
 
 
-
 def jump_operator(A_op, B_op, E, V, distribution):
     JB = 0
     Bv = operator_to_vector(B_op)
@@ -235,20 +234,12 @@ def jump_operator(A_op, B_op, E, V, distribution):
                 JB += distribution(Ej - Ei) * sprepost(aij, aij.dag()) * Bv
     return vector_to_operator(JB)
 
+
+
 def jump_bosonic(A_op, B_op, E, V, kT, rate='in'):
-    if rate == 'in':
-        def dist(E):
-            return ndist.bose_einstein(-E, kT)
-    elif rate == 'out':
-        def dist(E):
-            return 1 + ndist.bose_einstein(E, kT)
+    dist = ndist.bath_dist(E, kT, rate, bath='bosonic')
     return jump_operator(A_op, B_op, E, V, dist)
 
 def jump_fermionic(A_op, B_op, E, V, mu, kT, rate='in'):
-    if rate == 'in':
-        def dist(E):
-            return ndist.fermi_dirac(-E, kT, mu)
-    elif rate == 'out':
-        def dist(E):
-            return 1 - ndist.fermi_dirac(E, kT, mu)
+    dist = ndist.bath_dist(E, kT, rate, bath='fermionic', mu=mu)
     return jump_operator(A_op, B_op, E, V, dist)
