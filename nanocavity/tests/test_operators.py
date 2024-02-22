@@ -1,7 +1,7 @@
 import numpy as np
 import nanocavity.operators as no
 import nanocavity.rate_equation as nre
-from qutip import steadystate
+from qutip import steadystate, spre, spost
 
 
 
@@ -64,6 +64,40 @@ def qt(VL, VR):
 
     return Hqt, Vqt, Eqt, c_ops, L
 
+def qt_dissipator():
+    Hqt, [dg, de, a] = no.H_tls_QuTiP(Eg, delta, omega,  coupling)
+    Eqt, Vqt = Hqt.eigenstates()
+    VLR = VL - VR
+    VRL = VR - VL
+    glq = gammaL[0, 0]
+    grq = gammaR[0, 0]
+
+    #incoherent_evolution
+    L = -1.0j * (spre(Hqt.transform(Vqt)) - spost(Hqt.transform(Vqt)))
+
+    #cavity-radiation_bath dissipator
+    L +=  kappa * (no.dissipator_bosonic(a, Eqt, Vqt, kT, rate='out') + \
+                no.dissipator_bosonic(a.dag(), Eqt, Vqt, kT, rate='in'))
+
+    #molecule-leads dissipator
+    L +=  glq * (no.dissipator_fermionic(dg, Eqt, Vqt, VL, kT, rate='out') + \
+                no.dissipator_fermionic(de, Eqt, Vqt, VL, kT, rate='out') + \
+                no.dissipator_fermionic(dg.dag(), Eqt, Vqt, VL, kT, rate='in') + \
+                no.dissipator_fermionic(de.dag(), Eqt, Vqt, VL, kT, rate='in'))
+
+    L += grq * (no.dissipator_fermionic(dg, Eqt, Vqt, VR, kT, rate='out') + \
+                no.dissipator_fermionic(de, Eqt, Vqt, VR, kT, rate='out') + \
+                no.dissipator_fermionic(dg.dag(), Eqt, Vqt, VR, kT, rate='in') + \
+                no.dissipator_fermionic(de.dag(), Eqt, Vqt, VR, kT, rate='in'))
+    
+    #cavity-leads dissipator
+    L += m * (no.dissipator_lead(a, Eqt, Vqt, eV=VLR, kT=kT, rate='out') +\
+            no.dissipator_lead(a, Eqt, Vqt, eV=VRL, kT=kT, rate='out') + \
+            no.dissipator_lead(a.dag(), Eqt, Vqt, eV=VLR, kT=kT, rate='in') + \
+            no.dissipator_lead(a.dag(), Eqt, Vqt, eV=VRL, kT=kT, rate='in'))
+    rho_ss = steadystate(L)
+    return rho_ss.full().diagonal()
+
 def test_collapses():
     Pnc, _, _, _, _ = Nanocav(VL, VR)
     Hqt, Vqt, _, c_ops, _ = qt(VL, VR)
@@ -97,3 +131,13 @@ def test_jump_operator():
     
             assert np.allclose(Ig_nc, Ig_qt)
             assert np.allclose(Ie_nc, Ie_qt)
+
+
+
+def test_dissipators():
+    for kappa in [1e-1, 1]:
+        for m in [1e-6, 1e-4, 1e-2]:
+            Pnc, _, _, _, _ = Nanocav(VL, VR)
+            Pqt = qt_dissipator()
+            assert np.allclose(np.sort(Pnc), np.sort(Pqt))
+
