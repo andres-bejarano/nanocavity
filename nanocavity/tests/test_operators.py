@@ -41,9 +41,9 @@ def Nanocav(VL, VR):
     Kp, Km = nre.transition_rate(Enc, Vnc, a, kappa, kT=kT, bath='bosonic')
     K = Kp + Km
     #M direct tunneling
-    M = nre.bath_system_bath_rate(Enc, Vnc, a+a.d, m, VL, VR, kT)
+    Mp, Mm = nre.bath_system_bath_rate(Enc, Vnc, a, m, VL, VR, kT)
     #transtion rates matrix
-    Gamma = K[np.newaxis, np.newaxis] + GL + GR + M
+    Gamma = K[np.newaxis, np.newaxis] + GL + GR + Mp + Mm
     return nre.populations(Gamma), Kp, Km, GpL, GmL
 
 def qt(VL, VR):

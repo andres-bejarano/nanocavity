@@ -284,9 +284,10 @@ def test_bath_system_bath_rate():
     e, v = Nb.eigh()
 
     #transtion rates, populations and spectrum
-    Kp, Km = nre.transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
+    Kp, Km = nre.transition_rate(e, v, a, kappa, kT=kT, bath='bosonic')
     K = Kp + Km
-    M = nre.bath_system_bath_rate(e, v, [a + a.d], m, VL=VL, VR=VR, kT=kT)
+    Mp, Mm = nre.bath_system_bath_rate(e, v, a, m, VL=VL, VR=VR, kT=kT)
+    M = Mp + Mm
     P = nre.populations(K[np.newaxis, np.newaxis]  + M)
 
 
@@ -297,8 +298,8 @@ def test_bath_system_bath_rate():
             m *  (ndist.Fermi_cb(bias-E, kT) + ndist.Fermi_cb(-bias-E, kT=kT))
     Gdw = kappa * (1 + ndist.bose_einstein(omegac, kT=kT)) + \
             m * (ndist.Fermi_cb(bias+E, kT) + ndist.Fermi_cb(-bias+E, kT=kT))
-    x= Gup / Gdw
+    x = Gup / Gdw
     gamma = (1 - x)/(1 - x ** (max(n) + 1))
     Pn = gamma * x ** n
-
+    print('bath', Pn, P)
     assert np.allclose(P, Pn)
