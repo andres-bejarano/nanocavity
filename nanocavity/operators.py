@@ -244,7 +244,9 @@ def jump_fermionic(A_op, B_op, E, V, mu, kT, rate='in'):
     dist = ndist.bath_dist(E, kT, rate, bath='fermionic', mu=mu)
     return jump_operator(A_op, B_op, E, V, dist)
 
-
+def jump_lead(A_op, B_op, E, V, eV, kT, rate='in'):
+    dist = ndist.bath_dist(E, kT, rate, bath='leadtolead', mu=0, eV=eV)
+    return jum_operator(A_op, B_op, E, V, dist)
 
 def dissipator(A_op, E, V, distribution, chi):
     L = 0
@@ -255,7 +257,7 @@ def dissipator(A_op, E, V, distribution, chi):
                 Eji = Ej - Ei
                 aij = Mij * (V[i] * V[j].dag()).transform(V)
                 aca =  aij.dag() * aij
-                L+= distribution(Eji) * (sprepost(aij, aij.dag()) * np.exp(1j * chi) - \
+                L += distribution(Eji) * (sprepost(aij, aij.dag()) * np.exp(1j * chi) - \
                         0.5 * spre(aca) - 0.5 * spost(aca))
     return L
 
@@ -266,3 +268,8 @@ def dissipator_bosonic(A_op, E, V, kT, rate, chi=0):
 def dissipator_fermionic(A_op, E, V, mu, kT, rate, chi=0):
     dist = ndist.bath_dist(E, kT, rate, bath='fermionic', mu=mu)
     return dissipator(A_op, E, V, dist, chi)
+
+def dissipator_lead(A_op, E, V, eV, kT, rate, chi=0):
+    dist = ndist.bath_dist(E, kT, rate, bath='leadtolead', mu=0, eV=eV)
+    return dissipator(A_op, E, V, dist, chi)
+
