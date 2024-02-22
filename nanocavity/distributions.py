@@ -8,7 +8,7 @@ def fermi_dirac(E, kT=0.1, mu=0):
 def bose_einstein(E, kT=0.1, mu=0):
     return 1. / (np.exp((E - mu) / kT) - 1.)
 
-def bath_dist(E, kT, rate, bath, mu=0):
+def bath_dist(E, kT, rate, bath, mu=0, eV=0):
     if bath == 'bosonic':
         if rate == 'in':
             def dist(E):
@@ -23,6 +23,13 @@ def bath_dist(E, kT, rate, bath, mu=0):
         elif rate == 'out':
             def dist(E):
                 return 1 - fermi_dirac(E, kT, mu)
+    elif bath == 'leadtolead':
+        if rate == 'in':
+            def dist(E):
+                return float(Fermi_cb(eV+E, kT))
+        elif rate == 'out':
+            def dist(E):
+                return float(Fermi_cb(eV+E, kT))
     return dist
 
 #lorentzian
