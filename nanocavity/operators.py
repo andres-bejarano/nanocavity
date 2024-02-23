@@ -257,9 +257,9 @@ def dissipator(A_op, E, V, distribution, chi):
                 Eji = Ej - Ei
                 aij = Mij * (V[i] * V[j].dag()).transform(V)
                 aca =  aij.dag() * aij
-                L += distribution(Eji) * (sprepost(aij, aij.dag()) - \
-                        0.5 * spre(aca) - 0.5 * spost(aca))
-    return L *  np.exp(1j * chi)
+                L += distribution(Eji) * (sprepost(aij, aij.dag()) * np.exp(1j * chi) - \
+                        0.5 * spre(aca) - 0.5 * spost(aca)) 
+    return L
 
 def dissipator_bosonic(A_op, E, V, kT, rate, chi=0):
     dist = ndist.bath_dist(E, kT, rate, bath='bosonic')
