@@ -223,30 +223,29 @@ def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
     return c
 
 
-def jump_operator(A_op, B_op, E, V, distribution):
-    JB = 0
-    Bv = operator_to_vector(B_op)
+def jump_operator(A_op, E, V, distribution):
+    J = 0
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
             Mij = A_op.matrix_element(V[i], V[j])
             if Mij != 0:
                 aij = Mij * (V[i] * V[j].dag()).transform(V)
-                JB += distribution(Ej - Ei) * sprepost(aij, aij.dag()) * Bv
-    return vector_to_operator(JB)
+                J += distribution(Ej - Ei) * sprepost(aij, aij.dag()) 
+    return J
 
 
 
-def jump_bosonic(A_op, B_op, E, V, kT, rate='in'):
+def jump_bosonic(A_op, E, V, kT, rate='in'):
     dist = ndist.bath_dist(E, kT, rate, bath='bosonic')
-    return jump_operator(A_op, B_op, E, V, dist)
+    return jump_operator(A_op, E, V, dist)
 
-def jump_fermionic(A_op, B_op, E, V, mu, kT, rate='in'):
+def jump_fermionic(A_op, E, V, mu, kT, rate='in'):
     dist = ndist.bath_dist(E, kT, rate, bath='fermionic', mu=mu)
-    return jump_operator(A_op, B_op, E, V, dist)
+    return jump_operator(A_op, E, V, dist)
 
-def jump_lead(A_op, B_op, E, V, eV, kT, rate='in'):
+def jump_lead(A_op, E, V, eV, kT, rate='in'):
     dist = ndist.bath_dist(E, kT, rate, bath='leadtolead', mu=0, eV=eV)
-    return jum_operator(A_op, B_op, E, V, dist)
+    return jum_operator(A_op, E, V, dist)
 
 def dissipator(A_op, E, V, distribution, chi):
     L = 0

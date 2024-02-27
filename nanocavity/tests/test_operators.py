@@ -1,7 +1,7 @@
 import numpy as np
 import nanocavity.operators as no
 import nanocavity.rate_equation as nre
-from qutip import steadystate, spre, spost
+from qutip import steadystate, spre, spost, operator_to_vector, vector_to_operator
 
 
 
@@ -115,18 +115,23 @@ def test_jump_operator():
             Hqt, Vqt, Eqt, c_ops, L = qt(VL, VR)
             [dg, de, a] = L
 
-            rho_ss = steadystate(Hqt.transform(Vqt), c_ops)
-    
-            Jrho_a = no.jump_bosonic(a, rho_ss, Eqt, Vqt, kT, rate='out') - \
-                    no.jump_bosonic(a.dag(), rho_ss, Eqt, Vqt, kT, rate='in')
-    
-            Jrho_dgde_plus = no.jump_fermionic(dg.dag(), rho_ss, Eqt, Vqt, VL, kT, rate='in') + \
-                    no.jump_fermionic(de.dag(), rho_ss, Eqt, Vqt, VL, kT, rate='in')
-                    
-            Jrho_dgde_minus = no.jump_fermionic(dg, rho_ss, Eqt, Vqt, VL, kT, rate='out') + \
-                    no.jump_fermionic(de, rho_ss, Eqt, Vqt, VL, kT, rate='out')
-    
-            Ig_qt = kappa * Jrho_a.tr()
+            rho_ss = operator_to_vector(steadystate(Hqt.transform(Vqt), c_ops))
+            
+            J_a_minus = no.jump_bosonic(a, Eqt, Vqt, kT, rate='out') 
+            J_a_plus = no.jump_bosonic(a.dag(), Eqt, Vqt, kT, rate='in')        
+            Jrho_a_minus = vector_to_operator(J_a_minus * rho_ss)
+            Jrho_a_plus = vector_to_operator(J_a_plus * rho_ss)
+
+            J_dgde_plus = no.jump_fermionic(dg.dag(), Eqt, Vqt, VL, kT, rate='in') + \
+                    no.jump_fermionic(de.dag(), Eqt, Vqt, VL, kT, rate='in')
+            J_dgde_minus = no.jump_fermionic(dg, Eqt, Vqt, VL, kT, rate='out') + \
+                    no.jump_fermionic(de, Eqt, Vqt, VL, kT, rate='out')
+            
+            Jrho_dgde_plus = vector_to_operator(J_dgde_plus * rho_ss)
+            Jrho_dgde_minus = vector_to_operator(J_dgde_minus * rho_ss)
+
+
+            Ig_qt = kappa * (Jrho_a_minus -  Jrho_a_plus).tr()
             Ie_qt = gammaL[0, 0] * (Jrho_dgde_plus - Jrho_dgde_minus).tr()
     
             assert np.allclose(Ig_nc, Ig_qt)
