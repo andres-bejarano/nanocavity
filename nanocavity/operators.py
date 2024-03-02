@@ -272,3 +272,43 @@ def dissipator_lead(A_op, E, V, eV, kT, rate, chi=0):
     dist = ndist.bath_dist(E, kT, rate, bath='leadtolead', mu=0, eV=eV)
     return dissipator(A_op, E, V, dist, chi)
 
+def Liouvillian(H, S_op, VL, VR, kT=1e-2, kappa=0.1, gL=1e-3, gR=1e-3, m=0, iva=False, chi_b=0, chi_f=0):
+    [dg, de, a] = S_op
+    
+    if iva:
+        Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
+        H -= Hint
+    E, V = H.eigenstates()
+    
+    #cavity-radiation_bath dissipator
+    L = kappa * (dissipator_bosonic(a, E, V, kT, rate='out', chi=chi_b) + \
+                 dissipator_bosonic(a.dag(), E, V, kT, rate='in', chi=-chi_b))
+
+    #molecule-leads dissipator
+    L += gL * (dissipator_fermionic(dg, E, V, VL, kT, rate='out', chi=chi_f) + \
+               dissipator_fermionic(de, E, V, VL, kT, rate='out', chi=chi_f) + \
+               dissipator_fermionic(dg.dag(), E, V, VL, kT, rate='in', chi=-chi_f) + \
+               dissipator_fermionic(de.dag(), E, V, VL, kT, rate='in', chi=-chi_f))
+
+    L += gR * (dissipator_fermionic(dg, E, V, VR, kT, rate='out') + \
+               dissipator_fermionic(de, E, V, VR, kT, rate='out') + \
+               dissipator_fermionic(dg.dag(), E, V, VR, kT, rate='in') + \
+               dissipator_fermionic(de.dag(), E, V, VR, kT, rate='in'))
+    
+    #cavity-leads dissipator
+    VLR = VL - VR
+    VRL = VR - VL
+    L += m * (dissipator_lead(a, E, V, eV=VLR, kT=kT, rate='out', chi=chi_f) + \
+              dissipator_lead(a.dag(), E, V, eV=VLR, kT=kT, rate='in', chi=chi_f) + \
+              dissipator_lead(a, E, V, eV=VRL, kT=kT, rate='out', chi=-chi_f) + \
+              dissipator_lead(a.dag(), E, V, eV=VRL, kT=kT, rate='in', chi=-chi_f))
+    if iva:
+        H += Hint
+
+    #incoherent_evolution 
+    L += -1.0j * (spre(H.transform(V)) - spost(H.transform(V)))
+    return L
+
+
+
+
