@@ -51,9 +51,9 @@ def noise(L, Jin, Jout, wlist, method='eigen'):
     for j, w in enumerate(wlist):
         Sj = 0
         for i, Ei in enumerate(El[1:]):
-            num =  np.abs(Ei) * (np.dot(vl[:, 0].T.conj(), np.dot(J1, vr[:, i]))) \
+            num =  Ei * (np.dot(vl[:, 0].T.conj(), np.dot(J1, vr[:, i]))) \
                 * (np.dot(vl[:, i].T.conj(), np.dot(J1, vr[:, 0])))
-            den = w ** 2 - np.abs(Ei) ** 2    
-            Sj += num/den
+            den = w ** 2 + np.abs(Ei) ** 2    
+            Sj += np.real(num)/den
         S[j] = Sj
     return J2tr + 2 * S
