@@ -42,15 +42,14 @@ def noise(L, Jin, Jout, wlist=[0], method='direct'):
         rho_ss = operator_to_vector(rho_ss).full()
         L = L.full()
         d2 = L.shape[0]
-        J = J2
         Id = np.eye(d2, d2)
         #we have to solve tr{ALB^-1C} 
         #A = J' = J - Tr{J * rho_st}
-        Jtr = np.dot(J, rho_ss).reshape(d, d).trace()
-        if Jtr == 0:
+        Jtr1 = np.dot(J1, rho_ss).reshape(d, d).trace()
+        if Jtr1 == 0:
             return [0]
         else:
-            A = J - Jtr * Id
+            A = J1 - Jtr1 * Id
             #C = J' rho_st
             C = np.dot(A, rho_ss)
 
@@ -62,7 +61,8 @@ def noise(L, Jin, Jout, wlist=[0], method='direct'):
                 B = np.dot(L, L) + Id * omega ** 2
                 W = np.linalg.solve(B, C)
                 S[i] = np.real(np.dot(A, np.dot(L, W)).reshape(d, d).trace())
-            return  Jtr - 2 * S
+            Jtr2 = np.dot(J2, rho_ss).reshape(d, d).trace()
+            return  Jtr2 - 2 * S
 
     elif method=='eigen':
         print('The stability of this method it is not guaranteed')
