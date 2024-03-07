@@ -32,7 +32,7 @@ def cumulants(H, S_op, VL, VR,  kT=1e-2, kappa=0.1, gL=1e-3, gR=1e-3, m=0, iva=F
     Ze = -np.gradient(np.gradient(np.real(Emax_xy[2, :]), x), x)[2]
     return Ig, Ie, Zg, Ze
 
-def noise(L, Jin, Jout, wlist, method='direct'):
+def noise(L, Jin, Jout, wlist=[0], method='direct'):
     J1 = Jout.full() - Jin.full()
     J2 = Jout.full() + Jin.full()
 
@@ -48,7 +48,7 @@ def noise(L, Jin, Jout, wlist, method='direct'):
         #A = J' = J - Tr{J * rho_st}
         Jtr = np.dot(J, rho_ss).reshape(d, d).trace()
         if Jtr == 0:
-            return 0
+            return [0]
         else:
             A = J - Jtr * Id
             #C = J' rho_st
