@@ -18,14 +18,16 @@ gL = 1e-3
 gR = 2e-3
 kappa = 0.1
 m = 0
-kT = 1e-2
-VL = 3
-VR = -3
+kT = 0.1
 
-Hqt, [dg, de, a] = no.H_tls_QuTiP(Eg, delta, omegac,  coupling)
-Hqt += u * dg.dag() * de.dag() * de * dg
-Eqt, Vqt =  Hqt.eigenstates()
-L = no.Liouvillian(Hqt, [dg, de, a], VL, VR, gL=gL, gR=gR)
+H, [dg, de, a] = no.H_tls_QuTiP(Eg, delta, omegac,  coupling)
+H += u * dg.dag() * de.dag() * de * dg
+E, V =  H.eigenstates()
+
+#Liouvillian
+def Li(VL=3, VR=-3):
+    L = no.Liouvillian(H, [dg, de, a], VL, VR, kT=kT,gL=gL, gR=gR)
+    return L
 
 def fcs(VL=3, VR=-3):
     Hnc, [Dg, De, A] = no.H_tls_nc(Eg, delta, omegac, coupling)
@@ -45,45 +47,61 @@ def fcs(VL=3, VR=-3):
     return Ig_re, Ie_re, Zg_re, Ze_re
 
 def test_current():
-    VLR = VL - VR
-    VRL = VR - VL
-    H = Hqt
-    E, V = H.eigenstates()
+    for VL in [-3, -2.1, -1.1, 2]:
+        for VR in [-1.3, 1.4, 2.5]:
+            
+            VLR = VL - VR
+            VRL = VR - VL
+            L = Li(VL, VR)
 
-    Jtip_out = gL * no.jump_fermionic(dg.dag(), E, V, VL, kT, rate='in') + \
-               gL * no.jump_fermionic(de.dag(), E, V, VL, kT, rate='in') + \
-               m * no.dissipator_lead(a, E, V, eV=VLR, kT=kT, rate='out') + \
-               m * no.dissipator_lead(a.dag(), E, V, eV=VLR, kT=kT, rate='in')
+            Jtip_out = gL * no.jump_fermionic(dg.dag(), E, V, VL, kT, rate='in') + \
+                       gL * no.jump_fermionic(de.dag(), E, V, VL, kT, rate='in') + \
+                        m * no.dissipator_lead(a, E, V, eV=VLR, kT=kT, rate='out') + \
+                        m * no.dissipator_lead(a.dag(), E, V, eV=VLR, kT=kT, rate='in')
 
 
-    Jtip_in = gL * no.jump_fermionic(dg, E, V, VL, kT, rate='out') + \
-              gL * no.jump_fermionic(de, E, V, VL, kT, rate='out') + \
-              m * no.dissipator_lead(a, E, V, eV=VRL, kT=kT, rate='out') + \
-              m * no.dissipator_lead(a.dag(), E, V, eV=VRL, kT=kT, rate='in')
+            Jtip_in = gL * no.jump_fermionic(dg, E, V, VL, kT, rate='out') + \
+                      gL * no.jump_fermionic(de, E, V, VL, kT, rate='out') + \
+                       m * no.dissipator_lead(a, E, V, eV=VRL, kT=kT, rate='out') + \
+                       m * no.dissipator_lead(a.dag(), E, V, eV=VRL, kT=kT, rate='in')
 
-    Ja_out = kappa * no.jump_bosonic(a, E, V, kT, rate='out')
-    Ja_in = kappa * no.jump_bosonic(a.dag(), E, V, kT, rate='in')
+            Ja_out = kappa * no.jump_bosonic(a, E, V, kT, rate='out')
+            Ja_in = kappa * no.jump_bosonic(a.dag(), E, V, kT, rate='in')
 
-    Ig_me = nme.current(Ja_out - Ja_in, L)
-    Ie_me = nme.current(Jtip_in - Jtip_out, L)
+            Ig_me = nme.current(Ja_out - Ja_in, L)
+            Ie_me = nme.current(Jtip_in - Jtip_out, L)
     
-    Ig_re, Ie_re, _, _ = fcs()
+            Ig_re, Ie_re, _, _ = fcs(VL, VR)
 
-    assert np.allclose(Ig_me, Ig_re)
-    assert np.allclose(Ie_me, Ie_re)
+            assert np.allclose(Ig_me, Ig_re)
+            assert np.allclose(Ie_me, Ie_re)
 
 def test_cumulants():
-    Ig_re, Ie_re, Zg_re, Ze_re = fcs()
-    Ig_me, Ie_me, Zg_me, Ze_me = nme.cumulants(Hqt, [dg, de, a], VL, VR, gL=gL, gR=gR) 
+   #nme.cumulants is too slow we avoid to sweep the bias    
+    Ig_re, Ie_re, Zg_re, Ze_re = fcs(3, -3)
+    Ig_me, Ie_me, Zg_me, Ze_me = nme.cumulants(H, [dg, de, a], 3, -3, kT=kT, gL=gL, gR=gR) 
     assert np.allclose(Ig_me, Ig_re)
     assert np.allclose(Ie_me, Ie_re)
     assert np.allclose(Zg_me, Zg_re, atol=1e-7)
-    assert np.allclose(Ze_me, Ze_re)
+    assert np.allclose(Ze_me, Ze_re, atol=1e-7)
 
 def test_noise():
-    Ja_out = kappa * no.jump_bosonic(a, Eqt, Vqt, kT, rate='out')
-    Ja_in = kappa * no.jump_bosonic(a.dag(), Eqt, Vqt, kT, rate='in')
-    Zg_me = nme.noise(L, Ja_in, Ja_out, wlist=[0])
-    _, _, Zg_re, Ze_re = fcs()
-    assert np.allclose(Zg_me, Zg_re, atol=1e-7)
+    Ja_out = kappa * no.jump_bosonic(a, E, V, kT, rate='out')
+    Ja_in = kappa * no.jump_bosonic(a.dag(), E, V, kT, rate='in')
+    
+    for VL in [-3, -2.1, -1.1, 2]:
+        for VR in [-1.3, 1.4, 2.5]:
+            L = Li(VL, VR)
+            
+            Jtip_in = gL * no.jump_fermionic(dg.dag(), E, V, VL, kT, rate='in') + \
+                      gL * no.jump_fermionic(de.dag(), E, V, VL, kT, rate='in')
+            
+            Jtip_out = gL * no.jump_fermionic(dg, E, V, VL, kT, rate='out') + \
+                       gL * no.jump_fermionic(de, E, V, VL, kT, rate='out')
+            
+            Zg_me = nme.noise(L, Ja_in, Ja_out)
+            Ze_me = nme.noise(L, Jtip_in, Jtip_out)
+            _, _, Zg_re, Ze_re = fcs(VL, VR)
+            assert np.allclose(Zg_me, Zg_re, atol=1e-7)
+            assert np.allclose(Ze_me, Ze_re, atol=1e-7)
 
