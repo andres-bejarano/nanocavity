@@ -15,7 +15,7 @@ u = 1.2
 
 #bath parameters
 gL = 1e-3
-gR = 1e-3
+gR = 2e-3
 kappa = 0.1
 m = 0
 kT = 1e-2
@@ -25,22 +25,24 @@ VR = -3
 Hqt, [dg, de, a] = no.H_tls_QuTiP(Eg, delta, omegac,  coupling)
 Hqt += u * dg.dag() * de.dag() * de * dg
 Eqt, Vqt =  Hqt.eigenstates()
-L = no.Liouvillian(Hqt, [dg, de, a], VL, VR)
+L = no.Liouvillian(Hqt, [dg, de, a], VL, VR, gL=gL, gR=gR)
 
-Hnc, [Dg, De, A] = no.H_tls_nc(Eg, delta, omegac, coupling)
-Hnc += u * Dg.d * De.d * De * Dg
-Enc, Vnc = Hnc.eigh()
+def fcs(VL=3, VR=-3):
+    Hnc, [Dg, De, A] = no.H_tls_nc(Eg, delta, omegac, coupling)
+    Hnc += u * Dg.d * De.d * De * Dg
+    Enc, Vnc = Hnc.eigh()
 
-#transtion rates, populations and spectrum
-Kp, Km = nre.transition_rate(Enc, Vnc,  A, kappa, kT=kT, bath='bosonic')
-GpL, GmL = nre.transition_rate(Enc, Vnc, [Dg, De], gL*np.eye(2), mu=VL, kT=kT)
-GpR, GmR = nre.transition_rate(Enc, Vnc, [Dg, De], gR*np.eye(2), mu=VR, kT=kT)
-Ig_re, Ie_re, Zg_re, Ze_re, _ = nfc.cumulants(Kp, Km, GpL, GmL, GpR, GmR, p=1e-5)
-K = Kp + Km 
-GL = (GpL + GmL)[:, None]  # VL, VR
-GR = (GpR + GmR)[None, :]
-Gamma = K[np.newaxis, np.newaxis] + GL + GR 
-P_re = nre.populations(Gamma)
+    #transtion rates, populations and spectrum
+    Kp, Km = nre.transition_rate(Enc, Vnc,  A, kappa, kT=kT, bath='bosonic')
+    GpL, GmL = nre.transition_rate(Enc, Vnc, [Dg, De], gL*np.eye(2), mu=VL, kT=kT)
+    GpR, GmR = nre.transition_rate(Enc, Vnc, [Dg, De], gR*np.eye(2), mu=VR, kT=kT)
+    Ig_re, Ie_re, Zg_re, Ze_re, _ = nfc.cumulants(Kp, Km, GpL, GmL, GpR, GmR, p=1e-5)
+    GL = (GpL + GmL)[:, None]  # VL, VR
+    GR = (GpR + GmR)[None, :]
+    K = Kp + Km
+    Gamma = K[np.newaxis, np.newaxis] + GL + GR 
+    P_re = nre.populations(Gamma)
+    return Ig_re, Ie_re, Zg_re, Ze_re
 
 def test_current():
     VLR = VL - VR
@@ -64,12 +66,15 @@ def test_current():
 
     Ig_me = nme.current(Ja_out - Ja_in, L)
     Ie_me = nme.current(Jtip_in - Jtip_out, L)
+    
+    Ig_re, Ie_re, _, _ = fcs()
 
     assert np.allclose(Ig_me, Ig_re)
     assert np.allclose(Ie_me, Ie_re)
 
 def test_cumulants():
-    Ig_me, Ie_me, Zg_me, Ze_me = nme.cumulants(Hqt, [dg, de, a], VL, VR) 
+    Ig_re, Ie_re, Zg_re, Ze_re = fcs()
+    Ig_me, Ie_me, Zg_me, Ze_me = nme.cumulants(Hqt, [dg, de, a], VL, VR, gL=gL, gR=gR) 
     assert np.allclose(Ig_me, Ig_re)
     assert np.allclose(Ie_me, Ie_re)
     assert np.allclose(Zg_me, Zg_re, atol=1e-7)
@@ -79,5 +84,6 @@ def test_noise():
     Ja_out = kappa * no.jump_bosonic(a, Eqt, Vqt, kT, rate='out')
     Ja_in = kappa * no.jump_bosonic(a.dag(), Eqt, Vqt, kT, rate='in')
     Zg_me = nme.noise(L, Ja_in, Ja_out, wlist=[0])
+    _, _, Zg_re, Ze_re = fcs()
     assert np.allclose(Zg_me, Zg_re, atol=1e-7)
 
