@@ -12,10 +12,8 @@ coupling = 0.3
 
 m = 2.5e-2
 kappa = 0.1
-gammaL = 1e-3 * np.eye(2)
-gammaR = 2e-3 * np.eye(2)
-glq = gammaL[0, 0]
-grq = gammaR[0, 0]
+gL = 1e-3 
+gR = 2e-3
 
 VL = 3
 VR = -3
@@ -35,8 +33,8 @@ def Nanocav(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
     #nanocav-populations
     Hnc, [dg, de, a] = no.H_tls_nc(Eg, delta, omega, coupling)
     Enc, Vnc = Hnc.eigh()
-    GpL, GmL = nre.transition_rate(Enc, Vnc, [dg, de], gammaL, mu=VL, kT=kT)
-    GpR, GmR = nre.transition_rate(Enc, Vnc, [dg, de], gammaR, mu=VR, kT=kT)
+    GpL, GmL = nre.transition_rate(Enc, Vnc, [dg, de], gL*np.eye(2), mu=VL, kT=kT)
+    GpR, GmR = nre.transition_rate(Enc, Vnc, [dg, de], gR*np.eye(2), mu=VR, kT=kT)
     GL = (GpL + GmL)[:, None]  # VL, VR
     GR = (GpR + GmR)[None, :]
     #damping matrix
@@ -52,8 +50,8 @@ def qt(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
     Hqt, [dg, de, a] = no.H_tls_QuTiP(Eg, delta, omega,  coupling)
     Eqt, Vqt = Hqt.eigenstates()
 
-    c_g = no.fermionic_collapses(dg, Eqt, Vqt, VL, VR, kT, glq, grq)
-    c_e = no.fermionic_collapses(de, Eqt, Vqt, VL, VR, kT, glq, grq)
+    c_g = no.fermionic_collapses(dg, Eqt, Vqt, VL, VR, kT, gL, gR)
+    c_e = no.fermionic_collapses(de, Eqt, Vqt, VL, VR, kT, gL, gR)
     c_a = no.bosonic_collapses(a, Eqt, Vqt, kT, kappa) + \
             no.lead_cavity_lead_collapses(a, Eqt, Vqt, VL, VR, kT, m)
 
@@ -67,8 +65,6 @@ def qt_dissipator(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
     Eqt, Vqt = Hqt.eigenstates()
     VLR = VL - VR
     VRL = VR - VL
-    glq = gammaL[0, 0]
-    grq = gammaR[0, 0]
 
     #incoherent_evolution
     L = -1.0j * (spre(Hqt.transform(Vqt)) - spost(Hqt.transform(Vqt)))
@@ -78,12 +74,12 @@ def qt_dissipator(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
                 no.dissipator_bosonic(a.dag(), Eqt, Vqt, kT, rate='in'))
 
     #molecule-leads dissipator
-    L +=  glq * (no.dissipator_fermionic(dg, Eqt, Vqt, VL, kT, rate='out') + \
+    L +=  gL * (no.dissipator_fermionic(dg, Eqt, Vqt, VL, kT, rate='out') + \
                 no.dissipator_fermionic(de, Eqt, Vqt, VL, kT, rate='out') + \
                 no.dissipator_fermionic(dg.dag(), Eqt, Vqt, VL, kT, rate='in') + \
                 no.dissipator_fermionic(de.dag(), Eqt, Vqt, VL, kT, rate='in'))
 
-    L += grq * (no.dissipator_fermionic(dg, Eqt, Vqt, VR, kT, rate='out') + \
+    L += gR * (no.dissipator_fermionic(dg, Eqt, Vqt, VR, kT, rate='out') + \
                 no.dissipator_fermionic(de, Eqt, Vqt, VR, kT, rate='out') + \
                 no.dissipator_fermionic(dg.dag(), Eqt, Vqt, VR, kT, rate='in') + \
                 no.dissipator_fermionic(de.dag(), Eqt, Vqt, VR, kT, rate='in'))
@@ -130,7 +126,7 @@ def test_jump_operator():
 
 
             Ig_qt = kappa * (Jrho_a_minus -  Jrho_a_plus).tr()
-            Ie_qt = gammaL[0, 0] * (Jrho_dgde_plus - Jrho_dgde_minus).tr()
+            Ie_qt = gL * (Jrho_dgde_plus - Jrho_dgde_minus).tr()
 
             assert np.allclose(Ig_nc, Ig_qt)
             assert np.allclose(Ie_nc, Ie_qt)
@@ -145,7 +141,7 @@ def test_dissipators():
 
 def test_Liovillian():
     Hqt, Vqt, Eqt, c_ops, S_op = qt(m=0)
-    L1 = no.Liouvillian(Hqt, S_op, VL, VR, kT=kT, gL=glq, gR=grq)
+    L1 = no.Liouvillian(Hqt, S_op, VL, VR, kT=kT, gL=gL, gR=gR)
     L2 = liouvillian(Hqt.transform(Vqt), c_ops)
     assert np.allclose(L1.full(), L2.full())
 
