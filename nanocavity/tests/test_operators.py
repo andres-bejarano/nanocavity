@@ -1,7 +1,7 @@
 import numpy as np
 import nanocavity.operators as no
 import nanocavity.rate_equation as nre
-from qutip import steadystate, spre, spost
+from qutip import steadystate, spre, spost, operator_to_vector, vector_to_operator, liouvillian
 
 
 
@@ -10,13 +10,16 @@ omega = 1
 delta = 0.9
 coupling = 0.3
 
+m = 2.5e-2
+kappa = 0.1
 gammaL = 1e-3 * np.eye(2)
 gammaR = 2e-3 * np.eye(2)
-kappa =  0.1
-kT = 0.1
+glq = gammaL[0, 0]
+grq = gammaR[0, 0]
+
 VL = 3
 VR = -3
-m = 2.5e-2
+kT = 0.1
 
 def test_Htls_nc_QuTiP():
     for rwa in (True, False):
@@ -28,8 +31,7 @@ def test_Htls_nc_QuTiP():
             assert np.allclose(Enc, Eqt)
 
 
-def Nanocav(VL, VR):
-
+def Nanocav(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
     #nanocav-populations
     Hnc, [dg, de, a] = no.H_tls_nc(Eg, delta, omega, coupling)
     Enc, Vnc = Hnc.eigh()
@@ -46,11 +48,7 @@ def Nanocav(VL, VR):
     Gamma = K[np.newaxis, np.newaxis] + GL + GR + Mp + Mm
     return nre.populations(Gamma), Kp, Km, GpL, GmL
 
-def qt(VL, VR):
-    
-    glq = gammaL[0, 0]
-    grq = gammaR[0, 0]
-
+def qt(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
     Hqt, [dg, de, a] = no.H_tls_QuTiP(Eg, delta, omega,  coupling)
     Eqt, Vqt = Hqt.eigenstates()
 
@@ -64,7 +62,7 @@ def qt(VL, VR):
 
     return Hqt, Vqt, Eqt, c_ops, L
 
-def qt_dissipator():
+def qt_dissipator(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
     Hqt, [dg, de, a] = no.H_tls_QuTiP(Eg, delta, omega,  coupling)
     Eqt, Vqt = Hqt.eigenstates()
     VLR = VL - VR
@@ -99,8 +97,8 @@ def qt_dissipator():
     return rho_ss.full().diagonal()
 
 def test_collapses():
-    Pnc, _, _, _, _ = Nanocav(VL, VR)
-    Hqt, Vqt, _, c_ops, _ = qt(VL, VR)
+    Pnc, _, _, _, _ = Nanocav()
+    Hqt, Vqt, _, c_ops, _ = qt()
     Pqt = steadystate(Hqt.transform(Vqt), c_ops).full().diagonal()
     assert np.allclose(np.sort(Pnc), np.sort(Pqt))
 
@@ -115,29 +113,39 @@ def test_jump_operator():
             Hqt, Vqt, Eqt, c_ops, L = qt(VL, VR)
             [dg, de, a] = L
 
-            rho_ss = steadystate(Hqt.transform(Vqt), c_ops)
-    
-            Jrho_a = no.jump_bosonic(a, rho_ss, Eqt, Vqt, kT, rate='out') - \
-                    no.jump_bosonic(a.dag(), rho_ss, Eqt, Vqt, kT, rate='in')
-    
-            Jrho_dgde_plus = no.jump_fermionic(dg.dag(), rho_ss, Eqt, Vqt, VL, kT, rate='in') + \
-                    no.jump_fermionic(de.dag(), rho_ss, Eqt, Vqt, VL, kT, rate='in')
-                    
-            Jrho_dgde_minus = no.jump_fermionic(dg, rho_ss, Eqt, Vqt, VL, kT, rate='out') + \
-                    no.jump_fermionic(de, rho_ss, Eqt, Vqt, VL, kT, rate='out')
-    
-            Ig_qt = kappa * Jrho_a.tr()
+            rho_ss = operator_to_vector(steadystate(Hqt.transform(Vqt), c_ops))
+            
+            J_a_minus = no.jump_bosonic(a, Eqt, Vqt, kT, rate='out') 
+            J_a_plus = no.jump_bosonic(a.dag(), Eqt, Vqt, kT, rate='in')        
+            Jrho_a_minus = vector_to_operator(J_a_minus * rho_ss)
+            Jrho_a_plus = vector_to_operator(J_a_plus * rho_ss)
+
+            J_dgde_plus = no.jump_fermionic(dg.dag(), Eqt, Vqt, VL, kT, rate='in') + \
+                    no.jump_fermionic(de.dag(), Eqt, Vqt, VL, kT, rate='in')
+            J_dgde_minus = no.jump_fermionic(dg, Eqt, Vqt, VL, kT, rate='out') + \
+                    no.jump_fermionic(de, Eqt, Vqt, VL, kT, rate='out')
+            
+            Jrho_dgde_plus = vector_to_operator(J_dgde_plus * rho_ss)
+            Jrho_dgde_minus = vector_to_operator(J_dgde_minus * rho_ss)
+
+
+            Ig_qt = kappa * (Jrho_a_minus -  Jrho_a_plus).tr()
             Ie_qt = gammaL[0, 0] * (Jrho_dgde_plus - Jrho_dgde_minus).tr()
-    
+
             assert np.allclose(Ig_nc, Ig_qt)
             assert np.allclose(Ie_nc, Ie_qt)
-
 
 
 def test_dissipators():
     for kappa in [1e-1, 1]:
         for m in [1e-6, 1e-4, 1e-2]:
-            Pnc, _, _, _, _ = Nanocav(VL, VR)
-            Pqt = qt_dissipator()
+            Pnc, _, _, _, _ = Nanocav(kappa=kappa, m=m)
+            Pqt = qt_dissipator(kappa=kappa, m=m)
             assert np.allclose(np.sort(Pnc), np.sort(Pqt))
+
+def test_Liovillian():
+    Hqt, Vqt, Eqt, c_ops, S_op = qt(m=0)
+    L1 = no.Liouvillian(Hqt, S_op, VL, VR, kT=kT, gL=glq, gR=grq)
+    L2 = liouvillian(Hqt.transform(Vqt), c_ops)
+    assert np.allclose(L1.full(), L2.full())
 
