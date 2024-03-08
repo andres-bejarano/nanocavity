@@ -3,16 +3,17 @@ from scipy.linalg import eig
 import nanocavity.operators as no
 from qutip import operator_to_vector, steadystate
 
-def current(J, L):
-    J = J.full()
-    #w/v left/right eigenvectors
+def eig_norm(L):
     El, vl, vr = eig(L.full(), left=True)
-    
-
     norm = np.einsum("ai,ai->i", vl.conj(), vr) ** -0.5
     vl *= norm
     vr *= norm
+    return El, vl, vr
 
+def current(J, L):
+    J = J.full()
+    #w/v left/right eigenvectors
+    El, vl, vr = eig_norm(L)
     index = np.argmin(np.abs(El))
     return np.dot(vl[:, index], np.dot(J, vr[:, index]))
 
@@ -67,16 +68,9 @@ def noise(L, Jin, Jout, wlist=[0], method='direct'):
     elif method=='eigen':
         print('The stability of this method it is not guaranteed')
         #w/v left/right eigenvectors
-        El, vl, vr = eig(L.full(), left=True)
-
-
-        norm = np.einsum("ai,ai->i", vl.conj(), vr) ** -0.5
-        vl *= norm
-        vr *= norm
-
+        El, vl, vr = eig_norm(L)
         index = np.argmin(np.abs(El))
         J2tr =  np.dot(vl[:, index], np.dot(J2, vr[:, index]))
-    
         S = np.zeros(len(wlist))
         for j, w in enumerate(wlist):
             Sj = 0
