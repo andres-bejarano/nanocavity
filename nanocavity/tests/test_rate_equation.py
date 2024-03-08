@@ -301,5 +301,4 @@ def test_bath_system_bath_rate():
     x = Gup / Gdw
     gamma = (1 - x)/(1 - x ** (max(n) + 1))
     Pn = gamma * x ** n
-    print('bath', Pn, P)
     assert np.allclose(P, Pn)
