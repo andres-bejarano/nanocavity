@@ -19,6 +19,8 @@ def current(J, L):
 
 
 def cumulants(H, S_op, VL, VR,  kT=1e-2, kappa=0.1, gL=1e-3, gR=1e-3, m=0, iva=False, p=1e-5):
+    #the convergence of this method its highly senstive to x
+    #x=np.linspace(-1, 1, 3) does not work
     x = p * np.linspace(-2, 2, 5)
     Emax_xy = np.zeros((len(x), len(x)), dtype=complex)
     for i, xx in enumerate(x):
