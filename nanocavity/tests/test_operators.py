@@ -1,15 +1,25 @@
 import numpy as np
 import nanocavity.operators as no
 import nanocavity.rate_equation as nre
-from qutip import steadystate
+from qutip import steadystate, spre, spost, operator_to_vector, vector_to_operator, liouvillian
 
+
+
+Eg = 0.4
+omega = 1
+delta = 0.9
+coupling = 0.3
+
+m = 2.5e-2
+kappa = 0.1
+gL = 1e-3 
+gR = 2e-3
+
+VL = 3
+VR = -3
+kT = 0.1
 
 def test_Htls_nc_QuTiP():
-    Eg = 0.4
-    omega = 1
-    delta = 0.9
-    coupling = 0.3
-
     for rwa in (True, False):
         for n in (1, 2):
             Hnc, _ = no.H_tls_nc(Eg, delta, omega, coupling, rwa=rwa, max_bosons=n)
@@ -18,49 +28,120 @@ def test_Htls_nc_QuTiP():
             Eqt, _ = Hqt.eigenstates()
             assert np.allclose(Enc, Eqt)
 
-def test_collapses():
-    Eg = 0.4
-    delta = 0.9
-    omega = 1
-    coupling= 0.3
 
-    gammaL = 1e-3 * np.eye(2)
-    gammaR = 2e-3 * np.eye(2)
-    kappa =  1
-    kT = 0.1
-    VL = 3
-    VR = -3
-    m = 2.5e-2
-    
+def Nanocav(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
     #nanocav-populations
-    Hnc, Lnc = no.H_tls_nc(Eg, delta, omega, coupling)
+    Hnc, [dg, de, a] = no.H_tls_nc(Eg, delta, omega, coupling)
     Enc, Vnc = Hnc.eigh()
-    GpL, GmL = nre.transition_rate(Enc, Vnc, Lnc[:2], gammaL, mu=VL, kT=kT)
-    GpR, GmR = nre.transition_rate(Enc, Vnc, Lnc[:2], gammaR, mu=VR, kT=kT)
+    GpL, GmL = nre.transition_rate(Enc, Vnc, [dg, de], gL*np.eye(2), mu=VL, kT=kT)
+    GpR, GmR = nre.transition_rate(Enc, Vnc, [dg, de], gR*np.eye(2), mu=VR, kT=kT)
     GL = (GpL + GmL)[:, None]  # VL, VR
     GR = (GpR + GmR)[None, :]
-
     #damping matrix
-    Kp, Km = nre.transition_rate(Enc, Vnc, Lnc[2], kappa, kT=kT, bath='bosonic')
+    Kp, Km = nre.transition_rate(Enc, Vnc, a, kappa, kT=kT, bath='bosonic')
     K = Kp + Km
-    
     #M direct tunneling
-    M = nre.bath_system_bath_rate(Enc, Vnc, Lnc[2] + Lnc[2].d, m, VL, VR, kT=kT)
-
-
+    Mp, Mm = nre.bath_system_bath_rate(Enc, Vnc, a, m, VL, VR, kT)
     #transtion rates matrix
-    Gamma = K[np.newaxis, np.newaxis] + GL + GR + M
-    Pnc = np.sort(nre.populations(Gamma))
+    Gamma = K[np.newaxis, np.newaxis] + GL + GR + Mp + Mm
+    return nre.populations(Gamma), Kp, Km, GpL, GmL
 
-    #QuTiP populations
-
-    Hqt, L = no.H_tls_QuTiP(Eg, delta, omega,  coupling)
+def qt(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
+    Hqt, [dg, de, a] = no.H_tls_QuTiP(Eg, delta, omega,  coupling)
     Eqt, Vqt = Hqt.eigenstates()
-    collapses_ground = no.fermionic_collapses(L[0], Eqt, Vqt, VL, VR, kT, gL=gammaL[0, 0], gR=gammaR[0, 0] )
-    collapses_excited = no.fermionic_collapses(L[1], Eqt, Vqt, VL, VR, kT, gL=gammaL[0, 0], gR=gammaR[0, 0])
-    collapses_cavity = no.bosonic_collapses(L[2], Eqt, Vqt, kT, kappa)
-    collapses_lcl = no.lead_cavity_lead_collapses(L[2] + L[2].dag(), Eqt, Vqt, VL, VR, kT, m)
-    c_ops = collapses_cavity + collapses_ground + collapses_excited + collapses_lcl
-    A = steadystate(Hqt.transform(Vqt), c_ops).full()
-    Pqt = A.diagonal()
-    assert np.allclose(Pnc, np.sort(Pqt))
+
+    c_g = no.fermionic_collapses(dg, Eqt, Vqt, VL, VR, kT, gL, gR)
+    c_e = no.fermionic_collapses(de, Eqt, Vqt, VL, VR, kT, gL, gR)
+    c_a = no.bosonic_collapses(a, Eqt, Vqt, kT, kappa) + \
+            no.lead_cavity_lead_collapses(a, Eqt, Vqt, VL, VR, kT, m)
+
+    c_ops = c_g + c_e + c_a
+    L = [dg, de, a]
+
+    return Hqt, Vqt, Eqt, c_ops, L
+
+def qt_dissipator(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
+    Hqt, [dg, de, a] = no.H_tls_QuTiP(Eg, delta, omega,  coupling)
+    Eqt, Vqt = Hqt.eigenstates()
+    VLR = VL - VR
+    VRL = VR - VL
+
+    #incoherent_evolution
+    L = -1.0j * (spre(Hqt.transform(Vqt)) - spost(Hqt.transform(Vqt)))
+
+    #cavity-radiation_bath dissipator
+    L +=  kappa * (no.dissipator_bosonic(a, Eqt, Vqt, kT, rate='out') + \
+                no.dissipator_bosonic(a.dag(), Eqt, Vqt, kT, rate='in'))
+
+    #molecule-leads dissipator
+    L +=  gL * (no.dissipator_fermionic(dg, Eqt, Vqt, VL, kT, rate='out') + \
+                no.dissipator_fermionic(de, Eqt, Vqt, VL, kT, rate='out') + \
+                no.dissipator_fermionic(dg.dag(), Eqt, Vqt, VL, kT, rate='in') + \
+                no.dissipator_fermionic(de.dag(), Eqt, Vqt, VL, kT, rate='in'))
+
+    L += gR * (no.dissipator_fermionic(dg, Eqt, Vqt, VR, kT, rate='out') + \
+                no.dissipator_fermionic(de, Eqt, Vqt, VR, kT, rate='out') + \
+                no.dissipator_fermionic(dg.dag(), Eqt, Vqt, VR, kT, rate='in') + \
+                no.dissipator_fermionic(de.dag(), Eqt, Vqt, VR, kT, rate='in'))
+    
+    #cavity-leads dissipator
+    L += m * (no.dissipator_lead(a, Eqt, Vqt, eV=VLR, kT=kT, rate='out') +\
+            no.dissipator_lead(a, Eqt, Vqt, eV=VRL, kT=kT, rate='out') + \
+            no.dissipator_lead(a.dag(), Eqt, Vqt, eV=VLR, kT=kT, rate='in') + \
+            no.dissipator_lead(a.dag(), Eqt, Vqt, eV=VRL, kT=kT, rate='in'))
+    rho_ss = steadystate(L)
+    return rho_ss.full().diagonal()
+
+def test_collapses():
+    Pnc, _, _, _, _ = Nanocav()
+    Hqt, Vqt, _, c_ops, _ = qt()
+    Pqt = steadystate(Hqt.transform(Vqt), c_ops).full().diagonal()
+    assert np.allclose(np.sort(Pnc), np.sort(Pqt))
+
+def test_jump_operator():
+
+    for VL in [-1, 1, 2]:
+        for VR in [0, -1, -2]:
+            Pnc, Kp, Km, GpL, GmL = Nanocav(VL, VR)
+            Ig_nc = nre.photo_current(Kp, Km, Pnc)
+            Ie_nc = nre.electro_current(GpL - GmL, Pnc)
+
+            Hqt, Vqt, Eqt, c_ops, L = qt(VL, VR)
+            [dg, de, a] = L
+
+            rho_ss = operator_to_vector(steadystate(Hqt.transform(Vqt), c_ops))
+            
+            J_a_minus = no.jump_bosonic(a, Eqt, Vqt, kT, rate='out') 
+            J_a_plus = no.jump_bosonic(a.dag(), Eqt, Vqt, kT, rate='in')        
+            Jrho_a_minus = vector_to_operator(J_a_minus * rho_ss)
+            Jrho_a_plus = vector_to_operator(J_a_plus * rho_ss)
+
+            J_dgde_plus = no.jump_fermionic(dg.dag(), Eqt, Vqt, VL, kT, rate='in') + \
+                    no.jump_fermionic(de.dag(), Eqt, Vqt, VL, kT, rate='in')
+            J_dgde_minus = no.jump_fermionic(dg, Eqt, Vqt, VL, kT, rate='out') + \
+                    no.jump_fermionic(de, Eqt, Vqt, VL, kT, rate='out')
+            
+            Jrho_dgde_plus = vector_to_operator(J_dgde_plus * rho_ss)
+            Jrho_dgde_minus = vector_to_operator(J_dgde_minus * rho_ss)
+
+
+            Ig_qt = kappa * (Jrho_a_minus -  Jrho_a_plus).tr()
+            Ie_qt = gL * (Jrho_dgde_plus - Jrho_dgde_minus).tr()
+
+            assert np.allclose(Ig_nc, Ig_qt)
+            assert np.allclose(Ie_nc, Ie_qt)
+
+
+def test_dissipators():
+    for kappa in [1e-1, 1]:
+        for m in [1e-6, 1e-4, 1e-2]:
+            Pnc, _, _, _, _ = Nanocav(kappa=kappa, m=m)
+            Pqt = qt_dissipator(kappa=kappa, m=m)
+            assert np.allclose(np.sort(Pnc), np.sort(Pqt))
+
+def test_Liovillian():
+    Hqt, Vqt, Eqt, c_ops, S_op = qt(m=0)
+    L1 = no.Liouvillian(Hqt, S_op, VL, VR, kT=kT, gL=gL, gR=gR)
+    L2 = liouvillian(Hqt.transform(Vqt), c_ops)
+    assert np.allclose(L1.full(), L2.full())
+

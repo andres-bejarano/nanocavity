@@ -85,7 +85,7 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
         return Kp, Km
 
 
-def bath_system_bath_rate(E, v, A, M, VL, VR, kT=0.1):
+def bath_system_bath_rate(E, v, A, m, VL, VR, kT=0.1):
     if not isinstance(E, np.ndarray):
         E = np.array(E)
     if not isinstance(VL, np.ndarray):
@@ -93,13 +93,14 @@ def bath_system_bath_rate(E, v, A, M, VL, VR, kT=0.1):
     if not isinstance(VR, np.ndarray):
         VR = np.array(VR)
 
-    M_elements = matrix_elements(A, v, M)[np.newaxis, np.newaxis]
-    DE = E.reshape(1, 1, -1, 1) - E.reshape(1, 1, 1, -1)
-    V = VL.reshape(-1, 1, 1, 1) - VR.reshape(1, -1, 1, 1)
-    Fp = ndist.Fermi_cb(V-DE, kT)
-    Fm = ndist.Fermi_cb(-V-DE, kT=kT)
-    F = Fp + Fm
-    return M_elements * F
+    M = matrix_elements(A, v, m)
+    DE = abs(E.reshape(1, 1, -1, 1) - E.reshape(1, 1, 1, -1))
+    V = abs(VL.reshape(-1, 1, 1, 1) - VR.reshape(1, -1, 1, 1))
+    Fp = ndist.Fermi_cb(V-DE, kT) + ndist.Fermi_cb(-V-DE, kT)
+    Fm = ndist.Fermi_cb(V+DE, kT) + ndist.Fermi_cb(-V+DE, kT)
+    Mp = Fp * M.conj().T
+    Mm = Fm * M
+    return Mp, Mm
 
 
 def populations(Gamma):
