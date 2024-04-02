@@ -29,6 +29,20 @@ def test_bose_einstein():
     assert bose_einstein(0, 0.1) == np.inf
     assert bose_einstein(100, 0.1) == 0.0
 
+def test_bath_dist():
+    for bath in ['bosonic', 'fermionic', 'leadtolead']:
+        distin = bath_dist(E=-1, kT=1, rate='in', bath=bath)(-1)
+        distout = bath_dist(E=1, kT=1, rate='out', bath=bath)(1)
+        r = distout + distin
+        if bath=='bosonic':
+            assert np.allclose(r, 1 + 2*distin)
+        elif bath=='fermionic':
+            assert np.allclose(r, 1)
+        elif bath=='leadtolead':
+            distin = bath_dist(E=-1, kT=1, rate='in', bath=bath)(-1)
+            distout = bath_dist(E=-1, kT=1, rate='out', bath=bath)(-1)
+            assert np.allclose(distin, distout)
+
 def test_lorentz():
     assert lorentzian(-np.inf, 0.1) == 0.0
     assert lorentzian(np.inf, 0.1) == 0.0
