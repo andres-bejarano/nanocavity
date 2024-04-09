@@ -1,6 +1,7 @@
 import numpy as np
 import nanocavity.distributions as ndist
 import numpy.linalg as la
+import time
 
 
 def matrix_elements(A, v, g):
@@ -9,7 +10,7 @@ def matrix_elements(A, v, g):
     ----------
     A: list of operators,
     v: numpy array with basis vectors.
-    
+
     Returns
     ----------
     M: numpy array with the information of each operator in A written in the basis of v.
@@ -54,6 +55,46 @@ def bose_matrix(E, kT=0.1):
     np.fill_diagonal(nb, 0)
     return nb
 
+def transition_rate2(E, v, A, g, kT, mu, bath='fermionic'):
+    if not isinstance (mu, np.ndarray):
+        mu = np.array(mu)
+    M = matrix_elements(A, v, g)
+
+    np.fill_diagonal(M,0)
+    a,b = np.nonzero(M)
+    mask = np.full((M.shape[0],M.shape[1]), False)
+    mask[a,b] = True
+    # np.fill_diagonal(mask, False)
+    a2,b2 = np.nonzero(M.T)
+
+    DE = E.reshape(1,-1,1) - E.reshape(1,1,-1)
+    mu = mu.reshape(-1,1)
+    DElistp = DE[:,a2,b2].copy()
+    DElistm = DE[:,a,b].copy()
+    if bath == 'fermionic':
+
+        f_mat_p = np.zeros((mu.shape[0],M.shape[0],M.shape[1]))
+        f_mat_m = np.zeros((mu.shape[0],M.shape[0],M.shape[1]))
+        f_list_p = ndist.fermi_dirac(DElistp, kT = kT, mu=mu)
+        f_list_m = 1-ndist.fermi_dirac(-DElistm, kT = kT, mu=mu)
+
+        f_mat_p[:,mask.T] = np.squeeze(f_list_p)
+        f_mat_m[:,mask] = np.squeeze(f_list_m)
+
+        Gpr = f_mat_p * M.T
+        Gmr = f_mat_m * M
+        return Gpr, Gmr
+    elif bath == 'bosonic':
+        n_mat_p = np.zeros((M.shape[0],M.shape[1]))
+        n_mat_m = np.zeros((M.shape[0],M.shape[1]))
+        n_list_p = ndist.bose_einstein(DElistp, kT = kT)
+        n_list_m = 1 + ndist.bose_einstein(-DElistm, kT = kT)
+
+        n_mat_p[mask.T] = np.squeeze(n_list_p)
+        n_mat_m[mask] = np.squeeze(n_list_m)
+        Kp = n_mat_p * M.T
+        Km = n_mat_m * M
+        return Kp, Km
 
 def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     r""" trasition_rate construct a matrix numpy array with all possible transition rates, where each matrix element represent the transition rate  between two states at given chemical potential.
@@ -61,7 +102,7 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     ----------
     E: system eigenvalues,
     v: system eigenvectors,
-    A: list of all operators which interacts with the environment,
+    A: list of all (annihilation?) operators which interacts with the environment,
     g: list of all coupling values between each level and the environment, 
     mu: all possible chemical potential values.
         
@@ -85,7 +126,7 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
         return Kp, Km
 
 
-def bath_system_bath_rate(E, v, A, m, VL, VR, kT=0.1):
+def bath_system_bath_rate(E, v, A, M, VL, VR, kT=0.1):
     if not isinstance(E, np.ndarray):
         E = np.array(E)
     if not isinstance(VL, np.ndarray):
@@ -93,14 +134,13 @@ def bath_system_bath_rate(E, v, A, m, VL, VR, kT=0.1):
     if not isinstance(VR, np.ndarray):
         VR = np.array(VR)
 
-    M = matrix_elements(A, v, m)
-    DE = abs(E.reshape(1, 1, -1, 1) - E.reshape(1, 1, 1, -1))
-    V = abs(VL.reshape(-1, 1, 1, 1) - VR.reshape(1, -1, 1, 1))
-    Fp = ndist.Fermi_cb(V-DE, kT) + ndist.Fermi_cb(-V-DE, kT)
-    Fm = ndist.Fermi_cb(V+DE, kT) + ndist.Fermi_cb(-V+DE, kT)
-    Mp = Fp * M.conj().T
-    Mm = Fm * M
-    return Mp, Mm
+    M_elements = matrix_elements(A, v, M)[np.newaxis, np.newaxis]
+    DE = E.reshape(1, 1, -1, 1) - E.reshape(1, 1, 1, -1)
+    V = VL.reshape(-1, 1, 1, 1) - VR.reshape(1, -1, 1, 1)
+    Fp = ndist.Fermi_cb(V-DE, kT)
+    Fm = ndist.Fermi_cb(-V-DE, kT=kT)
+    F = Fp + Fm
+    return M_elements * F
 
 
 def populations(Gamma):
