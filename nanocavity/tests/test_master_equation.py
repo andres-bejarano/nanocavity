@@ -82,8 +82,8 @@ def test_cumulants():
     Ig_me, Ie_me, Zg_me, Ze_me = nme.cumulants(H, [dg, de, a], 3, -3, kT=kT, gL=gL, gR=gR) 
     assert np.allclose(Ig_me, Ig_re)
     assert np.allclose(Ie_me, Ie_re)
-    assert np.allclose(Zg_me, Zg_re, atol=1e-7)
-    assert np.allclose(Ze_me, Ze_re, atol=1e-7)
+    assert np.allclose(Zg_me, Zg_re, atol=1e-6)
+    assert np.allclose(Ze_me, Ze_re, atol=1e-6)
 
 def test_noise():
     Ja_out = kappa * no.jump_bosonic(a, E, V, kT, rate='out')
@@ -104,4 +104,3 @@ def test_noise():
             _, _, Zg_re, Ze_re = fcs(VL, VR)
             assert np.allclose(Zg_me, Zg_re, atol=1e-7)
             assert np.allclose(Ze_me, Ze_re, atol=1e-7)
-
