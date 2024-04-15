@@ -55,7 +55,7 @@ def bose_matrix(E, kT=0.1):
     np.fill_diagonal(nb, 0)
     return nb
 
-def transition_rate(E, v, A, g, kT, mu, bath='fermionic'):
+def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     """
     Calculates the transition rates between many-body states to be 
     used in rate equtions. Returns a 3d numpy array with axis 0 
