@@ -9,7 +9,7 @@ else
     echo "Conda environment '$CONDA_DEFAULT_ENV' is active."
     python3 -m pip install .
 fi
-rm -rI ./build
+rm -r ./build
 
 # run tests
 cd ~
