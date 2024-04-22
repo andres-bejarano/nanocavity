@@ -8,10 +8,10 @@ def matrix_elements(A, v, g):
     ----------
     A: list of operators,
     v: numpy array with basis vectors.
-
     Returns
     ----------
-    M: numpy array with the information of each operator in A written in the basis of v.
+    M: numpy array with the information of each operator in A written in
+    the basis of v.
     """
     if not isinstance(A, (list, tuple)):
         A = [A]
@@ -55,57 +55,66 @@ def bose_matrix(E, kT=0.1):
 
 def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     """
-    Calculates the transition rates between many-body states to be 
-    used in rate equtions. Returns a 3d numpy array with axis 0 
-    corresponding to the chemical potential and axis 1 and 2 
+    Calculates the transition rates between many-body states to be
+    used in rate equtions. Returns a 3d numpy array with axis 0
+    corresponding to the chemical potential and axis 1 and 2
     to the eigenstates.
-    
+
     Parameters
     ----------
     E: system eigenvalues
     v: system eigenvectors
-    A: list of all annihilation operators which interact with the 
+    A: list of all annihilation operators which interact with the
         considered bath
     g: coupling to the each level considered in A
-    kT: temperature 
+    kT: temperature
     mu: chemical potential of the lead (only relevant for fermionic baths)
     bath: considering a fermionic or bosonic bath
+
+    Returns
+    ---------
+    Gpr: transition rate matrix for adding an electron to the central system
+    Gmr: transition rate matrix for removing an electron to the central system
+    Kp: transition rate matrix for adding a boson to the central system
+    Km: transition rate matrix for removing a boson to the central system
     """
-    if not isinstance (mu, np.ndarray):
+    if not isinstance(mu, np.ndarray):
         mu = np.array(mu)
     M = matrix_elements(A, v, g)
+    print(M)
 
     np.fill_diagonal(M, 0)
-    a, b = np.nonzero(M) #Indices for the Bohr frequencies appearing in f^-
+    a, b = np.nonzero(M)  # Indices for the Bohr frequencies appearing in f^-
     mask = np.full((M.shape[0], M.shape[1]), False)
-    mask[a, b] = True 
-    a2, b2 = np.nonzero(M.T) #Indices for the Bohr frequencies appearing in f^+
+    mask[a, b] = True
+    a2, b2 = np.nonzero(M.T)  # Inds. for the Bohr frequencies appearing in f^+
 
-    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
+    DE = E.reshape(-1, 1) - E.reshape(1, -1)
+
     mu = mu.reshape(-1, 1)
-    DElistp = DE[:,a2, b2].copy()
-    DElistm = DE[:,a, b].copy()
+    DElistp = DE[a2, b2].copy()
+    DElistm = DE[a, b].copy()
 
     if bath == 'fermionic':
-        f_mat_p = np.zeros((mu.shape[0],M.shape[0],M.shape[1]))
-        f_mat_m = np.zeros((mu.shape[0],M.shape[0],M.shape[1]))
-        f_list_p = ndist.fermi_dirac(DElistp, kT = kT, mu=mu)
-        f_list_m = 1 - ndist.fermi_dirac(-DElistm, kT = kT, mu=mu)
+        f_mat_p = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
+        f_mat_m = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
+        f_list_p = ndist.fermi_dirac(DElistp, kT=kT, mu=mu)
+        f_list_m = 1 - ndist.fermi_dirac(-DElistm, kT=kT, mu=mu)
 
-        f_mat_p[:,mask.T] = np.squeeze(f_list_p)
-        f_mat_m[:,mask] = np.squeeze(f_list_m)
+        f_mat_p[:, mask.T] = f_list_p
+        f_mat_m[:, mask] = f_list_m
         Gpr = f_mat_p * M.T
         Gmr = f_mat_m * M
         return Gpr, Gmr
 
     elif bath == 'bosonic':
-        n_mat_p = np.zeros((M.shape[0],M.shape[1]))
-        n_mat_m = np.zeros((M.shape[0],M.shape[1]))
-        n_list_p = ndist.bose_einstein(DElistp, kT = kT)
-        n_list_m = 1 + ndist.bose_einstein(-DElistm, kT = kT)
+        n_mat_p = np.zeros((M.shape[0], M.shape[1]))
+        n_mat_m = np.zeros((M.shape[0], M.shape[1]))
+        n_list_p = ndist.bose_einstein(DElistp, kT=kT)
+        n_list_m = 1 + ndist.bose_einstein(-DElistm, kT=kT)
 
-        n_mat_p[mask.T] = np.squeeze(n_list_p)
-        n_mat_m[mask] = np.squeeze(n_list_m)
+        n_mat_p[mask.T] = n_list_p
+        n_mat_m[mask] = n_list_m
         Kp = n_mat_p * M.T
         Km = n_mat_m * M
         return Kp, Km
@@ -126,7 +135,6 @@ def bath_system_bath_rate(E, v, A, m, VL, VR, kT=0.1):
     Mp = Fp * M.conj().T
     Mm = Fm * M
     return Mp, Mm
-
 
 def populations(Gamma):
     r""" The stationary solution of rate equation will calculated \Gamma P = 0.
