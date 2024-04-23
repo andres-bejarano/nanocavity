@@ -93,8 +93,6 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     mu = mu.reshape(-1, 1)
     DElistp = DE[:, a2, b2].copy()
     DElistm = DE[:, a, b].copy()
-    print(M)
-    print(DE)
 
     if bath == 'fermionic':
         f_mat_p = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
@@ -113,7 +111,6 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
         n_mat_m = np.zeros((M.shape[0], M.shape[1]))
         n_list_p = ndist.bose_einstein(DElistp, kT=kT)
         n_list_m = 1 + ndist.bose_einstein(-DElistm, kT=kT)
-        print(DElistp)
 
         n_mat_p[mask.T] = np.squeeze(n_list_p)
         n_mat_m[mask] = np.squeeze(n_list_m)
