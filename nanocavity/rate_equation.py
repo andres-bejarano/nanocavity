@@ -99,7 +99,6 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
         f_mat_m = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
         f_list_p = ndist.fermi_dirac(DElistp, kT=kT, mu=mu)
         f_list_m = 1 - ndist.fermi_dirac(-DElistm, kT=kT, mu=mu)
-        print(f_list_p.shape)
 
         f_mat_p[:, mask.T] = f_list_p
         f_mat_m[:, mask] = f_list_m
