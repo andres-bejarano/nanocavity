@@ -81,7 +81,6 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     if not isinstance(mu, np.ndarray):
         mu = np.array(mu)
     M = matrix_elements(A, v, g)
-    print(M)
 
     np.fill_diagonal(M, 0)
     a, b = np.nonzero(M)  # Indices for the Bohr frequencies appearing in f^-
@@ -89,11 +88,13 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     mask[a, b] = True
     a2, b2 = np.nonzero(M.T)  # Inds. for the Bohr frequencies appearing in f^+
 
-    DE = E.reshape(-1, 1) - E.reshape(1, -1)
+    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
 
     mu = mu.reshape(-1, 1)
-    DElistp = DE[a2, b2].copy()
-    DElistm = DE[a, b].copy()
+    DElistp = DE[:, a2, b2].copy()
+    DElistm = DE[:, a, b].copy()
+    print(M)
+    print(DE)
 
     if bath == 'fermionic':
         f_mat_p = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
@@ -112,9 +113,10 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
         n_mat_m = np.zeros((M.shape[0], M.shape[1]))
         n_list_p = ndist.bose_einstein(DElistp, kT=kT)
         n_list_m = 1 + ndist.bose_einstein(-DElistm, kT=kT)
+        print(DElistp)
 
-        n_mat_p[mask.T] = n_list_p
-        n_mat_m[mask] = n_list_m
+        n_mat_p[mask.T] = np.squeeze(n_list_p)
+        n_mat_m[mask] = np.squeeze(n_list_m)
         Kp = n_mat_p * M.T
         Km = n_mat_m * M
         return Kp, Km
