@@ -4,10 +4,13 @@ import numpy.linalg as la
 
 def matrix_elements(A, v, g):
     r""" Construction of an operator in given basis.
+
     Parameters
     ----------
     A: list of operators,
     v: numpy array with basis vectors.
+    g: coupling to each level included in A
+
     Returns
     ----------
     M: numpy array with the information of each operator in A written in
@@ -73,10 +76,9 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
 
     Returns
     ---------
-    Gpr: transition rate matrix for adding an electron to the central system
-    Gmr: transition rate matrix for removing an electron to the central system
-    Kp: transition rate matrix for adding a boson to the central system
-    Km: transition rate matrix for removing a boson to the central system
+    rates_p: transition rate matrix for adding particles to the central system
+    rates_m: transition rate matrix for removing particles to
+                the central system
     """
     if not isinstance(mu, np.ndarray):
         mu = np.array(mu)
@@ -102,9 +104,9 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
 
         f_mat_p[:, mask.T] = f_list_p
         f_mat_m[:, mask] = f_list_m
-        Gpr = f_mat_p * M.T
-        Gmr = f_mat_m * M
-        return Gpr, Gmr
+        G_p = f_mat_p * M.T
+        G_m = f_mat_m * M
+        return G_p, G_m
 
     elif bath == 'bosonic':
         n_mat_p = np.zeros((M.shape[0], M.shape[1]))
@@ -114,9 +116,9 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
 
         n_mat_p[mask.T] = n_list_p
         n_mat_m[mask] = n_list_m
-        Kp = n_mat_p * M.T
-        Km = n_mat_m * M
-        return Kp, Km
+        K_p = n_mat_p * M.T
+        K_m = n_mat_m * M
+        return K_p, K_m
 
 def bath_system_bath_rate(E, v, A, m, VL, VR, kT=0.1):
     if not isinstance(E, np.ndarray):
