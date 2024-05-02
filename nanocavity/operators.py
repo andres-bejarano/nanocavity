@@ -1,12 +1,12 @@
 import numpy as np
 import nanocavity.distributions as ndist
-import secondquant.composite as sc
+import secondquant as sq
 from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector, spre, spost
 
 #two level system coupled to single cavity mode
 def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1, ret_nop=False):
     [dg, de, a], [Nfg, Nfe, Nb] = \
-            sc.composite(fermion_modes=2, boson_modes=1, max_bosons=max_bosons)
+        sq.composite(fermion_modes=2, boson_modes=1, max_bosons=max_bosons)
     H0 = Eg * Nfg + (Eg +  delta) * Nfe + omega * Nb
     if rwa:
         Hint = coupling * (a.d * dg.d * de + a * de.d * dg)
