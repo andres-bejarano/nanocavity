@@ -147,14 +147,25 @@ def populations2(rates):
         rate = copy.deepcopy(rates)
 
     for i in range(len(rate)):
-        print(rate[i].shape)
         front = np.ones(len(rate) - i - 1)
         back = np.ones(len(rate) - 1 - front.shape[0])
         rate[i].shape = np.insert(rate[i].shape, 0, front)
         rate[i].shape = np.insert(rate[i].shape, -2, back)
 
     Gamma = sum(rate)
-    return Gamma
+    k = Gamma.shape[-1]
+
+    column_sum = Gamma.sum(axis=-2)
+    for i in range(k):
+        Gamma[..., i, i] = -column_sum[..., i]
+
+    Gamma[..., k-1, :] = 1
+    b_dims = Gamma.shape[0:-1]
+    b = np.zeros(b_dims)
+    b[..., k-1] = 1
+
+    P = la.solve(Gamma, b)
+    return P
 
 
 def populations(Gamma):
