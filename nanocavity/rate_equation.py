@@ -1,6 +1,7 @@
 import numpy as np
 import nanocavity.distributions as ndist
 import numpy.linalg as la
+import copy
 
 def matrix_elements(A, v, g):
     r""" Construction of an operator in given basis.
@@ -137,6 +138,25 @@ def bath_system_bath_rate(E, v, A, m, VL, VR, kT=0.1):
     Mm = Fm * M
     return Mp, Mm
 
+
+def populations2(rates):
+    if not isinstance(rates, list):
+        rate = rates.copy()
+        rate = [rate]
+    else:
+        rate = copy.deepcopy(rates)
+
+    for i in range(len(rate)):
+        print(rate[i].shape)
+        front = np.ones(len(rate) - i - 1)
+        back = np.ones(len(rate) - 1 - front.shape[0])
+        rate[i].shape = np.insert(rate[i].shape, 0, front)
+        rate[i].shape = np.insert(rate[i].shape, -2, back)
+
+    Gamma = sum(rate)
+    return Gamma
+
+
 def populations(Gamma):
     r""" The stationary solution of rate equation will calculated \Gamma P = 0.
 
@@ -148,6 +168,7 @@ def populations(Gamma):
     ----------
     P: populations
     """
+    # print(Gamma.shape)
     vl, vr, k, _ = Gamma.shape
 
     #The diagonal of transition rate matrix is the - the sum of each column per each bias voltage vl, vr
