@@ -180,6 +180,36 @@ def populations(rates):
     P = la.solve(Gamma, b)
     return P
 
+
+def electro_current2(Gp, Gm, P, electrode=0):
+    r"""
+    Stationary current flowing through a given electrode
+
+    Parameters:
+    ------------
+    Gp: nd-array
+        Transition rate for adding a particle to the central system
+    Gm: nd-array
+        Transition rate for removin a particle to the central system
+    P: nd-array
+        Populations; stationary solution of the rate equation
+    electrode: int
+        specifying the electrode
+
+    Returns:
+    -------
+    I: nd_array
+        current flowing through the specified electrode
+    """
+    Gd = Gp - Gm
+    if electrode == 0:
+        return np.einsum('ijk,i...k->i...', Gd, P)
+    if electrode == 1:
+        return np.einsum('ijk,xi...k->i...', Gd, P)
+    if electrode == 2:
+        return np.einsum('ijk,xyi...k->i...', Gd, P)
+
+    
 def electro_current(DGi, P, electrode='left'):
     r"""
     Electro-current calculated in the lead left
