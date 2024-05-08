@@ -146,6 +146,8 @@ def populations(rates):
     Parameters
     -----------
     rates: A list containing one transition rate matrix per considered lead
+    rates: list of ndarrays
+        A list containing one transition rate matrix per considered lead
 
     Returns
     ----------
