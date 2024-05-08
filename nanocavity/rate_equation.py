@@ -140,6 +140,17 @@ def bath_system_bath_rate(E, v, A, m, VL, VR, kT=0.1):
 
 
 def populations2(rates):
+    r"""
+    Computes the stationary solution of the rate equation \Gamma P = 0
+
+    Parameters
+    -----------
+    rates: A list containing one transition rate matrix per considered lead
+
+    Returns
+    ----------
+    P: Populations
+    """
     if not isinstance(rates, list):
         rate = rates.copy()
         rate = [rate]
