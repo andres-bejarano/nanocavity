@@ -145,7 +145,6 @@ def populations(rates):
 
     Parameters
     -----------
-    rates: A list containing one transition rate matrix per considered lead
     rates: list of ndarrays
         A list containing one transition rate matrix per considered lead
 
@@ -181,7 +180,7 @@ def populations(rates):
     return P
 
 
-def electro_current2(Gp, Gm, P, electrode=0):
+def electro_current2(Gd, P, electrode=0):
     r"""
     Stationary current flowing through a given electrode
 
@@ -201,7 +200,6 @@ def electro_current2(Gp, Gm, P, electrode=0):
     I: nd_array
         current flowing through the specified electrode
     """
-    Gd = Gp - Gm
     if electrode == 0:
         return np.einsum('ijk,i...k->i...', Gd, P)
     if electrode == 1:
@@ -209,7 +207,7 @@ def electro_current2(Gp, Gm, P, electrode=0):
     if electrode == 2:
         return np.einsum('ijk,xyi...k->i...', Gd, P)
 
-    
+
 def electro_current(DGi, P, electrode='left'):
     r"""
     Electro-current calculated in the lead left
