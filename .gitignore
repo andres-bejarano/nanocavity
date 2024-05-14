@@ -1,1 +1,2 @@
-__pycache__
+# Ignore python chached files
+**/__pycache__
