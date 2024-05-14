@@ -186,10 +186,9 @@ def electro_current2(Gd, P, electrode=0):
 
     Parameters:
     ------------
-    Gp: nd-array
-        Transition rate for adding a particle to the central system
-    Gm: nd-array
-        Transition rate for removin a particle to the central system
+    Gd: nd-array
+        Difference of transition rate matrices for adding and removing a particle
+        Gd = G_p - G_m
     P: nd-array
         Populations; stationary solution of the rate equation
     electrode: int
