@@ -224,6 +224,24 @@ def electro_current(DGi, P, electrode='left'):
     elif electrode=='right':
         return np.einsum('jab,ijb->ij', DGi, P)
 
+
+def photo_current2(Kd, P):
+    """ Function calculating the emitted photons of a nanocavity
+
+    Parameters
+    --------
+    Kd: nd-array
+        Difference between the transition bosonic rate matrices for adding
+        and substracting a particle to/ from the central system
+    P: nd-array
+        nd-aray containing the stationary populations
+
+    Returns
+    ---------
+    I_ph: emitted photons
+    """
+    return np.einsum('ab, ...b->...', Kd, P)
+
 def photo_current(Kp, Km, P):
     r"""
     photo-current calculated 
