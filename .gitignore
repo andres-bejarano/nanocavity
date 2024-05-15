@@ -1,2 +1,7 @@
+# Ignore pdf and png files
+*.png
+*.pdf
+*.jpg
+*.svg
 # Ignore python chached files
 **/__pycache__
