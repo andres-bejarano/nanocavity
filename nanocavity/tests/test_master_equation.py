@@ -75,8 +75,8 @@ def test_Liouvillian():
     H1 = Hnc - u * Dg.d * De.d * De * Dg
     H2 = Hqt -u * dg.dag() * de.dag() * de * dg
 
-    for meth in ('einsum', 'kron'):
-        Lnc = nme.liouvillian(H1, [Dg, De, A], gL, gR, kappa, method=meth)
+    for method in ('einsum', 'kron'):
+        Lnc = nme.liouvillian(H1, [Dg, De, A], gL, gR, kappa, method=method)
         Lqt = no.Liouvillian(H2, [dg, de, a], 10, -10, kT=1e-2,gL=gL, gR=gR)
 
         Enc, _ = np.linalg.eig(Lnc)
