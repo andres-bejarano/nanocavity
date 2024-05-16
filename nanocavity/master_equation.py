@@ -31,7 +31,7 @@ def lindblad(A_op, method='einsum'):
         L -= 0.5 * np.einsum('ki,la,aj->ijkl', Id, A_op.conj().T, A_op.conj())
         return L
     
-    if method=='kron':
+    elif method=='kron':
         L = np.kron(A_op, A_op.conj())
         L -= 0.5 * np.kron(A_op.conj().T @ A_op, Id)
         L -= 0.5 * np.kron(Id, A_op.conj().T @ A_op.conj())
@@ -86,7 +86,7 @@ def liouvillian(H, System_op, gt, gs, kappa, method='einsum', iva=False, Hint=0)
         L -= 1j * np.einsum('ik,jl->ijkl', Hd, Id)
         L += 1j * np.einsum('ki,lj->ijkl', Id, Hd)
         return np.reshape(L, (H.dim ** 2, H.dim ** 2))
-    if method=='kron':
+    elif method=='kron':
         L -= 1j * np.kron(Hd, Id) 
         L += 1j * np.kron(Id, Hd)
         return L
@@ -96,7 +96,7 @@ def stationary(L):
     E, V = np.linalg.eig(L)
     # find the zero-eigenvalue mode index
     idx0 = np.argmin(np.abs(E))
-    return V[:, idx0] / V[:, idx0].reshape(8, 8).trace()
+    return V[:, idx0] / V[:, idx0].reshape(H.dim, H.dim).trace()
 
 
 def current(J, L):
