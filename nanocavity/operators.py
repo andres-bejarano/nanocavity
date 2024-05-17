@@ -1,7 +1,7 @@
 import numpy as np
 import nanocavity.distributions as ndist
 import secondquant as sq
-from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector, spre, spost, fdestroy
+from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector, spre, spost, fdestroy, sigmaz
 
 #two level system coupled to single cavity mode
 def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1, ret_nop=False):
@@ -24,7 +24,9 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
     N = max_bosons + 1
     dg = tensor(fdestroy(2, 0), qeye(N))
     de = tensor(fdestroy(2, 1), qeye(N))
-    a = tensor(qeye(2), qeye(2), destroy(N))
+    
+    #sigmaz = [[1, 0], [0, -1]]
+    a = tensor(sigmaz(), sigmaz(), destroy(N))
     
     H0 = Eg * dg.dag() * dg + (Eg + delta)* de.dag() * de + omega * a.dag() * a
     if rwa:

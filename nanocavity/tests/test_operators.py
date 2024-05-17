@@ -43,14 +43,13 @@ def test_Htls_nc_QuTiP():
             
             assert np.allclose(Dg, dg)
             assert np.allclose(De, de)
-            #assert np.allclose(A, a)
+            assert np.allclose(A, a)
             
             Enc, _ = Hnc.eigh()
             Eqt, _ = Hqt.eigenstates()
             assert np.allclose(Enc, Eqt)
-            #assert np.allclose(Hnc.toarray(), Hqt.full())
+            assert np.allclose(Hnc.toarray(), Hqt.full())
 
-test_Htls_nc_QuTiP()
 
 def Nanocav(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
     #nanocav-populations
