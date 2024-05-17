@@ -22,12 +22,18 @@ kT = 0.1
 def test_Htls_nc_QuTiP():
     for rwa in (True, False):
         for n in (1, 2):
-            Hnc, _ = no.H_tls_nc(Eg, delta, omega, coupling, rwa=rwa, max_bosons=n)
-            Hqt,_ = no.H_tls_QuTiP(Eg, delta, omega, coupling, rwa=rwa, max_bosons=n)
+            Hnc, [Dg, De, A] = no.H_tls_nc(Eg, delta, omega, coupling, rwa=rwa, max_bosons=n)
+            Hqt, [dg, de, a]  = no.H_tls_QuTiP(Eg, delta, omega, coupling, rwa=rwa, max_bosons=n)
+            assert np.allclose(Dg.toarray(), dg.full())
+            assert np.allclose(De.toarray(), de.full())
+            assert np.allclose(A.toarray(), a.full())
+            
             Enc, _ = Hnc.eigh()
             Eqt, _ = Hqt.eigenstates()
             assert np.allclose(Enc, Eqt)
+            assert np.allclose(Hnc.toarray(), Hqt.full())
 
+test_Htls_nc_QuTiP()
 
 def Nanocav(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
     #nanocav-populations
