@@ -57,7 +57,7 @@ def liouvillian(H, System_op, gt, gs, kappa, method='einsum', iva=False, Hint=0)
 
     #for each eigenoperator we calculate one dissipator
     L = 0 * 1j
-    #disssipator in the larga bias limit
+    #dissipator in the large bias limit
     for i in range(dim):
         for j in range(dim):
             Dgij = Vinv @ Dg[:, :, i, j] @ V
