@@ -96,7 +96,8 @@ def stationary(L):
     E, V = np.linalg.eig(L)
     # find the zero-eigenvalue mode index
     idx0 = np.argmin(np.abs(E))
-    return V[:, idx0] / V[:, idx0].reshape(H.ndim, H.ndim).trace()
+    d = int(E.size ** .5)
+    return V[:, idx0] / V[:, idx0].reshape(d, d).trace()
 
 
 def current(J, L):
