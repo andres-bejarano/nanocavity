@@ -40,7 +40,8 @@ def lindblad(A_op, method='einsum'):
 def liouvillian(H, System_op, gt, gs, kappa, method='einsum', iva=False, Hint=0):
 
     [dg, de, a] = System_op
-    Id = np.eye(H.dim)
+    dim = H.shape[0]
+    Id = np.eye(dim)
    
     if iva:
         H -= Hint
@@ -57,8 +58,8 @@ def liouvillian(H, System_op, gt, gs, kappa, method='einsum', iva=False, Hint=0)
     #for each eigenoperator we calculate one dissipator
     L = 0 * 1j
     #disssipator in the larga bias limit
-    for i in range(H.dim):
-        for j in range(H.dim):
+    for i in range(dim):
+        for j in range(dim):
             Dgij = Vinv @ Dg[:, :, i, j] @ V
             Deij = Vinv @ De[:, :, i, j] @ V
             Aij = Vinv @ A[:, :, i, j] @ V
@@ -79,13 +80,13 @@ def liouvillian(H, System_op, gt, gs, kappa, method='einsum', iva=False, Hint=0)
         Hd = np.einsum('ijkp->ij', eigen_operator(H, V)) 
     
     else:
-        Hd = E * np.eye(H.dim)
+        Hd = E * np.eye(dim)
 
     #Writing the coherent evolution
     if method=='einsum':
         L -= 1j * np.einsum('ik,jl->ijkl', Hd, Id)
         L += 1j * np.einsum('ki,lj->ijkl', Id, Hd)
-        return np.reshape(L, (H.dim ** 2, H.dim ** 2))
+        return np.reshape(L, (dim ** 2, dim ** 2))
     elif method=='kron':
         L -= 1j * np.kron(Hd, Id) 
         L += 1j * np.kron(Id, Hd)
@@ -96,7 +97,7 @@ def stationary(L):
     E, V = np.linalg.eig(L)
     # find the zero-eigenvalue mode index
     idx0 = np.argmin(np.abs(E))
-    return V[:, idx0] / V[:, idx0].reshape(H.dim, H.dim).trace()
+    return V[:, idx0] / V[:, idx0].reshape(H.ndim, H.ndim).trace()
 
 
 def current(J, L):
