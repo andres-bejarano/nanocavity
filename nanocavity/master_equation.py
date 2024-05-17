@@ -29,13 +29,12 @@ def lindblad(A_op, method='einsum'):
         L = np.einsum('ik,jl->ijkl', A_op, A_op.conj())
         L -= 0.5 * np.einsum('ia,ak,jl->ijkl', A_op.conj().T, A_op, Id)
         L -= 0.5 * np.einsum('ki,la,aj->ijkl', Id, A_op.conj().T, A_op.conj())
-        return L
     
     elif method=='kron':
         L = np.kron(A_op, A_op.conj())
         L -= 0.5 * np.kron(A_op.conj().T @ A_op, Id)
         L -= 0.5 * np.kron(Id, A_op.conj().T @ A_op.conj())
-        return L
+    return L
 
 def liouvillian(H, System_op, gt, gs, kappa, method='einsum', iva=False, Hint=0):
 
