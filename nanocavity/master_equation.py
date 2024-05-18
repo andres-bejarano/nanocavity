@@ -11,11 +11,11 @@ def eig_norm(L):
     vr *= norm
     return El, vl, vr
 
-def eigen_operator(A, v):
-    if isinstance(A, Operator):
-        A = A.toarray()
+def eigen_operator(A_op, v):
+    if isinstance(A_op, Operator):
+        A_op = A_op.toarray()
     #First we save the matrix elements of A operator
-    C = np.einsum('ki,ij,pj->kp', v.conj().T, A, v)
+    C = np.einsum('ki,ij,pj->kp', v.conj().T, A_op, v)
     #Now we calculate the operator asociated to each matrix element
     #The specification of index kp determines a single eigenoperator |l><p|
     Op = np.einsum('ki,pj->ijkp',  v.conj().T,  v)
