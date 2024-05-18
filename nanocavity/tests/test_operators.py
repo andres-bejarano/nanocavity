@@ -25,16 +25,20 @@ def test_Htls_nc_QuTiP():
             Hnc, [Dg, De, A] = no.H_tls_nc(Eg, delta, omega, coupling, rwa=rwa, max_bosons=n)
             Hqt, [dg, de, a]  = no.H_tls_QuTiP(Eg, delta, omega, coupling, rwa=rwa, max_bosons=n)
             
+            Enc, _ = Hnc.eigh()
+            Eqt, _ = Hqt.eigenstates()
+            
             Dg = Dg.toarray()
             De = De.toarray()
             A = A.toarray()
     
-            
             dg = dg.full()
             de = de.full()
             a = a.full()
 
-
+            assert np.allclose(Enc, Eqt)
+            assert np.allclose(Hnc.toarray(), Hqt.full())
+            
             assert np.allclose(Dg.T @ Dg + Dg @ Dg.T, np.eye(Dg.shape[0]))
             assert np.allclose(Dg.T @ De + De @ Dg.T, 0)
             assert np.allclose(De.T @ Dg + Dg @ De.T, 0)
@@ -45,10 +49,6 @@ def test_Htls_nc_QuTiP():
             assert np.allclose(De, de)
             assert np.allclose(A, a)
             
-            Enc, _ = Hnc.eigh()
-            Eqt, _ = Hqt.eigenstates()
-            assert np.allclose(Enc, Eqt)
-            assert np.allclose(Hnc.toarray(), Hqt.full())
 
 
 def Nanocav(VL=3, VR=-3, kappa=0.1, m=2.5e-2):

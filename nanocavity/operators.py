@@ -25,7 +25,8 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
     dg = tensor(fdestroy(2, 0), qeye(N))
     de = tensor(fdestroy(2, 1), qeye(N))
     
-    #sigmaz = [[1, 0], [0, -1]]
+    #sigmaz = [[1, 0], [0, -1]] is playing the role of permutation as
+    # |n_g, n_e> = -|n_e, n_g>
     a = tensor(sigmaz(), sigmaz(), destroy(N))
     
     H0 = Eg * dg.dag() * dg + (Eg + delta)* de.dag() * de + omega * a.dag() * a
