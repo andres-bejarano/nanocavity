@@ -83,12 +83,12 @@ def liouvillian(H, System_op, gt, gs, kappa, method='einsum', iva=False, Hint=0)
 
     #Writing the coherent evolution
     if method=='einsum':
-        L -= 1j * np.einsum('ik,jl->ijkl', Hd, Id)
-        L += 1j * np.einsum('ki,lj->ijkl', Id, Hd)
+        L += 1j * np.einsum('ik,jl->ijkl', Hd, Id)
+        L -= 1j * np.einsum('ki,lj->ijkl', Id, Hd)
         return np.reshape(L, (dim ** 2, dim ** 2))
     elif method=='kron':
-        L -= 1j * np.kron(Hd, Id) 
-        L += 1j * np.kron(Id, Hd)
+        L += 1j * np.kron(Hd, Id) 
+        L -= 1j * np.kron(Id, Hd)
         return L
 
 def stationary(L):
