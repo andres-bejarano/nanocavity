@@ -3,6 +3,7 @@ from scipy.linalg import eig
 import nanocavity.operators as no
 from secondquant.operator import Operator
 from qutip import operator_to_vector, steadystate
+import nanocavity.distributions as ndist
 
 def eig_norm(L):
     El, vl, vr = eig(L, left=True)
@@ -21,6 +22,33 @@ def eigen_operator(A_op, v):
     Op = np.einsum('ki,pj->ijkp',  v.conj().T,  v)
     return Op * C
 
+def collapses(A_op, E, V, kT, bath, mu=0):
+    if isinstance(A_op, Operator):
+        A_op = A_op.toarray()
+
+    dim = A_op.shape[0]
+    Vinv = np.linalg.inv(V)
+    cp = []
+    cm = []
+    for i, Ei in enumerate(E):
+        for j, Ej in enumerate(E):
+            Mij = V[:, i].T @ A_op @ V[:, j]
+            if Mij != 0:
+                Eji = Ej - Ei                    
+                P = Mij * V[:,  i].reshape(dim, 1) @ V[:, j].reshape(1, dim)
+                Pv = Vinv @ P @ V 
+                if bath=='bosonic':
+                    nb = ndist.bose_einstein(Eji, kT=kT)
+                    cp.append(np.sqrt(nb) * Pv.conj().T)
+                    cm.append(np.sqrt(1 + nb) * Pv)
+                elif bath=='fermionic':
+                    fd = ndist.fermi_dirac(Eji, kT=kT, mu=mu)
+                    cp.append(np.sqrt(fd) * Pv.conj().T)
+                    cm.append(np.sqrt(1 - fd) * Pv)
+    return cp, cm
+
+
+
 def lindblad(A_op, method='einsum'):
     Id = np.eye(A_op.shape[0])
     #Look https://arxiv.org/pdf/1504.05266
@@ -36,7 +64,7 @@ def lindblad(A_op, method='einsum'):
         L -= 0.5 * np.kron(Id, A_op.conj().T @ A_op.conj())
     return L
 
-def liouvillian(H, System_op, gt, gs, kappa, method='einsum', iva=False, Hint=0):
+def liouvillian(H, System_op, gL, gR, kappa, VL, VR, kT, method='einsum', iva=False, Hint=0):
 
     [dg, de, a] = System_op
     dim = H.shape[0]
@@ -49,30 +77,44 @@ def liouvillian(H, System_op, gt, gs, kappa, method='einsum', iva=False, Hint=0)
     Vinv = np.linalg.inv(V)
 
 
-    #Dissipators, we need the jumps wich are the eigenoperators
-    Dg = eigen_operator(dg, V)
-    De = eigen_operator(de, V) 
-    A = eigen_operator(a, V)
+    #Collapses wichi are \sqrt{rate * dist} A_ij where A_ij is the eigenoperator
+
+    #left electrode  and ground/excited
+    CgpL, CgmL= collapses(dg, E, V, kT, bath='fermionic', mu=VL)
+    CepL, CemL = collapses(de, E, V, kT, bath='fermionic', mu=VL)
+    
+    CL =  CgpL + CgmL + CepL + CemL
+
+    #right electrode
+    CgpR, CgmR = collapses(dg, E, V, kT, bath='fermionic', mu=VR)
+    CepR, CemR = collapses(de, E, V, kT, bath='fermionic', mu=VR)
+
+    CR =  CgpR + CgmR + CepR + CemR
+    
+    #radiation field and cavity mode
+    Cap, Cam = collapses(a, E, V, kT, bath='bosonic')
+    
+    Ca = Cap + Cam 
 
     #for each eigenoperator we calculate one dissipator
-    L = 0j
+    L_left = 0j
+    L_right = 0j
+    L_damping = 0j
     #dissipator in the large bias limit
-    for i in range(dim):
-        for j in range(dim):
-            Dgij = Vinv @ Dg[:, :, i, j] @ V
-            Deij = Vinv @ De[:, :, i, j] @ V
-            Aij = Vinv @ A[:, :, i, j] @ V
-            
-            #Adding electrons from a given lead
-            L += gt * lindblad(Dgij.conj().T, method) 
-            L += gt * lindblad(Deij.conj().T, method)
-            
-            #Removing electrons from a given lead
-            L += gs * lindblad(Dgij, method) 
-            L += gs * lindblad(Deij, method)
-            
-            #cavity dissipation
-            L += kappa * lindblad(Aij, method) 
+    
+    for collapse in CL:
+        L_left +=  lindblad(collapse, method) 
+    L_left *= gL
+
+    for collapse in CR:
+        L_right += lindblad(collapse, method)
+    L_right *= gR
+
+    for collapse in Ca:
+        L_damping += lindblad(collapse, method)
+    L_damping *= kappa
+
+    L = L_left + L_right + L_damping
 
     if iva:
         H += Hint
