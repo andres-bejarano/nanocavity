@@ -72,13 +72,11 @@ def test_eigenoperator():
 
 
 def test_Liouvillian():
-    H1 = Hnc - u * Dg.d * De.d * De * Dg
-    H2 = Hqt - u * dg.dag() * de.dag() * de * dg
     
-    Lqt = no.Liouvillian(H2, [dg, de, a], 10, -10, kT=1e-2,gL=gL, gR=gR)
+    Lqt = no.Liouvillian(Hqt, [dg, de, a], 10, -10, kT=1e-2, gL=gL, gR=gR)
     
     for method in ('einsum', 'kron'):
-        Lnc = nme.liouvillian(H1, [Dg, De, A], gL, gR, kappa, method=method)
+        Lnc = nme.liouvillian(Hnc, [Dg, De, A], gL, gR, kappa, kT=1e-2, VL=10, VR=-10, method=method)
 
         Enc, _ = np.linalg.eig(Lnc)
         Eqt, _ = np.linalg.eig(Lqt.full())
@@ -97,7 +95,6 @@ def test_Liouvillian():
             assert np.allclose(E1imag, E2imag)
             assert np.allclose(E1abs, E2abs)
 
-test_Liouvillian()
 
 def test_current():
     for VL in [-3, -2.1, -1.1, 2]:
