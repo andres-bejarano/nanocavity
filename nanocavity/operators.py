@@ -145,7 +145,7 @@ def bosonic_collapses(A_op, E, V, kT, k):
         Collpases operators.
     """
 
-    c = []
+    cp, cm = [], []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
             Mij = A_op.matrix_element(V[i], V[j]) ** 2 
@@ -153,9 +153,9 @@ def bosonic_collapses(A_op, E, V, kT, k):
                 Eji = Ej - Ei
                 nb =  ndist.bose_einstein(Eji, kT=kT)
                 P = (V[i] * V[j].dag()).transform(V)
-                c.append(np.sqrt(k * Mij * (1 + nb)) * P)
-                c.append(np.sqrt(k * Mij * nb) * P.dag())
-    return c
+                cp.append(np.sqrt(k * Mij * nb) * P.dag())
+                cm.append(np.sqrt(k * Mij * (1 + nb)) * P)
+    return cp, cm
 
 def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
     """
