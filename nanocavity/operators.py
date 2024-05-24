@@ -42,107 +42,44 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
 
 #collapses operators
 
-def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
-    """
-    This script computes the collapses for the tunneling electrons from a given lead to a given fermionic level.
-    To identify the collapse operators, we must write the dissipator of our problem 
-        \\mathcal{L}^+[\\rho] = \\sum_{ij} \\Gamma f^+(E_{ji}) d_{ij}^\\dagger\\rho d_{ji} - \\frac{1}{2}\\{d_{ji} d^\\dagger_{ij}, \\rho\\}
-
-         \\mathcal{L}^-[\\rho] = \\sum_{ij} \\Gamma f^-(E_{ji}) d_{ij}\\rho d_{ji}^\dagger - \\frac{1}{2}\\{d_{ji}^\dagger d_{ij}, \\rho\\}
-
-
-    where d_{ij} is a molecular eigenoperator 
-
-    d_ij = \\langle i \\rvert d \\lvert j \\rangle \\lvert i \\rangle \\langle j \\rvert   
-
-    the collapse is defined as:
-
-    C^+ = \\sqrt{\Gamma f^+(E_{ji}) } \\lvert \\langle i \\rvert d^\dagger \\lvert j \\rangle\\rvert ^2 \\lvert i \\rangle \\langle j \\rvert
-
-    C^- = \\sqrt{\Gamma f^-(E_{ji}) } \\lvert \\langle i \\rvert d \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
-
-    where f^-(x) = 1 - f^+(x) and f(x) = f^+(x) is the fermi-dirac distribution.
-
-    Parameters
-    ----------
-    A_op : Qobj or QobjEvo
-           Annihilation operator for fermions.
-
-    E, V : Qobj
-           Eigenvalues and eigenstates of system hamiltonian
-
-    VL, VR: float
-            Left/Right chemical potential (VL, VR)
-
-    kT: float
-        Temperature of the bath
-
-    gL, gR: float
-            Left/Right tunneling rate
-
-
-    Returns
-    -------
-    D : List of Qobj
-        Collpases operators.
-    """
-
-    c = []
-    for i, Ei in enumerate(E):
-        for j, Ej in enumerate(E):
-            Mij = A_op.matrix_element(V[i], V[j]) ** 2
-            if Mij != 0:
-                Eji = Ej - Ei
-                fL = ndist.fermi_dirac(Eji, mu=VL, kT=kT)
-                fR = ndist.fermi_dirac(Eji, mu=VR, kT=kT)
-                P = (V[i] * V[j].dag()).transform(V)
-                c.append(np.sqrt(gL * Mij * (1 - fL)) * P)
-                c.append(np.sqrt(gR * Mij * (1 - fR)) * P)
-                c.append(np.sqrt(gL * Mij * fL) * P.dag())
-                c.append(np.sqrt(gR * Mij * fR) * P.dag())
-    return c
-
-
 def collapses(A_op, H, kT, bath, mu=0):
     """
-    This script account for the losses of the system by coupling cavity mode to an eexternal radiation field.
+    This script account for the losses of the system by coupling cavity mode to an external environment whith $dist(E)$ is the distribution function of the environment at thermal equivilibrium.
     To identify the collapse operators, we must write the dissipator of our problem 
-        \\mathcal{D}^+[\\rho] = \\sum_{ij} \\kappa n_B+(E_{ji}) a_{ij}^\\dagger\\rho a_{ji} - \\frac{1}{2}\\{a_{ji} a^\\dagger_{ij}, \\rho\\}
+        \\mathcal{D}^+[\\rho] = \\sum_{ij}  dist+(E_{ji}) A_{ji}^\\dagger\\rho A_{ij} - \\frac{1}{2}\\{A_{iJ} A^\\dagger_{ji}, \\rho\\}
 
-         \\mathcal{D}^-[\\rho] = \\sum_{ij} \\kappa n_B^-(E_{ji}) a_{ij}\\rho a_{ji}^\dagger - \\frac{1}{2}\\{a_{ji}^\\dagger a_{ij}, \\rho\\}
+         \\mathcal{D}^-[\\rho] = \\sum_{ij}  dist^-(E_{ji}) A_{ij}\\rho A_{ji}^\dagger - \\frac{1}{2}\\{A_{ji}^\\dagger A_{ij}, \\rho\\}
 
 
-    where a_{ij} is a system cavity eigenoperator
+    where A_{ij} is a system eigenoperator
 
-    a_ij = \\langle i \\rvert a \\lvert j \\rangle \\lvert i \\rangle \\langle j \\rvert   
+    A_ij = \\langle i \\rvert A \\lvert j \\rangle \\lvert i \\rangle \\langle j \\rvert   
 
     the collapse is defined as:
 
-    C^+ = \\sqrt{\kappa n_B^+(E_{ji}) } \\lvert \\langle i \\rvert a^\dagger \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
+    C^+ = \\sqrt{dist^+(E_{ji}) } \\lvert \\langle i \\rvert A^\dagger \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
 
-    C^- = \\sqrt{\kappa n_B^-(E_{ji}) } \\lvert \\langle i \\rvert a \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
-
-    where n_B^-(x) = 1 + n_B^+(x) and n_B(x) = n_B^+(x) is the bose-einstein distribution
+    C^- = \\sqrt{dist^-(E_{ji}) } \\lvert \\langle i \\rvert a \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
 
     Parameters
     ----------
     A_op : Qobj or QobjEvo
            Annihilation operator for cavity.
 
-    E, V : Qobj
-           Eigenvalues and eigenstates of system hamiltonian.
+    H : Qobj
+        system hamiltonian.
 
     kT : float
          Temperature of the bath.
 
-    k :  float
-         Damping rate.
+    bath :  str
+         fermionic or bosonic bath.
 
 
     Returns
     -------
-    D : List of Qobj
-        Collpases operators.
+    cp, cm : List of Qobj
+        Two list of operators for adding or removing particles.
     """
     E, V = H.eigenstates()
     cp, cm = [], []
