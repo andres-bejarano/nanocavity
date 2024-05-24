@@ -103,7 +103,7 @@ def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
     return c
 
 
-def bosonic_collapses(A_op, E, V, kT, k):
+def collapses(A_op, H, kT, bath, mu=0):
     """
     This script account for the losses of the system by coupling cavity mode to an eexternal radiation field.
     To identify the collapse operators, we must write the dissipator of our problem 
@@ -144,17 +144,22 @@ def bosonic_collapses(A_op, E, V, kT, k):
     D : List of Qobj
         Collpases operators.
     """
-
+    E, V = H.eigenstates()
     cp, cm = [], []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
             Mij = A_op.matrix_element(V[i], V[j]) 
             if Mij != 0:
                 Eji = Ej - Ei
-                nb =  ndist.bose_einstein(Eji, kT=kT)
                 P = Mij * (V[i] * V[j].dag()).transform(V)
-                cp.append(np.sqrt(k * nb) * P.dag())
-                cm.append(np.sqrt(k * (1 + nb)) * P)
+                if bath=='bosonic':
+                    nb = ndist.bose_einstein(Eji, kT=kT)
+                    cp.append(np.sqrt(nb) * P.dag())
+                    cm.append(np.sqrt(1 + nb) * P)
+                elif bath=='fermionic':
+                    fd = ndist.fermi_dirac(Eji, kT=kT, mu=mu)
+                    cp.append(np.sqrt(fd) * P.dag())
+                    cm.append(np.sqrt(1 - fd) * P)
     return cp, cm
 
 def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
