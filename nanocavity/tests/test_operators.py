@@ -27,8 +27,8 @@ def test_Htls_nc_QuTiP():
             Hnc, [Dg, De, A] = no.H_tls_nc(Eg, delta, omegac, coupling, rwa=rwa, max_bosons=n)
             Hqt, [dg, de, a]  = no.H_tls_QuTiP(Eg, delta, omegac, coupling, rwa=rwa, max_bosons=n)
             
-            Enc, _ = Hnc.eigh()
-            Eqt, _ = Hqt.eigenstates()
+            Enc, Vnc = Hnc.eigh()
+            Eqt, Vqt = Hqt.eigenstates()
             
             Dg = Dg.toarray()
             De = De.toarray()
@@ -37,10 +37,15 @@ def test_Htls_nc_QuTiP():
             dg = dg.full()
             de = de.full()
             a = a.full()
-
-            assert np.allclose(Enc, Eqt)
-            assert np.allclose(Hnc.toarray(), Hqt.full())
             
+            assert np.allclose(Hnc.toarray(), Hqt.full())
+            assert np.allclose(Enc, Eqt)
+            dim = A.shape[0]
+            for i in range(dim):
+                M = np.vstack([Vqt[i].full().reshape(dim), Vnc[:, i]])
+                rank = np.linalg.matrix_rank(M)
+                assert rank == 1
+
             assert np.allclose(Dg.T @ Dg + Dg @ Dg.T, np.eye(Dg.shape[0]))
             assert np.allclose(Dg.T @ De + De @ Dg.T, 0)
             assert np.allclose(De.T @ Dg + Dg @ De.T, 0)
