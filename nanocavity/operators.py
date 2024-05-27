@@ -4,10 +4,12 @@ import secondquant as sq
 from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector, spre, spost, fdestroy, sigmaz
 
 #two level system coupled to single cavity mode
-def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1, ret_nop=False):
+def H_tls_nc(Eg, delta, omega, coupling, u=0, rwa=True, max_bosons=1, ret_nop=False):
     [dg, de, a], [Nfg, Nfe, Nb] = \
         sq.composite(fermion_modes=2, boson_modes=1, max_bosons=max_bosons)
-    H0 = Eg * Nfg + (Eg +  delta) * Nfe + omega * Nb
+    He = Eg * Nfg + (Eg +  delta) * Nfe + u * dg.d * de.d * de * dg
+    Hp = omega * Nb
+    H0 = He + Hp
     if rwa:
         Hint = coupling * (a.d * dg.d * de + a * de.d * dg)
     else:
@@ -20,7 +22,7 @@ def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1, ret_nop=False):
 
 #two level system coupled to single cavity mode in QuTiP
 
-def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
+def H_tls_QuTiP(Eg, delta, omega, coupling, u=0, rwa=True, max_bosons=1):
     N = max_bosons + 1
     dg = tensor(fdestroy(2, 0), qeye(N))
     de = tensor(fdestroy(2, 1), qeye(N))
@@ -29,7 +31,9 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
     # |n_g, n_e> = -|n_e, n_g>
     a = tensor(sigmaz(), sigmaz(), destroy(N))
     
-    H0 = Eg * dg.dag() * dg + (Eg + delta)* de.dag() * de + omega * a.dag() * a
+    He = Eg * dg.dag() * dg + (Eg + delta)* de.dag() * de +  u * dg.dag() * de.dag() * de * dg  
+    Hp = omega * a.dag() * a
+    H0 = He + Hp
     if rwa:
         Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
     else:
