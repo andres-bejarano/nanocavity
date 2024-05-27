@@ -10,7 +10,7 @@ omegac = 1
 delta = 0.9
 coupling = 0.3
 
-H_parameters = [Eg, delta, omegac, coupling]
+H_parameters = Eg, delta, omegac, coupling
 
 m = 2.5e-2
 kappa = 0.1
