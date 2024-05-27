@@ -42,9 +42,9 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
 
 #collapses operators
 
-def collapses(A_op, H, kT, bath, mu=0):
+def collapses(A_op, H, kT, bath, mu=0, cutoff=1e-12):
     """
-    This script account for the losses of the system by coupling cavity mode to an external environment whith $dist(E)$ is the distribution function of the environment at thermal equivilibrium.
+    
     To identify the collapse operators, we must write the dissipator of our problem 
         \\mathcal{D}^+[\\rho] = \\sum_{ij}  dist+(E_{ji}) A_{ji}^\\dagger\\rho A_{ij} - \\frac{1}{2}\\{A_{iJ} A^\\dagger_{ji}, \\rho\\}
 
@@ -86,7 +86,7 @@ def collapses(A_op, H, kT, bath, mu=0):
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
             Mij = A_op.matrix_element(V[i], V[j]) 
-            if Mij != 0:
+            if abs(Mij) > cutoff:
                 Eji = Ej - Ei
                 P = Mij * (V[i] * V[j].dag()).transform(V)
                 if bath=='bosonic':
