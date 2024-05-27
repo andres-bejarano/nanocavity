@@ -212,90 +212,24 @@ def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
     return c
 
 
-def jump_operator(A_op, E, V, distribution):
+def jump_operator(c_ops):
     J = 0
-    for i, Ei in enumerate(E):
-        for j, Ej in enumerate(E):
-            Mij = A_op.matrix_element(V[i], V[j])
-            if Mij != 0:
-                aij = Mij * (V[i] * V[j].dag()).transform(V)
-                J += distribution(Ej - Ei) * sprepost(aij, aij.dag()) 
+    for c in c_ops:
+                J += sprepost(c, c.dag()) 
     return J
 
-
-
-def jump_bosonic(A_op, E, V, kT, rate='in'):
-    dist = ndist.bath_dist(E, kT, rate, bath='bosonic')
-    return jump_operator(A_op, E, V, dist)
-
-def jump_fermionic(A_op, E, V, mu, kT, rate='in'):
-    dist = ndist.bath_dist(E, kT, rate, bath='fermionic', mu=mu)
-    return jump_operator(A_op, E, V, dist)
-
-def jump_lead(A_op, E, V, eV, kT, rate='in'):
-    dist = ndist.bath_dist(E, kT, rate, bath='leadtolead', mu=0, eV=eV)
-    return jum_operator(A_op, E, V, dist)
-
-def dissipator(A_op, E, V, distribution, chi):
+def dissipator(c_ops, chi):
     L = 0
-    for i, Ei in enumerate(E):
-        for j, Ej in enumerate(E):
-            Mij = A_op.matrix_element(V[i], V[j])
-            if Mij != 0:
-                Eji = Ej - Ei
-                aij = Mij * (V[i] * V[j].dag()).transform(V)
-                aca =  aij.dag() * aij
-                L += distribution(Eji) * (sprepost(aij, aij.dag()) * np.exp(1j * chi) - \
-                        0.5 * spre(aca) - 0.5 * spost(aca)) 
+    for c in c_ops:
+        cdc =  c.dag() * c
+        L += distribution(Eji) * (sprepost(c, c.dag()) * np.exp(1j * chi) - \
+                0.5 * spre(cdc) - 0.5 * spost(cdc)) 
     return L
 
-def dissipator_bosonic(A_op, E, V, kT, rate, chi=0):
-    dist = ndist.bath_dist(E, kT, rate, bath='bosonic')
-    return dissipator(A_op, E, V, dist, chi)
-
-def dissipator_fermionic(A_op, E, V, mu, kT, rate, chi=0):
-    dist = ndist.bath_dist(E, kT, rate, bath='fermionic', mu=mu)
-    return dissipator(A_op, E, V, dist, chi)
-
-def dissipator_lead(A_op, E, V, eV, kT, rate, chi=0):
-    dist = ndist.bath_dist(E, kT, rate, bath='leadtolead', mu=0, eV=eV)
-    return dissipator(A_op, E, V, dist, chi)
-
-def Liouvillian(H, S_op, VL, VR, kT=1e-2, kappa=0.1, gL=1e-3, gR=1e-3, m=0, iva=False, chi_b=0, chi_f=0):
-    [dg, de, a] = S_op
-    
-    if iva:
-        Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
-        H -= Hint
-    E, V = H.eigenstates()
-    
-    #cavity-radiation_bath dissipator
-    L = kappa * (dissipator_bosonic(a, E, V, kT, rate='out', chi=chi_b) + \
-                 dissipator_bosonic(a.dag(), E, V, kT, rate='in', chi=-chi_b))
-
-    #molecule-leads dissipator
-    L += gL * (dissipator_fermionic(dg, E, V, VL, kT, rate='out', chi=chi_f) + \
-               dissipator_fermionic(de, E, V, VL, kT, rate='out', chi=chi_f) + \
-               dissipator_fermionic(dg.dag(), E, V, VL, kT, rate='in', chi=-chi_f) + \
-               dissipator_fermionic(de.dag(), E, V, VL, kT, rate='in', chi=-chi_f))
-
-    L += gR * (dissipator_fermionic(dg, E, V, VR, kT, rate='out') + \
-               dissipator_fermionic(de, E, V, VR, kT, rate='out') + \
-               dissipator_fermionic(dg.dag(), E, V, VR, kT, rate='in') + \
-               dissipator_fermionic(de.dag(), E, V, VR, kT, rate='in'))
-    
-    #cavity-leads dissipator
-    VLR = VL - VR
-    VRL = VR - VL
-    L += m * (dissipator_lead(a, E, V, eV=VLR, kT=kT, rate='out', chi=chi_f) + \
-              dissipator_lead(a.dag(), E, V, eV=VLR, kT=kT, rate='in', chi=chi_f) + \
-              dissipator_lead(a, E, V, eV=VRL, kT=kT, rate='out', chi=-chi_f) + \
-              dissipator_lead(a.dag(), E, V, eV=VRL, kT=kT, rate='in', chi=-chi_f))
-    if iva:
-        H += Hint
-
+def liouvillian(H, c_ops):
     #incoherent_evolution 
     L += -1.0j * (spre(H.transform(V)) - spost(H.transform(V)))
+    L = dissipator_bosonic(c_ops) 
     return L
 
 
