@@ -105,30 +105,36 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
         return cp, cm
 
 
-def collapses_tls_QuTiP(H_parameters, VL, VR, kappa, gL, gR, kT, m=0):
+def collapses_tls_QuTiP(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, alone=True):
     [Eg, delta, omegac, coupling] = H_parameters
     H, [dg, de, a] = H_tls_QuTiP(Eg, delta, omegac, coupling)
     
     #left electrode
     c_gL = collapses(dg, H, kT, bath='fermionic', mu=VL)
     c_eL = collapses(de, H, kT, bath='fermionic', mu=VL)
-    CL = list(np.sqrt(gL) * np.array(c_gL + c_eL))
+    CL = np.sqrt(gL) * np.array(c_gL + c_eL)
 
     #right electrode
     c_gR = collapses(dg, H, kT, bath='fermionic', mu=VR)
     c_eR = collapses(de, H, kT, bath='fermionic', mu=VR)
-    CR = list(np.sqrt(gR) * np.array(c_gR + c_eR))
+    CR = np.sqrt(gR) * np.array(c_gR + c_eR)
 
     #cavity mode
     CA = collapses(a, H, kT, bath='bosonic')
 
-    CA = list(np.sqrt(kappa) * np.array(CA))
+    CA = np.sqrt(kappa) * np.array(CA)
     
-    c_lead = lead_cavity_lead_collapses(a, H, VL, VR, kT, m)
-    c_ops = CL + CR + CA + c_lead
+    if lead2lead:
+        c_lead = lead_cavity_lead_collapses(a, H, VL, VR, kT, m)
+        c_ops = np.concatenate((CL, CR, CA, c_lead))
+    else:
+        c_ops = np.concatenate((CL, CR, CA))
     
-    S_op =  [dg, de, a] 
-    return S_op, H, c_ops
+    if alone:
+        return c_ops
+    else:
+        S_op =  [dg, de, a] 
+        return S_op, H, c_ops
 
 
 def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
