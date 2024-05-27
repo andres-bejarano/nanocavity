@@ -73,24 +73,19 @@ def qt(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
     Eqt, Vqt = Hqt.eigenstates()
 
     #left electrode
-    c_gpL, c_gmL = no.collapses(dg, Hqt, kT, bath='fermionic', mu=VL)
-    c_epL, c_emL = no.collapses(de, Hqt, kT, bath='fermionic', mu=VL)
-    CL = c_gpL + c_gmL + c_epL + c_emL
-    for i in range(len(CL)):
-        CL[i] *= np.sqrt(gL)
+    c_gL = no.collapses(dg, Hqt, kT, bath='fermionic', mu=VL)
+    c_eL = no.collapses(de, Hqt, kT, bath='fermionic', mu=VL)
+    CL = list(np.sqrt(gL) * np.array(c_gL + c_eL))
 
     #right electrode
-    c_gpR, c_gmR = no.collapses(dg, Hqt, kT, bath='fermionic', mu=VR)
-    c_epR, c_emR = no.collapses(de, Hqt, kT, bath='fermionic', mu=VR)
-    CR = c_gpR + c_gmR + c_epR + c_emR
-    for i in range(len(CR)):
-        CR[i] *= np.sqrt(gR)    
+    c_gR = no.collapses(dg, Hqt, kT, bath='fermionic', mu=VR)
+    c_eR = no.collapses(de, Hqt, kT, bath='fermionic', mu=VR)
+    CR = list(np.sqrt(gR) * np.array(c_gR + c_eR))
     
     #cavity mode
-    c_ap, c_am = no.collapses(a, Hqt, kT, bath='bosonic')
-    CA = c_ap + c_am
-    for i in range(len(CA)):
-        CA[i] *= np.sqrt(kappa)
+    CA = no.collapses(a, Hqt, kT, bath='bosonic')
+    
+    CA = list(np.sqrt(kappa) * np.array(CA))
 
     c_lead = no.lead_cavity_lead_collapses(a, Eqt, Vqt, VL, VR, kT, m)
 
