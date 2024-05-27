@@ -42,9 +42,10 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
 
 #collapses operators
 
-def collapses(A_op, H, kT, bath, mu=0, cutoff=1e-12):
+def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     """
-    
+    This script describes the collapse operator defined below. We will have an operator A_op of the system that interacts with a given bath, which is in thermal equilibrium and will be characterized by the Fermi-Dirac or Bose-Einstein function depending on its nature.
+
     To identify the collapse operators, we must write the dissipator of our problem 
         \\mathcal{D}^+[\\rho] = \\sum_{ij}  dist+(E_{ji}) A_{ji}^\\dagger\\rho A_{ij} - \\frac{1}{2}\\{A_{iJ} A^\\dagger_{ji}, \\rho\\}
 
@@ -64,7 +65,7 @@ def collapses(A_op, H, kT, bath, mu=0, cutoff=1e-12):
     Parameters
     ----------
     A_op : Qobj or QobjEvo
-           Annihilation operator for cavity.
+           Annihilation operator
 
     H : Qobj
         system hamiltonian.
@@ -81,6 +82,7 @@ def collapses(A_op, H, kT, bath, mu=0, cutoff=1e-12):
     cp, cm : List of Qobj
         Two list of operators for adding or removing particles.
     """
+    #We can place this line outside of this function, but for now, we can accept this overhead since it makes the code easier to read and does not impose a significant cost, as we call the collapse function at most twice.
     E, V = H.eigenstates()
     cp, cm = [], []
     for i, Ei in enumerate(E):
@@ -97,7 +99,11 @@ def collapses(A_op, H, kT, bath, mu=0, cutoff=1e-12):
                     fd = ndist.fermi_dirac(Eji, kT=kT, mu=mu)
                     cp.append(np.sqrt(fd) * P.dag())
                     cm.append(np.sqrt(1 - fd) * P)
-    return cp, cm
+    if total:
+        return cp + cm
+    else:
+        return cp, cm
+
 
 def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
     """
