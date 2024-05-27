@@ -104,9 +104,9 @@ def qt_dissipator(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
 
 def test_collapses():
     Pnc, _, _, _, _ = Nanocav()
-    _, Hqt, c_ops  = no.collapses_tls_QuTiP(H_parameters, VL, VR, kappa, gL, gR, kT, m)
+    _, Hqt, c_ops  = no.collapses_tls_QuTiP(H_parameters, VL, VR, kappa, gL, gR, kT, m, lead2lead=True, alone=False)
     _, Vqt = Hqt.eigenstates()
-    Pqt = steadystate(Hqt.transform(Vqt), c_ops).full().diagonal()
+    Pqt = steadystate(Hqt.transform(Vqt), list(c_ops)).full().diagonal()
     assert np.allclose(np.sort(Pnc), np.sort(Pqt))
 
 def test_jump_operator():
@@ -117,10 +117,12 @@ def test_jump_operator():
             Ig_nc = nre.photo_current(Kp, Km, Pnc)
             Ie_nc = nre.electro_current(GpL - GmL, Pnc)
 
-            Hqt, Vqt, Eqt, c_ops, L = qt(VL, VR)
-            [dg, de, a] = L
+            
+            [dg, de, a], Hqt, c_ops = no.collapses_tls_QuTiP(H_parameters, VL, VR, kappa, gL, gR, kT, m, lead2lead=True, alone=False)
+            
+            Eqt, Vqt = Hqt.eigenstates()
 
-            rho_ss = operator_to_vector(steadystate(Hqt.transform(Vqt), c_ops))
+            rho_ss = operator_to_vector(steadystate(Hqt.transform(Vqt), list(c_ops)))
             
             J_a_minus = no.jump_bosonic(a, Eqt, Vqt, kT, rate='out') 
             J_a_plus = no.jump_bosonic(a.dag(), Eqt, Vqt, kT, rate='in')        
@@ -151,9 +153,9 @@ def test_dissipators():
             assert np.allclose(np.sort(Pnc), np.sort(Pqt))
 
 def test_Liovillian():
-    S_op, Hqt, c_ops =  no.collapses_tls_QuTiP(H_parameters, VL, VR, kappa, gL, gR, kT)
+    S_op, Hqt, c_ops = no.collapses_tls_QuTiP(H_parameters, VL, VR, kappa, gL, gR, kT, alone=False)
     Eqt, Vqt = Hqt.eigenstates()
     L1 = no.Liouvillian(Hqt, S_op, VL, VR, kT=kT, gL=gL, gR=gR)
-    L2 = liouvillian(Hqt.transform(Vqt), c_ops)
+    L2 = liouvillian(Hqt.transform(Vqt), list(c_ops))
     assert np.allclose(L1.full(), L2.full())
 
