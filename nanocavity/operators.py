@@ -4,10 +4,12 @@ import secondquant as sq
 from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector, spre, spost, fdestroy, sigmaz
 
 #two level system coupled to single cavity mode
-def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1, ret_nop=False):
+def H_tls_nc(Eg, delta, omega, coupling, u=0, rwa=True, max_bosons=1, ret_nop=False):
     [dg, de, a], [Nfg, Nfe, Nb] = \
         sq.composite(fermion_modes=2, boson_modes=1, max_bosons=max_bosons)
-    H0 = Eg * Nfg + (Eg +  delta) * Nfe + omega * Nb
+    He = Eg * Nfg + (Eg +  delta) * Nfe + u * dg.d * de.d * de * dg
+    Hp = omega * Nb
+    H0 = He + Hp
     if rwa:
         Hint = coupling * (a.d * dg.d * de + a * de.d * dg)
     else:
@@ -20,7 +22,7 @@ def H_tls_nc(Eg, delta, omega, coupling, rwa=True, max_bosons=1, ret_nop=False):
 
 #two level system coupled to single cavity mode in QuTiP
 
-def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
+def H_tls_QuTiP(Eg, delta, omega, coupling, u=0, rwa=True, max_bosons=1):
     N = max_bosons + 1
     dg = tensor(fdestroy(2, 0), qeye(N))
     de = tensor(fdestroy(2, 1), qeye(N))
@@ -29,7 +31,9 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
     # |n_g, n_e> = -|n_e, n_g>
     a = tensor(sigmaz(), sigmaz(), destroy(N))
     
-    H0 = Eg * dg.dag() * dg + (Eg + delta)* de.dag() * de + omega * a.dag() * a
+    He = Eg * dg.dag() * dg + (Eg + delta)* de.dag() * de +  u * dg.dag() * de.dag() * de * dg  
+    Hp = omega * a.dag() * a
+    H0 = He + Hp
     if rwa:
         Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
     else:
@@ -42,122 +46,103 @@ def H_tls_QuTiP(Eg, delta, omega, coupling, rwa=True, max_bosons=1):
 
 #collapses operators
 
-def fermionic_collapses(A_op, E, V, VL, VR, kT, gL, gR):
+def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     """
-    This script computes the collapses for the tunneling electrons from a given lead to a given fermionic level.
+    This script describes the collapse operator defined below. We will have an operator A_op of the system that interacts with a given bath, which is in thermal equilibrium and will be characterized by the Fermi-Dirac or Bose-Einstein function depending on its nature.
+
     To identify the collapse operators, we must write the dissipator of our problem 
-        \\mathcal{L}^+[\\rho] = \\sum_{ij} \\Gamma f^+(E_{ji}) d_{ij}^\\dagger\\rho d_{ji} - \\frac{1}{2}\\{d_{ji} d^\\dagger_{ij}, \\rho\\}
+        \\mathcal{D}^+[\\rho] = \\sum_{ij}  dist+(E_{ji}) A_{ji}^\\dagger\\rho A_{ij} - \\frac{1}{2}\\{A_{iJ} A^\\dagger_{ji}, \\rho\\}
 
-         \\mathcal{L}^-[\\rho] = \\sum_{ij} \\Gamma f^-(E_{ji}) d_{ij}\\rho d_{ji}^\dagger - \\frac{1}{2}\\{d_{ji}^\dagger d_{ij}, \\rho\\}
+         \\mathcal{D}^-[\\rho] = \\sum_{ij}  dist^-(E_{ji}) A_{ij}\\rho A_{ji}^\dagger - \\frac{1}{2}\\{A_{ji}^\\dagger A_{ij}, \\rho\\}
 
 
-    where d_{ij} is a molecular eigenoperator 
+    where A_{ij} is a system eigenoperator
 
-    d_ij = \\langle i \\rvert d \\lvert j \\rangle \\lvert i \\rangle \\langle j \\rvert   
+    A_ij = \\langle i \\rvert A \\lvert j \\rangle \\lvert i \\rangle \\langle j \\rvert   
 
     the collapse is defined as:
 
-    C^+ = \\sqrt{\Gamma f^+(E_{ji}) } \\lvert \\langle i \\rvert d^\dagger \\lvert j \\rangle\\rvert ^2 \\lvert i \\rangle \\langle j \\rvert
+    C^+ = \\sqrt{dist^+(E_{ji}) } \\lvert \\langle i \\rvert A^\dagger \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
 
-    C^- = \\sqrt{\Gamma f^-(E_{ji}) } \\lvert \\langle i \\rvert d \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
-
-    where f^-(x) = 1 - f^+(x) and f(x) = f^+(x) is the fermi-dirac distribution.
+    C^- = \\sqrt{dist^-(E_{ji}) } \\lvert \\langle i \\rvert a \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
 
     Parameters
     ----------
     A_op : Qobj or QobjEvo
-           Annihilation operator for fermions.
+           Annihilation operator
 
-    E, V : Qobj
-           Eigenvalues and eigenstates of system hamiltonian
-
-    VL, VR: float
-            Left/Right chemical potential (VL, VR)
-
-    kT: float
-        Temperature of the bath
-
-    gL, gR: float
-            Left/Right tunneling rate
-
-
-    Returns
-    -------
-    D : List of Qobj
-        Collpases operators.
-    """
-
-    c = []
-    for i, Ei in enumerate(E):
-        for j, Ej in enumerate(E):
-            Mij = A_op.matrix_element(V[i], V[j]) ** 2
-            if Mij != 0:
-                Eji = Ej - Ei
-                fL = ndist.fermi_dirac(Eji, mu=VL, kT=kT)
-                fR = ndist.fermi_dirac(Eji, mu=VR, kT=kT)
-                P = (V[i] * V[j].dag()).transform(V)
-                c.append(np.sqrt(gL * Mij * (1 - fL)) * P)
-                c.append(np.sqrt(gR * Mij * (1 - fR)) * P)
-                c.append(np.sqrt(gL * Mij * fL) * P.dag())
-                c.append(np.sqrt(gR * Mij * fR) * P.dag())
-    return c
-
-
-def bosonic_collapses(A_op, E, V, kT, k):
-    """
-    This script account for the losses of the system by coupling cavity mode to an eexternal radiation field.
-    To identify the collapse operators, we must write the dissipator of our problem 
-        \\mathcal{D}^+[\\rho] = \\sum_{ij} \\kappa n_B+(E_{ji}) a_{ij}^\\dagger\\rho a_{ji} - \\frac{1}{2}\\{a_{ji} a^\\dagger_{ij}, \\rho\\}
-
-         \\mathcal{D}^-[\\rho] = \\sum_{ij} \\kappa n_B^-(E_{ji}) a_{ij}\\rho a_{ji}^\dagger - \\frac{1}{2}\\{a_{ji}^\\dagger a_{ij}, \\rho\\}
-
-
-    where a_{ij} is a system cavity eigenoperator
-
-    a_ij = \\langle i \\rvert a \\lvert j \\rangle \\lvert i \\rangle \\langle j \\rvert   
-
-    the collapse is defined as:
-
-    C^+ = \\sqrt{\kappa n_B^+(E_{ji}) } \\lvert \\langle i \\rvert a^\dagger \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
-
-    C^- = \\sqrt{\kappa n_B^-(E_{ji}) } \\lvert \\langle i \\rvert a \\lvert j \\rangle\\rvert^2 \\lvert i \\rangle \\langle j \\rvert
-
-    where n_B^-(x) = 1 + n_B^+(x) and n_B(x) = n_B^+(x) is the bose-einstein distribution
-
-    Parameters
-    ----------
-    A_op : Qobj or QobjEvo
-           Annihilation operator for cavity.
-
-    E, V : Qobj
-           Eigenvalues and eigenstates of system hamiltonian.
+    H : Qobj
+        system hamiltonian.
 
     kT : float
          Temperature of the bath.
 
-    k :  float
-         Damping rate.
+    bath :  str
+         fermionic or bosonic bath.
 
 
     Returns
     -------
-    D : List of Qobj
-        Collpases operators.
+    cp, cm : List of Qobj
+        Two list of operators for adding or removing particles.
     """
-
-    c = []
+    #We can place this line outside of this function, but for now, we can accept this overhead since it makes the code easier to read and does not impose a significant cost, as we call the collapse function at most twice.
+    E, V = H.eigenstates()
+    cp, cm = [], []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
-            Mij = A_op.matrix_element(V[i], V[j]) ** 2 
-            if Mij != 0:
+            Mij = A_op.matrix_element(V[i], V[j]) 
+            if abs(Mij) > cutoff:
                 Eji = Ej - Ei
-                nb =  ndist.bose_einstein(Eji, kT=kT)
-                P = (V[i] * V[j].dag()).transform(V)
-                c.append(np.sqrt(k * Mij * (1 + nb)) * P)
-                c.append(np.sqrt(k * Mij * nb) * P.dag())
-    return c
+                P = Mij * (V[i] * V[j].dag()).transform(V)
+                if bath=='bosonic':
+                    nb = ndist.bose_einstein(Eji, kT=kT)
+                    cp.append(np.sqrt(nb) * P.dag())
+                    cm.append(np.sqrt(1 + nb) * P)
+                elif bath=='fermionic':
+                    fd = ndist.fermi_dirac(Eji, kT=kT, mu=mu)
+                    cp.append(np.sqrt(fd) * P.dag())
+                    cm.append(np.sqrt(1 - fd) * P)
+    if total:
+        return cp + cm
+    else:
+        return cp, cm
 
-def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
+
+def collapses_tls_QuTiP(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, alone=True, iva=False, Hint=0):
+    Eg, delta, omegac, coupling = H_parameters
+    H, [dg, de, a] = H_tls_QuTiP(Eg, delta, omegac, coupling)
+    if iva:
+        H -= Hint
+    #left electrode
+    c_gL = collapses(dg, H, kT, bath='fermionic', mu=VL)
+    c_eL = collapses(de, H, kT, bath='fermionic', mu=VL)
+    CL = np.sqrt(gL) * np.array(c_gL + c_eL)
+
+    #right electrode
+    c_gR = collapses(dg, H, kT, bath='fermionic', mu=VR)
+    c_eR = collapses(de, H, kT, bath='fermionic', mu=VR)
+    CR = np.sqrt(gR) * np.array(c_gR + c_eR)
+
+    #cavity mode
+    CA = collapses(a, H, kT, bath='bosonic')
+
+    CA = np.sqrt(kappa) * np.array(CA)
+    
+    if lead2lead:
+        c_lead = lead_cavity_lead_collapses(a, H, VL, VR, kT, m)
+        c_ops = np.concatenate((CL, CR, CA, c_lead))
+    else:
+        c_ops = np.concatenate((CL, CR, CA))
+    
+    if alone:
+        return c_ops
+    else:
+        S_op =  [dg, de, a] 
+        return S_op, H, c_ops
+
+
+def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
     """
     This collapses represent the tunneling electron from left/right to right/left electrode interacting with the cavity mode.
 
@@ -204,7 +189,7 @@ def lead_cavity_lead_collapses(A_op, E, V, VL, VR, kT, m):
         Collpases operators.
     """
 
-
+    E, V = H.eigenstates()
     c = []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
