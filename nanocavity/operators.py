@@ -110,8 +110,14 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
 
 
 def collapses_tls_QuTiP(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, alone=True, iva=False, Hint=0):
-    Eg, delta, omegac, coupling = H_parameters
-    H, [dg, de, a] = H_tls_QuTiP(Eg, delta, omegac, coupling)
+
+    if len(H_parameters)==4:
+        Eg, delta, omegac, u = H_parameters
+        H, [dg, de, a] = H_tls_QuTiP(Eg, delta, omegac, u)
+    else:
+        Eg, delta, omegac = H_parameters
+        H, [dg, de, a] = H_tls_QuTiP(Eg, delta, omegac)
+    
     if iva:
         H -= Hint
     #left electrode
