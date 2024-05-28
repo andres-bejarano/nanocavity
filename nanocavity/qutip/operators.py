@@ -118,6 +118,7 @@ def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False,
     else:
         S_op =  [dg, de, a]
         return S_op, H, c_ops
+
 def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
     """
     This collapses represent the tunneling electron from left/right to right/left electrode interacting with the cavity mode.
