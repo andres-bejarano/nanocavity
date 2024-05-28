@@ -1,5 +1,8 @@
 import numpy as np
 from scipy.linalg import eig
+import nanocavity.operators as no
+from secondquant.operator import Operator
+from qutip import operator_to_vector, steadystate
 
 def eig_norm(L):
     El, vl, vr = eig(L, left=True)
@@ -9,6 +12,8 @@ def eig_norm(L):
     return El, vl, vr
 
 def eigen_operator(A, v):
+    if isinstance(A, Operator):
+        A = A.toarray()
     #First we save the matrix elements of A operator
     C = np.einsum('ki,ij,pj->kp', v.conj().T, A, v)
     #Now we calculate the operator asociated to each matrix element
@@ -36,7 +41,7 @@ def liouvillian(H, System_op, gt, gs, kappa, method='einsum', iva=False, Hint=0)
 
     [dg, de, a] = System_op
     Id = np.eye(H.dim)
-    
+   
     if iva:
         H -= Hint
     E, V = H.eigh()
@@ -45,9 +50,9 @@ def liouvillian(H, System_op, gt, gs, kappa, method='einsum', iva=False, Hint=0)
 
 
     #Dissipators, we need the jumps wich are the eigenoperators
-    Dg = eigen_operator(dg.toarray(), V)
-    De = eigen_operator(de.toarray(), V) 
-    A = eigen_operator(a.toarray(), V)
+    Dg = eigen_operator(dg, V)
+    De = eigen_operator(de, V) 
+    A = eigen_operator(a, V)
 
     #for each eigenoperator we calculate one dissipator
     L = 0 * 1j
@@ -71,7 +76,7 @@ def liouvillian(H, System_op, gt, gs, kappa, method='einsum', iva=False, Hint=0)
 
     if iva:
         H += Hint
-        Hd = np.einsum('ijkp->ij', eigen_operator(H.toarray(), V)) 
+        Hd = np.einsum('ijkp->ij', eigen_operator(H, V)) 
     
     else:
         Hd = E * np.eye(H.dim)
