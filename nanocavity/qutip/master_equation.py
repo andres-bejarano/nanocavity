@@ -1,14 +1,11 @@
 import numpy as np
 from scipy.linalg import eig
 import nanocavity.qutip.operators as qo
+import nanocavity.master_equation as nme
 from qutip import operator_to_vector, steadystate
 
 def eig_norm(L):
-    El, vl, vr = eig(L.full(), left=True)
-    norm = np.einsum("ai,ai->i", vl.conj(), vr) ** -0.5
-    vl *= norm
-    vr *= norm
-    return El, vl, vr
+    return nme.eig_norm(L.full())
 
 def current(J, L):
     J = J.full()
