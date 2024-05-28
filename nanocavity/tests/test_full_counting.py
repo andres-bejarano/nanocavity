@@ -4,7 +4,7 @@ import nanocavity.rate_equation as nre
 import nanocavity.operators as no
 
 def jc_rates():
-    H, L = no.H_tls_nc(Eg=0.4, delta=0.9, omega=1.0, coupling=0.3)
+    H, L = no.H_tls(Eg=0.4, delta=0.9, omega=1.0, coupling=0.3)
     e, v = H.eigh()
     VL = np.linspace(-2, 3, 3)
     VR = np.linspace(-3, 4, 2)
