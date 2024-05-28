@@ -3,6 +3,7 @@ import nanocavity.operators as no
 import nanocavity.qutip.operators as qo
 import nanocavity.rate_equation as nre
 import nanocavity.master_equation as nme
+import nanocavity.qutip.master_equation as qme
 import nanocavity.full_counting as nfc
 from qutip import steadystate, liouvillian
 
@@ -57,8 +58,8 @@ def test_current():
             
             L = qo.liouvillian(Hqt.transform(Vqt), list(c_ops))
 
-            Ig_me = nme.current(qo.jump(Cm) - qo.jump(Cp), L)
-            Ie_me = nme.current(qo.jump(CpL) - qo.jump(CmL), L)
+            Ig_me = qme.current(qo.jump(Cm) - qo.jump(Cp), L)
+            Ie_me = qme.current(qo.jump(CpL) - qo.jump(CmL), L)
     
             Ig_re, Ie_re, _, _ = fcs(VL, VR)
 
@@ -84,8 +85,8 @@ def test_noise():
 
                 
             L = qo.liouvillian(Hqt.transform(Vqt), list(c_ops))
-            Zg_me = nme.noise(L, qo.jump(Cp), qo.jump(Cm))
-            Ze_me = nme.noise(L, qo.jump(CpL), qo.jump(CmL))
+            Zg_me = qme.noise(L, qo.jump(Cp), qo.jump(Cm))
+            Ze_me = qme.noise(L, qo.jump(CpL), qo.jump(CmL))
             _, _, Zg_re, Ze_re = fcs(VL, VR)
             assert np.allclose(Zg_me, Zg_re, atol=1e-7)
             assert np.allclose(Ze_me, Ze_re, atol=1e-7)
