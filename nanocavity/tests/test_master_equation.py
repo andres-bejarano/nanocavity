@@ -20,6 +20,7 @@ H_parameters = Eg, delta, omegac, coupling
 gL = 1e-3
 gR = 2e-3
 kappa = 0.1
+m = 1e-4
 kT = 0.1
 
 
