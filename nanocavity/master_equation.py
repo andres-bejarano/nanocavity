@@ -17,24 +17,6 @@ def current(J, L):
     index = np.argmin(np.abs(El))
     return np.dot(vl[:, index], np.dot(J, vr[:, index]))
 
-
-def cumulants(H, S_op, VL, VR,  kT=1e-2, kappa=0.1, gL=1e-3, gR=1e-3, m=0, iva=False, p=1e-5):
-    #the convergence of this method its highly senstive to x
-    #x=np.linspace(-1, 1, 3) does not work
-    x = p * np.linspace(-2, 2, 5)
-    Emax_xy = np.zeros((len(x), len(x)), dtype=complex)
-    for i, xx in enumerate(x):
-        for j, yy in enumerate(x):
-            Lxy = no.Liouvillian(H, S_op, VL, VR, kT, kappa, gL, gR, m, iva, chi_b=xx, chi_f=yy)
-            Exy, _ = Lxy.eigenstates()
-            index =  np.argmax(np.real(Exy))
-            Emax_xy[i, j] =  Exy[index]
-    Ig = np.gradient(np.imag(Emax_xy[:, 2]), x)[2]
-    Ie = np.gradient(np.imag(Emax_xy[2, :]), x)[2]
-    Zg = -np.gradient(np.gradient(np.real(Emax_xy[:, 2]), x), x)[2]
-    Ze = -np.gradient(np.gradient(np.real(Emax_xy[2, :]), x), x)[2]
-    return Ig, Ie, Zg, Ze
-
 def noise(L, Jin, Jout, wlist=[0], method='direct'):
     J1 = Jout.full() - Jin.full()
     J2 = Jout.full() + Jin.full()

@@ -211,24 +211,23 @@ def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
     return c
 
 
-def jump_operator(c_ops):
+def jump(c_ops, chi=0):
     J = 0
     for c in c_ops:
-                J += sprepost(c, c.dag()) 
+                J += sprepost(c, c.dag()) * np.exp(1j * chi)
     return J
 
-def dissipator(c_ops, chi):
-    L = 0
+def dissipator(c_ops, chi=0):
+    D = 0
     for c in c_ops:
         cdc =  c.dag() * c
-        L += distribution(Eji) * (sprepost(c, c.dag()) * np.exp(1j * chi) - \
-                0.5 * spre(cdc) - 0.5 * spost(cdc)) 
-    return L
+        D += sprepost(c, c.dag()) * np.exp(1j * chi) - 0.5 * spre(cdc) - 0.5 * spost(cdc)
+    return D
 
 def liouvillian(H, c_ops):
     #incoherent_evolution 
-    L += -1.0j * (spre(H.transform(V)) - spost(H.transform(V)))
-    L = dissipator_bosonic(c_ops) 
+    L = -1j * (spre(H) - spost(H))
+    L += dissipator(c_ops) 
     return L
 
 
