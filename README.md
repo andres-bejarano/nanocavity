@@ -4,7 +4,7 @@ __nanocavity__ is a Python package to model light emission in biased plasomonic 
 ## Dependencies ##
 
 - `secondquant >= 0.4.2`
-- `QuTip < 5.0`
+- `QuTip >= 5.0`
 - `matplotlib`
 
 ## Installation process
