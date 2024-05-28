@@ -69,13 +69,11 @@ def liouvillian(H, System_op, gL, gR, kappa, VL, VR, kT, method='einsum', iva=Fa
     [dg, de, a] = System_op
     dim = H.shape[0]
     Id = np.eye(dim)
-   
+
     if iva:
         H -= Hint
     E, V = H.eigh()
     
-    Vinv = np.linalg.inv(V)
-
 
     #Collapses wichi are \sqrt{rate * dist} A_ij where A_ij is the eigenoperator
 
@@ -103,7 +101,7 @@ def liouvillian(H, System_op, gL, gR, kappa, VL, VR, kT, method='einsum', iva=Fa
     #dissipator in the large bias limit
     
     for collapse in CL:
-        L_left +=  lindblad(collapse, method) 
+        L_left += lindblad(collapse, method) 
     L_left *= gL
 
     for collapse in CR:
@@ -139,7 +137,7 @@ def stationary(L):
     # find the zero-eigenvalue mode index
     idx0 = np.argmin(np.abs(E))
     d = int(E.size ** .5)
-    return V[:, idx0] / V[:, idx0].reshape(d, d).trace()
+    return V[:, idx0].reshape(d, d) / V[:, idx0].reshape(d, d).trace()
 
 
 def current(J, L):

@@ -24,6 +24,25 @@ kappa = 0.1
 m = 1e-4
 kT = 0.1
 
+def system(pack):
+    if pack=='nanocavity':
+        return no.H_tls_nc(Eg, delta, omegac, coupling)
+    elif pack=='qutip':
+        return no.H_tls_QuTiP(Eg, delta, omegac, coupling)
+Hqt, [dg, de, a] = system('qutip')
+Hqt += u * dg.dag() * de.dag() * de * dg
+Eqt, Vqt =  Hqt.eigenstates()
+
+
+Hnc, [Dg, De, A] = system('nanocavity')
+Hnc += u * Dg.d * De.d * De * Dg
+Enc, Vnc = Hnc.eigh()
+
+#Liouvillian
+def Li(VL=3, VR=-3):
+    L = no.Liouvillian(Hqt, [dg, de, a], VL, VR, kT=kT,gL=gL, gR=gR)
+    return L
+
 
 def fcs(VL=3, VR=-3):
     #transtion rates, populations and spectrum
@@ -71,29 +90,19 @@ def test_eigenoperator():
         assert np.allclose(A_eigen_sum, AA.toarray())
 
 
-def test_Liouvillian():
+def test_liouvillian():
+    for coupling in [0, 0.05, 0.5]:
+        Hqt, [dg, de, a] = system('qutip')
+        Hnc, [Dg, De, A] = system('nanocavity')
+        
+        for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
+
+            Lqt = no.Liouvillian(Hqt, [dg, de, a], VL, VR, kT=1e-2, gL=gL, gR=gR)
     
-    Lqt = no.Liouvillian(Hqt, [dg, de, a], 10, -10, kT=1e-2, gL=gL, gR=gR)
-    
-    for method in ('einsum', 'kron'):
-        Lnc = nme.liouvillian(Hnc, [Dg, De, A], gL, gR, kappa, kT=1e-2, VL=10, VR=-10, method=method)
-
-        Enc, _ = np.linalg.eig(Lnc)
-        Eqt, _ = np.linalg.eig(Lqt.full())
-
-        E1real = np.sort(Enc.real)
-        E2real = np.sort(Eqt.real)
-
-        E1imag = np.sort(Enc.imag)
-        E2imag = np.sort(Eqt.imag)
-
-        E1abs = np.sort(abs(Enc))
-        E2abs = np.sort(abs(Eqt))
-
-        for i in range(len(Enc)):
-            assert np.allclose(E1real, E2real)
-            assert np.allclose(E1imag, E2imag)
-            assert np.allclose(E1abs, E2abs)
+            for method in ('einsum', 'kron'):
+                Lnc = nme.liouvillian(Hnc, [Dg, De, A], gL, gR, kappa, kT=1e-2, VL=VL, VR=VR, method=method)
+        
+                assert np.allclose(Lnc, Lqt.full())
 
 
 def test_current():
