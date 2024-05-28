@@ -65,3 +65,31 @@ def noise(L, Jin, Jout, wlist=[0], method='direct'):
                 Sj += num/den
             S[j] = np.real(Sj)
         return J2tr - 2 * S
+
+
+
+def cumulants(CA_p=[], CA_m=[], CL_p=[], CL_m=[], CR_p=[], CR_m=[], p=1e-5):
+    #the convergence of this method its highly senstive to x
+    #x=np.linspace(-1, 1, 3) does not work
+    x = p * np.linspace(-2, 2, 5)
+    Emax_xy = np.zeros((len(x), len(x)), dtype=complex)
+    L = 0
+    for i, xx in enumerate(x):
+        for j, yy in enumerate(x):
+            if CA_p != []:
+                L += no.liouvillian(CA_p, chi=-xx)
+                L += no.liouvillian(CA_m, chi=xx)
+            if CL_p != []:
+                L += no.liouvillian(CL_p, chi=-yy)
+                L += no.liouvillian(CL_m, chi=yy)
+            if CR_p != []:
+                L += no.liouvillian(CR_p, chi=-yy)
+                L += no.liouvillian(CR_m, chi=yy)
+            Exy, _ = L.eigenstates()
+            index = np.argmax(np.real(Exy))
+            Emax_xy[i, j] =  Exy[index]
+    Ig = np.gradient(np.imag(Emax_xy[:, 2]), x)[2]
+    Ie = np.gradient(np.imag(Emax_xy[2, :]), x)[2]
+    Zg = -np.gradient(np.gradient(np.real(Emax_xy[:, 2]), x), x)[2]
+    Ze = -np.gradient(np.gradient(np.real(Emax_xy[2, :]), x), x)[2]
+    return Ig, Ie, Zg, Ze
