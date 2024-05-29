@@ -76,7 +76,7 @@ def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False
 def dissipator(c_ops, method='kron'):
     Id = np.eye(c_ops[0].shape[0])
     #Look https://arxiv.org/pdf/1504.05266
-    
+    L = 0
     for c in c_ops:
         cdc = c.conj().T @ c
         if method=='einsum':
@@ -85,21 +85,20 @@ def dissipator(c_ops, method='kron'):
             L -= 0.5 * np.einsum('ki,lj->ijkl', Id, cdc)
 
         elif method=='kron':
-            L = np.kron(c, c.conj())
-            L -= 0.5 * np.kron(cdc, Id)
-            L -= 0.5 * np.kron(Id, cdc)
+            print(1)
+            L += np.kron(c, c.conj())
+            L -= 0.5 * np.kron(Id, c.conj().T @ c)
+            L -= 0.5 * np.kron(c.T @ c.conj(), Id)
     return L
 
 def liouvillian(H, c_ops, method='kron'):
     Id = np.eye(H.shape[0])
     #Writing the coherent evolution
     if method=='einsum':
-        L = 1j * np.einsum('ik,jl->ijkl', H, Id)
-        L -= 1j * np.einsum('ki,lj->ijkl', Id, H)
+        L = -1j * (np.einsum('ik,jl->ijkl', H, Id) -  1j * np.einsum('ki,lj->ijkl', Id, H))
         return np.reshape(L, (dim ** 2, dim ** 2))
     elif method=='kron':
-        L = 1j * np.kron(Id, H)
-        L -= 1j * np.kron(H, Id)
+        L = -1j * (np.kron(Id, H) - np.kron(H, Id))
 
     L += dissipator(c_ops, method)
     
