@@ -86,7 +86,6 @@ def test_collapses():
                 assert np.allclose(Cnc[i], Cqt[i].full())
 
 def test_jump_operator():
-
     for VL in [-1, 1, 2]:
         for VR in [0, -1, -2]:
             Pnc, Kp, Km, GpL, GmL = Nanocav(VL, VR)
@@ -119,21 +118,23 @@ def test_jump_operator():
 
 
 def test_dissipators():
-    for kappa in [1e-1, 1]:
-        for m in [1e-6, 1e-4, 1e-2]:
-            c_ops = list(qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, m, lead2lead=True))
-            Dnc = qo.dissipator(list(c_ops))
+    for coupling in [0.005, 0.05, 0.5]:
+        for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
+            c_ops_qt = list(qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT))
+            c_ops_nc = list(no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT))
+            
+            Dnc = no.dissipator(c_ops_nc)
+            Dqo = qo.dissipator(c_ops_qt)
             Dqt = 0
-            for c in c_ops:
+            for c in c_ops_qt:
                 Dqt += qt.lindblad_dissipator(c, c)
-            assert np.allclose(Dnc.full(), Dqt.full())
+            assert np.allclose(Dqo.full(), Dqt.full())
+            assert np.allclose(Dnc, Dqt.full())
 
 def test_liovillian():
     for coupling in [0.005, 0.05, 0.5]:
         Hqt, [dg, de, a] = qo.H_tls(Eg, delta, omegac, coupling)
         Hnc, [Dg, De, A] = no.H_tls(Eg, delta, omegac, coupling)
-        _, Vqt = Hqt.eigenstates()
-        Enc, Vnc = Hnc.eigh()
         for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
             c_ops_qt = list(qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT))
             Lqt = qo.liouvillian(Hqt, c_ops_qt)
@@ -141,4 +142,4 @@ def test_liovillian():
             c_ops_nc = list(no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT))
             Lnc = no.liouvillian(Hnc.toarray(), c_ops_nc) 
             #not ready
-            #assert np.allclose(Lnc.imag, Lqt.full().imag)
+            assert np.allclose(Lnc, Lqt.full())
