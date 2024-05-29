@@ -71,7 +71,7 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
             Mij = A_op.matrix_element(V[i], V[j])
             if abs(Mij) > cutoff:
                 Eji = Ej - Ei
-                P = Mij * (V[i] * V[j].dag()).transform(V)
+                P = Mij * (V[i] * V[j].dag())
                 if bath=='bosonic':
                     nb = ndist.bose_einstein(Eji, kT=kT)
                     cp.append(np.sqrt(nb) * P.dag())
@@ -180,7 +180,7 @@ def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
                 F2 = ndist.Fermi_cb(-VLR+Eji, kT)
                 coef = np.sqrt(m * (F1 + F2) * Mij)
 
-                P = (V[i] * V[j].dag()).transform(V)
+                P = (V[i] * V[j].dag())
                 c.append(coef * P)
     return c
 
