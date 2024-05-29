@@ -44,15 +44,8 @@ def fcs(VL=3, VR=-3):
 
 def test_spectrum():
     wlist = np.linspace(0., 1.8, 100003)
-    Hnc, [_, _, A] = no.H_tls(*H_parameters)
-    c_ops_nc = no.collapses_tls(H_parameters, 3, -3, kappa, gL, gR, kT)
-    Lnc = no.liouvillian(Hnc.toarray(), list(c_ops_nc))
-    Inc = kappa * nme.spectrum(Lnc, A, wlist)
-
-    Hqt, [_, _, a] = qo.H_tls(*H_parameters)
-    c_ops_qt = qo.collapses_tls(H_parameters, 3, -3, kappa, gL, gR, kT)
-    Iqt = kappa / (2 * np.pi) \
-            * qt.spectrum(Hqt, wlist, list(c_ops_qt), a.dag(), a)
+    Inc = nme.spectrum_tls('nanocavity', H_parameters, 3, -3, kappa, gL, gR, kT, wlist)
+    Iqt = nme.spectrum_tls('qutip', H_parameters, 3, -3, kappa, gL, gR, kT, wlist)
     assert np.allclose(Inc, Iqt)
 
 def test_current():

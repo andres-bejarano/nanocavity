@@ -1,5 +1,9 @@
 import numpy as np
 import nanocavity.distributions as ndist
+import nanocavity.qutip.operators as qo
+import nanocavity.operators as no
+import nanocavity.rate_equation as nre
+import qutip as qt
 from scipy.linalg import eig
 
 def eig_norm(L):
@@ -43,3 +47,33 @@ def spectrum(L, a, wlist):
             Dist = ndist.lorentzian(wlist + np.imag(El[k]), - 2 * np.real(El[k]))
             I += np.real(Ak * Bk * Dist)
     return I.real
+
+
+def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist):
+    if package=='nanocavity-rate':
+        H, [dg, de, a] = no.H_tls(*H_parameters)
+        E, V = H.eigh()
+        #transtion rates, populations and spectrum
+        Kp, Km = nre.transition_rate(E, V,  a, kappa, kT, bath='bosonic')
+        K = Kp + Km
+        GpL, GmL = nre.transition_rate(E, V, [dg, de], gL*np.eye(2), VL, kT)
+        GpR, GmR = nre.transition_rate(E, V, [dg, de], gR*np.eye(2), VR, kT)
+        GL = (GpL + GmL)[:, None]  # VL, VR
+        GR = (GpR + GmR)[None, :]
+        P = nre.populations(K[np.newaxis, np.newaxis] + GL + GR)
+        I = nre.power_spectrum(Kp, Km, P, E, wlist)
+        return E, P, I
+
+    elif package=='nanocavity':
+        H, [dg, de, a] = no.H_tls(*H_parameters)
+        c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT)
+        L = no.liouvillian(H.toarray(), list(c_ops))
+        I = spectrum(L, a, wlist)
+        return kappa * I
+    elif package=='qutip':
+        H, [dg, de, a] = qo.H_tls(*H_parameters)
+        c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT)
+        I = kappa / (2 * np.pi) \
+            * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
+        return I
+    
