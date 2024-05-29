@@ -45,8 +45,7 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
                     cm.append(np.sqrt(1 - fd) * Pv)
     if total:
         return cp + cm
-    else:
-        return cp, cm
+    return cp, cm
 
 def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, alone=True, iva=False, Hint=0):
 
