@@ -5,8 +5,7 @@ import nanocavity.rate_equation as nre
 import nanocavity.master_equation as nme
 import nanocavity.qutip.master_equation as qme
 import nanocavity.full_counting as nfc
-from qutip import steadystate, liouvillian
-
+import qutip as qt
 
 #system parameters
 Eg = 0.4
@@ -42,6 +41,19 @@ def fcs(VL=3, VR=-3):
     K = Kp + Km
     Gamma = K[np.newaxis, np.newaxis] + GL + GR
     return Ig_re, -Ie_re, Zg_re, Ze_re
+
+def test_spectrum():
+    wlist = np.linspace(0., 1.8, 100003)
+    Hnc, [_, _, A] = no.H_tls(*H_parameters)
+    c_ops_nc = no.collapses_tls(H_parameters, 3, -3, kappa, gL, gR, kT)
+    Lnc = no.liouvillian(Hnc.toarray(), list(c_ops_nc))
+    Inc = kappa * nme.spectrum(Lnc, A, wlist)
+
+    Hqt, [_, _, a] = qo.H_tls(*H_parameters)
+    c_ops_qt = qo.collapses_tls(H_parameters, 3, -3, kappa, gL, gR, kT)
+    Iqt = kappa / (2 * np.pi) \
+            * qt.spectrum(Hqt, wlist, list(c_ops_qt), a.dag(), a)
+    assert np.allclose(Inc, Iqt)
 
 def test_current():
     for VL, VR in [[3, -3], [2, 0], [-1, 2]]:
@@ -93,3 +105,5 @@ def test_noise():
             _, _, Zg_re, Ze_re = fcs(VL, VR)
             assert np.allclose(Zg_me, Zg_re, atol=1e-7)
             assert np.allclose(Ze_me, Ze_re, atol=1e-7)
+
+
