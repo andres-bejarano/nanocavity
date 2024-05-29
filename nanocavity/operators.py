@@ -31,7 +31,7 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
             Mij = V[:, i].T @ A_op @ V[:, j]
-            if Mij > cutoff:
+            if abs(Mij) > cutoff:
                 Eji = Ej - Ei
                 P = Mij * V[:,  i].reshape(dim, 1) @ V[:, j].reshape(1, dim)
                 Pv = Vinv @ P @ V
