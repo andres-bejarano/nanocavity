@@ -125,9 +125,7 @@ def test_dissipators():
             
             Dnc = no.dissipator(c_ops_nc)
             Dqo = qo.dissipator(c_ops_qt)
-            Dqt = 0
-            for c in c_ops_qt:
-                Dqt += qt.lindblad_dissipator(c, c)
+            Dqt = qo.dissipator(c_ops_qt, lindblad=True)
             assert np.allclose(Dqo.full(), Dqt.full())
             assert np.allclose(Dnc, Dqt.full())
 
@@ -141,5 +139,4 @@ def test_liovillian():
             
             c_ops_nc = list(no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT))
             Lnc = no.liouvillian(Hnc.toarray(), c_ops_nc) 
-            #not ready
             assert np.allclose(Lnc, Lqt.full())

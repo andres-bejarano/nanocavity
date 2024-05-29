@@ -1,6 +1,6 @@
 import numpy as np
 import nanocavity.distributions as ndist
-from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector, spre, spost, fdestroy, sigmaz
+from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector, spre, spost, fdestroy, sigmaz, lindblad_dissipator
 
 def H_tls(Eg, delta, omega, coupling, u=0, rwa=True, max_bosons=1):
     N = max_bosons + 1
@@ -190,11 +190,14 @@ def jump(c_ops, chi=0):
                 J += sprepost(c, c.dag()) * np.exp(1j * chi)
     return J
 
-def dissipator(c_ops, chi=0):
+def dissipator(c_ops, chi=0, lindblad=False):
     D = 0
     for c in c_ops:
-        cdc =  c.dag() * c
-        D += sprepost(c, c.dag()) * np.exp(1j * chi) - 0.5 * spre(cdc) - 0.5 * spost(cdc)
+        if lindblad:
+            D += lindblad_dissipator(c, c)
+        else:
+            cdc =  c.dag() * c
+            D += sprepost(c, c.dag()) * np.exp(1j * chi) - 0.5 * spre(cdc) - 0.5 * spost(cdc)
     return D
 
 def liouvillian(H, c_ops):
