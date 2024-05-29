@@ -34,15 +34,14 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
             if abs(Mij) > cutoff:
                 Eji = Ej - Ei
                 P = Mij * V[:,  i].reshape(dim, 1) @ V[:, j].reshape(1, dim)
-                Pv = Vinv @ P @ V
                 if bath=='bosonic':
                     nb = ndist.bose_einstein(Eji, kT=kT)
-                    cp.append(np.sqrt(nb) * Pv.conj().T)
-                    cm.append(np.sqrt(1 + nb) * Pv)
+                    cp.append(np.sqrt(nb) * P.conj().T)
+                    cm.append(np.sqrt(1 + nb) * P)
                 elif bath=='fermionic':
                     fd = ndist.fermi_dirac(Eji, kT=kT, mu=mu)
-                    cp.append(np.sqrt(fd) * Pv.conj().T)
-                    cm.append(np.sqrt(1 - fd) * Pv)
+                    cp.append(np.sqrt(fd) * P.conj().T)
+                    cm.append(np.sqrt(1 - fd) * P)
     if total:
         return cp + cm
     return cp, cm
@@ -99,8 +98,8 @@ def liouvillian(H, c_ops, method='kron'):
         L -= 1j * np.einsum('ki,lj->ijkl', Id, H)
         return np.reshape(L, (dim ** 2, dim ** 2))
     elif method=='kron':
-        L = 1j * np.kron(H, Id)
-        L -= 1j * np.kron(Id, H)
+        L = 1j * np.kron(Id, H)
+        L -= 1j * np.kron(H, Id)
 
     L += dissipator(c_ops, method)
     
