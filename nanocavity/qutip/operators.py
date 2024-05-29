@@ -114,9 +114,7 @@ def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False,
 
     if alone:
         return c_ops
-    else:
-        S_op =  [dg, de, a]
-        return S_op, H, c_ops
+    return [dg, de, a], H, c_ops
 
 def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
     """
