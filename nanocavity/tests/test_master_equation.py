@@ -60,7 +60,7 @@ def test_current():
             Cp = list(np.sqrt(kappa) * np.array(cap))
             Cm = list(np.sqrt(kappa) * np.array(cam))
             
-            L = qo.liouvillian(Hqt.transform(Vqt), list(c_ops))
+            L = qo.liouvillian(Hqt, list(c_ops))
 
             Ig_me = qme.current(qo.jump(Cm) - qo.jump(Cp), L)
             Ie_me = qme.current(qo.jump(CpL) - qo.jump(CmL), L)
@@ -87,7 +87,7 @@ def test_noise():
             Cm = list(np.sqrt(kappa) * np.array(cam))
 
                 
-            L = qo.liouvillian(Hqt.transform(Vqt), list(c_ops))
+            L = qo.liouvillian(Hqt, list(c_ops))
             Zg_me = qme.noise(L, qo.jump(Cp), qo.jump(Cm))
             Ze_me = qme.noise(L, qo.jump(CpL), qo.jump(CmL))
             _, _, Zg_re, Ze_re = fcs(VL, VR)

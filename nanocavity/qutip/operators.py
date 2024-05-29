@@ -1,6 +1,6 @@
 import numpy as np
 import nanocavity.distributions as ndist
-from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector, spre, spost, fdestroy, sigmaz
+from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector, spre, spost, fdestroy, sigmaz, lindblad_dissipator
 
 def H_tls(Eg, delta, omega, coupling, u=0, rwa=True, max_bosons=1):
     N = max_bosons + 1
@@ -71,7 +71,7 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
             Mij = A_op.matrix_element(V[i], V[j])
             if abs(Mij) > cutoff:
                 Eji = Ej - Ei
-                P = Mij * (V[i] * V[j].dag()).transform(V)
+                P = Mij * (V[i] * V[j].dag())
                 if bath=='bosonic':
                     nb = ndist.bose_einstein(Eji, kT=kT)
                     cp.append(np.sqrt(nb) * P.dag())
@@ -180,7 +180,7 @@ def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
                 F2 = ndist.Fermi_cb(-VLR+Eji, kT)
                 coef = np.sqrt(m * (F1 + F2) * Mij)
 
-                P = (V[i] * V[j].dag()).transform(V)
+                P = (V[i] * V[j].dag())
                 c.append(coef * P)
     return c
 
@@ -190,11 +190,14 @@ def jump(c_ops, chi=0):
                 J += sprepost(c, c.dag()) * np.exp(1j * chi)
     return J
 
-def dissipator(c_ops, chi=0):
+def dissipator(c_ops, chi=0, lindblad=False):
     D = 0
     for c in c_ops:
-        cdc =  c.dag() * c
-        D += sprepost(c, c.dag()) * np.exp(1j * chi) - 0.5 * spre(cdc) - 0.5 * spost(cdc)
+        if lindblad:
+            D += lindblad_dissipator(c, c)
+        else:
+            cdc =  c.dag() * c
+            D += sprepost(c, c.dag()) * np.exp(1j * chi) - 0.5 * spre(cdc) - 0.5 * spost(cdc)
     return D
 
 def liouvillian(H, c_ops):
