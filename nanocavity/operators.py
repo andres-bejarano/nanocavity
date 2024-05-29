@@ -83,9 +83,7 @@ def dissipator(c_ops, method='kron'):
             L = np.einsum('ik,jl->ijkl', c, c.conj())
             L -= 0.5 * np.einsum('ik,jl->ijkl', cdc, Id)
             L -= 0.5 * np.einsum('ki,lj->ijkl', Id, cdc)
-
         elif method=='kron':
-            print(1)
             L += np.kron(c, c.conj())
             L -= 0.5 * np.kron(Id, c.conj().T @ c)
             L -= 0.5 * np.kron(c.T @ c.conj(), Id)
