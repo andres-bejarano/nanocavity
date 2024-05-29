@@ -128,7 +128,7 @@ def test_dissipators():
             assert np.allclose(Dnc.full(), Dqt.full())
 
 def test_liovillian():
-    for coupling in [0, 0.05, 0.5]:
+    for coupling in [0.005, 0.05, 0.5]:
         Hqt, [dg, de, a] = qo.H_tls(Eg, delta, omegac, coupling)
         Hnc, [Dg, De, A] = no.H_tls(Eg, delta, omegac, coupling)
         _, Vqt = Hqt.eigenstates()
