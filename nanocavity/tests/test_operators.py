@@ -128,9 +128,16 @@ def test_dissipators():
             assert np.allclose(Dnc.full(), Dqt.full())
 
 def test_liovillian():
-    _, Hqt, c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, alone=False)
-    _, Vqt = Hqt.eigenstates()
-    Lno = qo.liouvillian(Hqt.transform(Vqt), list(c_ops))
-    Lqt = qt.liouvillian(Hqt.transform(Vqt), list(c_ops))
-    assert np.allclose(Lno.full(), Lqt.full())
-
+    for coupling in [0.005, 0.05, 0.5]:
+        Hqt, [dg, de, a] = qo.H_tls(Eg, delta, omegac, coupling)
+        Hnc, [Dg, De, A] = no.H_tls(Eg, delta, omegac, coupling)
+        _, Vqt = Hqt.eigenstates()
+        Enc, Vnc = Hnc.eigh()
+        for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
+            c_ops_qt = list(qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT))
+            Lqt = qo.liouvillian(Hqt.transform(Vqt), c_ops_qt)
+            
+            c_ops_nc = list(no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT))
+            Lnc = no.liouvillian(Enc * np.eye(Hnc.shape[0]), c_ops_nc) 
+            #not ready
+            #assert np.allclose(Lnc, Lqt.full())

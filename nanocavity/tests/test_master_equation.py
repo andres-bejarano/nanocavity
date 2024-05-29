@@ -12,7 +12,7 @@ from qutip import steadystate, liouvillian
 Eg = 0.4
 delta = 0.9
 omegac = 1
-coupling = 0.3
+coupling = 0.5
 
 H_parameters = Eg, delta, omegac, coupling 
 
@@ -20,13 +20,18 @@ H_parameters = Eg, delta, omegac, coupling
 gL = 1e-3
 gR = 2e-3
 kappa = 0.1
+m = 1e-4
 kT = 0.1
+
+Hqt, [dg, de, a] = qo.H_tls(Eg, delta, omegac, coupling)
+Eqt, Vqt =  Hqt.eigenstates()
+
+
+Hnc, [Dg, De, A] = no.H_tls(Eg, delta, omegac, coupling)
+Enc, Vnc = Hnc.eigh()
 
 
 def fcs(VL=3, VR=-3):
-    Hnc, [Dg, De, A] = no.H_tls(Eg, delta, omegac, coupling)
-    Enc, Vnc = Hnc.eigh()
-
     #transtion rates, populations and spectrum
     Kp, Km = nre.transition_rate(Enc, Vnc,  A, kappa, kT=kT, bath='bosonic')
     GpL, GmL = nre.transition_rate(Enc, Vnc, [Dg, De], gL*np.eye(2), mu=VL, kT=kT)
@@ -35,8 +40,7 @@ def fcs(VL=3, VR=-3):
     GL = (GpL + GmL)[:, None]  # VL, VR
     GR = (GpR + GmR)[None, :]
     K = Kp + Km
-    Gamma = K[np.newaxis, np.newaxis] + GL + GR 
-    P_re = nre.populations(Gamma)
+    Gamma = K[np.newaxis, np.newaxis] + GL + GR
     return Ig_re, -Ie_re, Zg_re, Ze_re
 
 def test_current():
@@ -60,9 +64,8 @@ def test_current():
 
             Ig_me = qme.current(qo.jump(Cm) - qo.jump(Cp), L)
             Ie_me = qme.current(qo.jump(CpL) - qo.jump(CmL), L)
-    
-            Ig_re, Ie_re, _, _ = fcs(VL, VR)
-
+            Ig_re, Ie_re, _, _ = fcs(VL, VR) 
+            
             assert np.allclose(Ig_me, Ig_re)
             assert np.allclose(Ie_me, Ie_re)
 
