@@ -41,10 +41,10 @@ def spectrum(L, a, wlist):
     print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
     for k in range(0, len(El)):
         Ak = (np.dot(w0, Ad.dot(vr[:, k])))[0]
-        Bk = np.dot(vl[:, k], A.dot(Rho_st))
+        Bk = np.dot(vl[:, k].conj(), A.dot(Rho_st))
         if abs(Ak) > 1e-12:
             print(f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}")
-            Dist = ndist.lorentzian(wlist + np.imag(El[k]), - 2 * np.real(El[k]))
+            Dist = ndist.lorentzian(wlist + El[k].imag, - 2 * El[k].real)
             I += np.real(Ak * Bk * Dist)
     return I.real
 
