@@ -49,7 +49,7 @@ def spectrum(L, a, wlist):
     return I.real
 
 
-def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist):
+def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False):
     if package=='nanocavity-rate':
         H, [dg, de, a] = no.H_tls(*H_parameters)
         E, V = H.eigh()
@@ -66,13 +66,13 @@ def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist):
 
     elif package=='nanocavity':
         H, [dg, de, a] = no.H_tls(*H_parameters)
-        c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT)
+        c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         L = no.liouvillian(H.toarray(), list(c_ops))
         I = spectrum(L, a, wlist)
         return kappa * I
     elif package=='qutip':
         H, [dg, de, a] = qo.H_tls(*H_parameters)
-        c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT)
+        c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         I = kappa / (2 * np.pi) \
             * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
         return I
