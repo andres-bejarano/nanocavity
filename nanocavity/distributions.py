@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 #fermi-dirac distribution
 def fermi_dirac(E, kT=0.1, mu=0):
@@ -34,6 +35,13 @@ def bath_dist(E, kT, rate, bath, mu=0, eV=0):
 
 #lorentzian
 def lorentzian(E, w):
+    print('hi')
+    if (np.abs(((w ** 2 / 4.) + E ** 2)) < 1e-12):
+        print(E)
+        print(w)
+    if math.isnan((w ** 2 / 4.) + E ** 2):
+        print(E)
+        print(w)
     return (1. / np.pi) * ((w / 2.) / ((w ** 2 / 4.) + E ** 2))
 
 #fininte-band
