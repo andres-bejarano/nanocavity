@@ -30,9 +30,16 @@ Eqt, Vqt =  Hqt.eigenstates()
 Hnc, [Dg, De, A] = no.H_tls(Eg, delta, omegac, coupling)
 Enc, Vnc = Hnc.eigh()
 
+def system(pack):
+    if pack=='nanocavity':
+        return no.H_tls(Eg, delta, omegac, coupling)
+    elif pack=='qutip':
+        return qo.H_tls(Eg, delta, omegac, coupling)
 
 def fcs(VL=3, VR=-3):
     #transtion rates, populations and spectrum
+    Hnc, [Dg, De, A] = no.H_tls(Eg, delta, omegac, coupling)
+    Enc, Vnc = Hnc.eigh()
     Kp, Km = nre.transition_rate(Enc, Vnc,  A, kappa, kT=kT, bath='bosonic')
     GpL, GmL = nre.transition_rate(Enc, Vnc, [Dg, De], gL*np.eye(2), mu=VL, kT=kT)
     GpR, GmR = nre.transition_rate(Enc, Vnc, [Dg, De], gR*np.eye(2), mu=VR, kT=kT)
@@ -67,7 +74,23 @@ def test_eig_norm():
     
     assert np.allclose(norm.all(), 1)
 
+def test_correlation_AB():
+    tlist = np.linspace(0., 200, 10001)
+    for coupling in [0.005, 0.05, 0.5]:
+        Hnc, [Dg, De, A] = system('nanocavity')
+        Hqt, [dg, de, a] = system('qutip')        
+        H_parameters = Eg, delta, omegac, coupling
+        VL, VR = 3, -3
+        for iva in (False, True):
+            c_nc = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+            L = no.liouvillian(Hnc.toarray(), list(c_nc))
+            Snc = nme.correlation_AB(L, A.d, A, tlist)
 
+            c_qt = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+            rho_st= qt.steadystate(Hqt, list(c_qt))
+            Sqt = qt.correlation_2op_1t(H=Hqt, state0=rho_st, taulist=tlist, c_ops=list(c_qt), a_op=a.dag(), b_op=a)
+            print(iva, coupling)
+            assert np.allclose(Snc.real, Sqt.real, atol=1e-5)
 
 def test_spectrum():
     wlist = np.linspace(0., 1.8, 100003)

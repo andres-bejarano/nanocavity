@@ -5,6 +5,7 @@ import nanocavity.operators as no
 import nanocavity.rate_equation as nre
 import qutip as qt
 from scipy.linalg import eig
+from secondquant.operator import Operator
 
 def eig_norm(L):
     El, vl, vr = eig(L, left=True)
@@ -27,6 +28,34 @@ def current(J, L):
     El, vl, vr = eig_norm(L)
     index = np.argmin(np.abs(El))
     return np.dot(vl[:, index], np.dot(J, vr[:, index]))
+
+
+def correlation_AB(L, A, B, tlist):
+    if isinstance(A, Operator):
+        A = A.toarray()
+
+    if isinstance(B, Operator):
+        B = B.toarray()
+
+    dim = A.shape[0]
+    Id = np.eye(dim)
+    A = np.kron(A, Id)
+    B = np.kron(B, Id)
+    Rho_st = stationary(L).reshape(64)
+    S = np.zeros(len(tlist), dtype=np.complex128)
+
+    El, vl, vr = eig_norm(L)
+
+    w0 = np.eye(8).reshape(1, 64)
+    print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
+    for k in range(0, len(El)):
+        Ak = (np.dot(w0, A.dot(vr[:, k])))[0]
+        Bk = np.dot(vl[:, k].conj(), B.dot(Rho_st))
+        if abs(Ak) > 1e-12:
+            print(f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}")
+            S += Ak * Bk * np.exp(El[k] * tlist)
+    return S
+
 
 def spectrum(L, a, wlist):
     dim = a.shape[0]
