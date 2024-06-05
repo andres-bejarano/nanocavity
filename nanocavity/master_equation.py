@@ -9,7 +9,7 @@ from scipy.linalg import eig
 def eig_norm(L):
     El, vl, vr = eig(L, left=True)
     norm = np.einsum("ai,ai->i", vl.conj(), vr) ** -0.5
-    vl *= norm
+    vl *= norm.conj()
     vr *= norm
     return El, vl, vr
 
@@ -36,7 +36,8 @@ def spectrum(L, a, wlist):
     Rho_st = stationary(L).reshape(64)
     I = np.zeros(len(wlist), dtype=np.complex128)
 
-    El, vl, vr = eig(L, left=True)
+    El, vl, vr = eig_norm(L)
+
     w0 = np.eye(8).reshape(1, 64)
     print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
     for k in range(0, len(El)):
