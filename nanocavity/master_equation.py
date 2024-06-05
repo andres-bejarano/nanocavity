@@ -46,7 +46,7 @@ def spectrum(L, a, wlist):
         if abs(Ak) > 1e-12:
             print(f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}")
             Dist = ndist.lorentzian(wlist + El[k].imag, - 2 * El[k].real)
-            I += np.real(Ak * Bk * Dist)
+            I += Ak * Bk * Dist
     return I.real
 
 
