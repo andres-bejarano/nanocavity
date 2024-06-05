@@ -46,11 +46,13 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
         return cp + cm
     return cp, cm
 
-def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False, Hint=0):
+def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False):
 
     H, [dg, de, a] = H_tls(*H_parameters)
 
     if iva:
+        coupling = H_parameters[3]
+        Hint = coupling * (a.d * dg.d * de + a * de.d * dg)
         H -= Hint
     #left electrode
     c_gL = collapses(dg, H, kT, bath='fermionic', mu=VL)
@@ -71,6 +73,8 @@ def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False
 
     if alone:
         return c_ops
+    if iva:
+        return [dg, de, a], H + Hint, c_ops
     return [dg, de, a], H, c_ops
 
 def dissipator(c_ops, method='kron'):

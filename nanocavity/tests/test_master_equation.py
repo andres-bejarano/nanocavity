@@ -5,6 +5,7 @@ import nanocavity.rate_equation as nre
 import nanocavity.master_equation as nme
 import nanocavity.qutip.master_equation as qme
 import nanocavity.full_counting as nfc
+from scipy.linalg import eig
 import qutip as qt
 
 #system parameters
@@ -41,6 +42,32 @@ def fcs(VL=3, VR=-3):
     K = Kp + Km
     Gamma = K[np.newaxis, np.newaxis] + GL + GR
     return Ig_re, -Ie_re, Zg_re, Ze_re
+
+def test_eig_norm():
+    a = 1j * omegac - (4 * gL + kappa) / 2
+    b = 1j * delta  - (4 * gL) / 2
+    c = 1j * coupling 
+    L = np.array([[a, c], [c,  b]])
+
+    E, vl, vr = eig(L, left=True)
+
+    E1, wr = np.linalg.eig(L)
+    E2, wl = np.linalg.eig(L.conj().T)
+
+    assert np.allclose(E, E1)
+    assert np.allclose(E1, E2.conj())
+    
+    assert np.allclose(vl, wl)
+    assert np.allclose(vr, wr)
+
+
+    E, vl, vr = nme.eig_norm(L)
+
+    norm = np.einsum("ai,ai->i", vl.conj(), vr) 
+    
+    assert np.allclose(norm.all(), 1)
+
+
 
 def test_spectrum():
     wlist = np.linspace(0., 1.8, 100003)

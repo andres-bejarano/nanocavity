@@ -85,11 +85,13 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     return cp, cm
 
 
-def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, alone=True, iva=False, Hint=0):
+def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, alone=True, iva=False):
 
     H, [dg, de, a] = H_tls(*H_parameters)
 
     if iva:
+        coupling = H_parameters[3] 
+        Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
         H -= Hint
     #left electrode
     c_gL = collapses(dg, H, kT, bath='fermionic', mu=VL)
@@ -114,6 +116,8 @@ def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False,
 
     if alone:
         return c_ops
+    if iva:
+        return [dg, de, a], H + Hint, c_ops
     return [dg, de, a], H, c_ops
 
 def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
