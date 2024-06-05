@@ -1,5 +1,4 @@
 import numpy as np
-import math
 
 #fermi-dirac distribution
 def fermi_dirac(E, kT=0.1, mu=0):
