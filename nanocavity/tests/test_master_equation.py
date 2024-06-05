@@ -91,6 +91,7 @@ def test_correlation_AB():
             Sqt = qt.correlation_2op_1t(H=Hqt, state0=rho_st, taulist=tlist, c_ops=list(c_qt), a_op=a.dag(), b_op=a)
             print(iva, coupling)
             assert np.allclose(Snc.real, Sqt.real, atol=1e-5)
+            assert np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
 
 def test_spectrum():
     wlist = np.linspace(0., 1.8, 100003)

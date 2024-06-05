@@ -206,7 +206,7 @@ def dissipator(c_ops, chi=0, lindblad=False):
 
 def liouvillian(H, c_ops):
     #incoherent_evolution
-    L = -1j * (spre(H) - spost(H))
+    L = 1j * (spre(H) - spost(H))
     L += dissipator(c_ops)
     return L
 

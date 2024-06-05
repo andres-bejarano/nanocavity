@@ -100,7 +100,7 @@ def liouvillian(H, c_ops, method='kron'):
         L = -1j * (np.einsum('ik,jl->ijkl', H, Id) -  1j * np.einsum('ki,lj->ijkl', Id, H))
         return np.reshape(L, (dim ** 2, dim ** 2))
     elif method=='kron':
-        L = -1j * (np.kron(Id, H) - np.kron(H, Id))
+        L = 1j * (np.kron(Id, H) - np.kron(H, Id))
 
     L += dissipator(c_ops, method)
     
