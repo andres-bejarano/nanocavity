@@ -56,6 +56,20 @@ def correlation_AB(L, A, B, tlist):
             S += Ak * Bk * np.exp(El[k] * tlist)
     return S
 
+def correlation_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
+    if package=='nanocavity':
+        H, [_, _, a] = no.H_tls(*H_parameters)
+        c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+        L = no.liouvillian(H.toarray(), list(c_ops))
+        S = correlation_AB(L, a.d, a, tlist)
+        return S
+    elif package=='qutip':
+        H, [_, _, a] = qo.H_tls(*H_parameters)
+        c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+        rho_st= qt.steadystate(H, list(c_ops))
+        S = qt.correlation_2op_1t(H=H, state0=rho_st, taulist=tlist, c_ops=list(c_ops), a_op=a.dag(), b_op=a)
+        return S
+
 
 def spectrum(L, a, wlist):
     dim = a.shape[0]
