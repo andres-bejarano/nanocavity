@@ -69,10 +69,13 @@ def correlation_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva
 
 
 def spectrum(L, a, wlist, data=False):
+    if isinstance(a, Operator):
+        a = a.toarray()
+
     dim = a.shape[0]
     Id = np.eye(dim)
-    Ad = np.kron(a.d.toarray(), Id)
-    A = np.kron(a.toarray(), Id)
+    Ad = np.kron(a.conj().T, Id)
+    A = np.kron(a, Id)
     Rho_st = stationary(L).reshape(dim ** 2)
     I = np.zeros(len(wlist), dtype=np.complex128)
 
@@ -110,7 +113,7 @@ def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=Fa
     elif package=='nanocavity':
         H, [dg, de, a] = no.H_tls(*H_parameters)
         c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        L = no.liouvillian(H.toarray(), list(c_ops))
+        L = no.liouvillian(H, list(c_ops))
         I = spectrum(L, a, wlist, data=data)
         return kappa * I
     elif package=='qutip':

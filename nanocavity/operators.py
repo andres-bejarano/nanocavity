@@ -94,6 +94,9 @@ def dissipator(c_ops, method='kron'):
     return L
 
 def liouvillian(H, c_ops, method='kron'):
+    if isinstance(H, Operator):
+        H = H.toarray()
+    
     Id = np.eye(H.shape[0])
     #Writing the coherent evolution
     if method=='einsum':
