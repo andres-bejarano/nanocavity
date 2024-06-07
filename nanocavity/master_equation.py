@@ -46,7 +46,7 @@ def correlation_AB(L, A, B, tlist):
 
     El, vl, vr = eig_norm(L)
 
-    w0 = np.eye(8).reshape(1, 64)
+    w0 = np.eye(dim).reshape(1, dim ** 2)
     print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
     for k in range(0, len(El)):
         Ak = (np.dot(w0, A.dot(vr[:, k])))[0]
@@ -81,7 +81,7 @@ def spectrum(L, a, wlist):
 
     El, vl, vr = eig_norm(L)
 
-    w0 = np.eye(8).reshape(1, 64)
+    w0 = np.eye(dim).reshape(1, dim ** 2)
     print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
     for k in range(0, len(El)):
         Ak = (np.dot(w0, Ad.dot(vr[:, k])))[0]
