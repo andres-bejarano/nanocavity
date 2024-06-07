@@ -5,6 +5,7 @@ import nanocavity.operators as no
 import nanocavity.rate_equation as nre
 import qutip as qt
 from scipy.linalg import eig
+from secondquant.operator import Operator
 
 def eig_norm(L):
     El, vl, vr = eig(L, left=True)
@@ -14,7 +15,6 @@ def eig_norm(L):
     return El, vl, vr
 
 def stationary(L):
-    #E, V = eig(L)
     E, V = np.linalg.eig(L)
     # find the zero-eigenvalue mode index
     idx0 = np.argmin(np.abs(E))
@@ -28,29 +28,71 @@ def current(J, L):
     index = np.argmin(np.abs(El))
     return np.dot(vl[:, index], np.dot(J, vr[:, index]))
 
-def spectrum(L, a, wlist):
+
+def correlation_AB(L, A, B, tlist):
+    if isinstance(A, Operator):
+        A = A.toarray()
+
+    if isinstance(B, Operator):
+        B = B.toarray()
+
+    dim = A.shape[0]
+    Id = np.eye(dim)
+    A = np.kron(A, Id)
+    B = np.kron(B, Id)
+    Rho_st = stationary(L).reshape(dim ** 2)
+    S = np.zeros(len(tlist), dtype=np.complex128)
+
+    El, vl, vr = eig_norm(L)
+
+    w0 = np.eye(dim).reshape(1, dim ** 2)
+    for k in range(0, len(El)):
+        Ak = (np.dot(w0, A.dot(vr[:, k])))[0]
+        Bk = np.dot(vl[:, k].conj(), B.dot(Rho_st))
+        if abs(Ak) > 1e-12:
+            S += Ak * Bk * np.exp(El[k] * tlist)
+    return S
+
+def correlation_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
+    if package=='nanocavity':
+        H, [_, _, a] = no.H_tls(*H_parameters)
+        c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+        L = no.liouvillian(H.toarray(), list(c_ops))
+        S = correlation_AB(L, a.d, a, tlist)
+        return S
+    elif package=='qutip':
+        H, [_, _, a] = qo.H_tls(*H_parameters)
+        c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+        rho_st= qt.steadystate(H, list(c_ops))
+        S = qt.correlation_2op_1t(H=H, state0=rho_st, taulist=tlist, c_ops=list(c_ops), a_op=a.dag(), b_op=a)
+        return S
+
+
+def spectrum(L, a, wlist, data=False):
     dim = a.shape[0]
     Id = np.eye(dim)
     Ad = np.kron(a.d.toarray(), Id)
     A = np.kron(a.toarray(), Id)
-    Rho_st = stationary(L).reshape(64)
+    Rho_st = stationary(L).reshape(dim ** 2)
     I = np.zeros(len(wlist), dtype=np.complex128)
 
     El, vl, vr = eig_norm(L)
 
-    w0 = np.eye(8).reshape(1, 64)
-    print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
+    w0 = np.eye(dim).reshape(1, dim ** 2)
+    if data:
+        print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
     for k in range(0, len(El)):
         Ak = (np.dot(w0, Ad.dot(vr[:, k])))[0]
         Bk = np.dot(vl[:, k].conj(), A.dot(Rho_st))
         if abs(Ak) > 1e-12:
-            print(f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}")
-            Dist = ndist.lorentzian(wlist + El[k].imag, - 2 * El[k].real)
-            I += np.real(Ak * Bk * Dist)
+            if data:
+                print(f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}")
+            Dist = ndist.lorentzian(wlist - El[k].imag, - 2 * El[k].real)
+            I += Ak * Bk * Dist
     return I.real
 
 
-def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False):
+def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False, data=False):
     if package=='nanocavity-rate':
         H, [dg, de, a] = no.H_tls(*H_parameters)
         E, V = H.eigh()
@@ -69,7 +111,7 @@ def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=Fa
         H, [dg, de, a] = no.H_tls(*H_parameters)
         c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         L = no.liouvillian(H.toarray(), list(c_ops))
-        I = spectrum(L, a, wlist)
+        I = spectrum(L, a, wlist, data=data)
         return kappa * I
     elif package=='qutip':
         H, [dg, de, a] = qo.H_tls(*H_parameters)
