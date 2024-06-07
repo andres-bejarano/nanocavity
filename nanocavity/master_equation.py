@@ -41,7 +41,7 @@ def correlation_AB(L, A, B, tlist):
     Id = np.eye(dim)
     A = np.kron(A, Id)
     B = np.kron(B, Id)
-    Rho_st = stationary(L).reshape(64)
+    Rho_st = stationary(L).reshape(dim ** 2)
     S = np.zeros(len(tlist), dtype=np.complex128)
 
     El, vl, vr = eig_norm(L)
@@ -76,7 +76,7 @@ def spectrum(L, a, wlist):
     Id = np.eye(dim)
     Ad = np.kron(a.d.toarray(), Id)
     A = np.kron(a.toarray(), Id)
-    Rho_st = stationary(L).reshape(64)
+    Rho_st = stationary(L).reshape(dim ** 2)
     I = np.zeros(len(wlist), dtype=np.complex128)
 
     El, vl, vr = eig_norm(L)
