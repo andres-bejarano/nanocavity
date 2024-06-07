@@ -83,7 +83,7 @@ def test_correlation_AB():
         VL, VR = 3, -3
         for iva in (False, True):
             c_nc = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-            L = no.liouvillian(Hnc.toarray(), list(c_nc))
+            L = no.liouvillian(Hnc, list(c_nc))
             Snc = nme.correlation_AB(L, A.d, A, tlist)
 
             c_qt = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
