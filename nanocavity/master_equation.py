@@ -15,7 +15,6 @@ def eig_norm(L):
     return El, vl, vr
 
 def stationary(L):
-    #E, V = eig(L)
     E, V = np.linalg.eig(L)
     # find the zero-eigenvalue mode index
     idx0 = np.argmin(np.abs(E))
