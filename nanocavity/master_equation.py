@@ -46,12 +46,10 @@ def correlation_AB(L, A, B, tlist):
     El, vl, vr = eig_norm(L)
 
     w0 = np.eye(dim).reshape(1, dim ** 2)
-    print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
     for k in range(0, len(El)):
         Ak = (np.dot(w0, A.dot(vr[:, k])))[0]
         Bk = np.dot(vl[:, k].conj(), B.dot(Rho_st))
         if abs(Ak) > 1e-12:
-            print(f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}")
             S += Ak * Bk * np.exp(El[k] * tlist)
     return S
 
@@ -70,7 +68,7 @@ def correlation_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva
         return S
 
 
-def spectrum(L, a, wlist):
+def spectrum(L, a, wlist, data=False):
     dim = a.shape[0]
     Id = np.eye(dim)
     Ad = np.kron(a.d.toarray(), Id)
@@ -81,18 +79,20 @@ def spectrum(L, a, wlist):
     El, vl, vr = eig_norm(L)
 
     w0 = np.eye(dim).reshape(1, dim ** 2)
-    print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
+    if data:
+        print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
     for k in range(0, len(El)):
         Ak = (np.dot(w0, Ad.dot(vr[:, k])))[0]
         Bk = np.dot(vl[:, k].conj(), A.dot(Rho_st))
         if abs(Ak) > 1e-12:
-            print(f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}")
+            if data:
+                print(f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}")
             Dist = ndist.lorentzian(wlist - El[k].imag, - 2 * El[k].real)
             I += Ak * Bk * Dist
     return I.real
 
 
-def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False):
+def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False, data=False):
     if package=='nanocavity-rate':
         H, [dg, de, a] = no.H_tls(*H_parameters)
         E, V = H.eigh()
@@ -111,7 +111,7 @@ def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=Fa
         H, [dg, de, a] = no.H_tls(*H_parameters)
         c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         L = no.liouvillian(H.toarray(), list(c_ops))
-        I = spectrum(L, a, wlist)
+        I = spectrum(L, a, wlist, data=data)
         return kappa * I
     elif package=='qutip':
         H, [dg, de, a] = qo.H_tls(*H_parameters)
