@@ -138,5 +138,5 @@ def test_liovillian():
             Lqt = qo.liouvillian(Hqt, c_ops_qt)
             
             c_ops_nc = list(no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT))
-            Lnc = no.liouvillian(Hnc.toarray(), c_ops_nc) 
+            Lnc = no.liouvillian(Hnc, c_ops_nc) 
             assert np.allclose(Lnc, Lqt.full())
