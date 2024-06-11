@@ -7,7 +7,7 @@ if [ -z "$CONDA_DEFAULT_ENV" ]; then
     python3 -m pip install . --user
 else
     echo "Conda environment '$CONDA_DEFAULT_ENV' is active."
-    python3 -m pip install .
+    python3 -m pip install . 
 fi
 rm -r ./build
 

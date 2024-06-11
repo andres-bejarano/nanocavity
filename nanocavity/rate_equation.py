@@ -1,6 +1,7 @@
 import numpy as np
 import nanocavity.distributions as ndist
 import numpy.linalg as la
+import copy
 
 def matrix_elements(A, v, g):
     r""" Construction of an operator in given basis.
@@ -137,31 +138,74 @@ def bath_system_bath_rate(E, v, A, m, VL, VR, kT=0.1):
     Mm = Fm * M
     return Mp, Mm
 
-def populations(Gamma):
-    r""" The stationary solution of rate equation will calculated \Gamma P = 0.
+
+def populations(rates):
+    r"""
+    Computes the stationary solution of the rate equation \Gamma P = 0
 
     Parameters
-    ----------
-    Gamma: Transition rates matrix which contain all possible environments
+    -----------
+    rates: list of ndarrays
+        A list containing one transition rate matrix per considered lead
 
-    Return 
+    Returns
     ----------
-    P: populations
+    P: Populations
     """
-    vl, vr, k, _ = Gamma.shape
+    if not isinstance(rates, list):
+        rate = rates.copy()
+        rate = [rate]
+    else:
+        rate = copy.deepcopy(rates)
 
-    #The diagonal of transition rate matrix is the - the sum of each column per each bias voltage vl, vr
-    column_sum = Gamma.sum(axis=2)
+    for i in range(len(rate)):
+        front = np.ones(len(rate) - i - 1)
+        back = np.ones(len(rate) - 1 - front.shape[0])
+        rate[i].shape = np.insert(rate[i].shape, 0, front)
+        rate[i].shape = np.insert(rate[i].shape, -2, back)
+
+    Gamma = sum(rate)
+    k = Gamma.shape[-1]
+
+    column_sum = Gamma.sum(axis=-2)
     for i in range(k):
-        Gamma[:, :, i, i] = -column_sum[:, :, i]
+        Gamma[..., i, i] = -column_sum[..., i]
 
-    #conservation of probability \sum_iP_i=1 implies that one equation must be equal to 1
-    Gamma[:, : , k - 1, :] = 1
-    b = np.zeros((vl, vr, k))
-    b[:, :, k - 1] = 1
+    Gamma[..., k-1, :] = 1
+    b_dims = Gamma.shape[0:-1]
+    b = np.zeros(b_dims)
+    b[..., k-1] = 1
 
     P = la.solve(Gamma, b)
     return P
+
+
+def electro_current2(Gd, P, electrode=0):
+    r"""
+    Stationary current flowing through a given electrode
+
+    Parameters:
+    ------------
+    Gd: nd-array
+        Difference of transition rate matrices for adding and removing a particle
+        Gd = G_p - G_m
+    P: nd-array
+        Populations; stationary solution of the rate equation
+    electrode: int
+        specifying the electrode
+
+    Returns:
+    -------
+    I: nd_array
+        current flowing through the specified electrode
+    """
+    if electrode == 0:
+        return np.einsum('ijk,i...k->i...', Gd, P)
+    if electrode == 1:
+        return np.einsum('ijk,xi...k->i...', Gd, P)
+    if electrode == 2:
+        return np.einsum('ijk,xyi...k->i...', Gd, P)
+
 
 def electro_current(DGi, P, electrode='left'):
     r"""
@@ -180,6 +224,24 @@ def electro_current(DGi, P, electrode='left'):
     elif electrode=='right':
         return np.einsum('jab,ijb->ij', DGi, P)
 
+
+def photo_current2(Kd, P):
+    """ Function calculating the emitted photons of a nanocavity
+
+    Parameters
+    --------
+    Kd: nd-array
+        Difference between the transition bosonic rate matrices for adding
+        and substracting a particle to/ from the central system
+    P: nd-array
+        nd-aray containing the stationary populations
+
+    Returns
+    ---------
+    I_ph: emitted photons
+    """
+    return np.einsum('ab, ...b->...', Kd, P)
+
 def photo_current(Kp, Km, P):
     r"""
     photo-current calculated 
@@ -193,6 +255,16 @@ def photo_current(Kp, Km, P):
     I: mxq numpy array.
     """
     return np.einsum('ab,ijb->ij', Km - Kp, P)
+
+
+def power_spectrum2(Kp, Km, P, E, omega):
+    DE = E.reshape(-1, 1) - E.reshape(1, -1)
+    omega = omega.reshape(-1, 1, 1)
+    Lm = ndist.lorentzian(-DE - omega, w=Km)
+    Lp = ndist.lorentzian(DE - omega, w=Kp)
+    D = Km[None]*Lm - Kp[None]*Lp
+    return np.einsum('iab,...b->i...', D, P)
+
 
 def power_spectrum(Kp, Km, P, E, omega, state_resolved=False):
     r""" power spectrum for system whose elements in the master equation corresponding to transition frequencies satisfy $\omega_{ab}-\omega_{cd}<< 1/tau{sys}$.(Secular approximation)
@@ -209,13 +281,17 @@ def power_spectrum(Kp, Km, P, E, omega, state_resolved=False):
     ----------
     I: power spectrum map depending on left and right voltage $V_L$, $V_R$ and frequency of the emitted light $\omega$
     """
+    # print(E.shape)
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
+    # print(DE.shape)
     omega = omega.reshape(-1, 1, 1)
     Lm = ndist.lorentzian(-DE - omega, w=Km)
     Lp = ndist.lorentzian(DE - omega, w=Kp)
     Km = Km[np.newaxis]
     Kp = Kp[np.newaxis]
     D = Km * Lm - Kp * Lp
+    # print(D.shape)
+    # print(P.shape)
     #Ensuring that the diagonal is exactly zero
     for i in range(omega.shape[0]):
         np.fill_diagonal(D[i, : , :], 0)
