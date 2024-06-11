@@ -256,7 +256,6 @@ def photo_current(Kp, Km, P):
     """
     return np.einsum('ab,ijb->ij', Km - Kp, P)
 
-def power_spectrum3(Kp, Gp, Km, Gm, P, E, omega):
 def power_spectrum3(Kp, Gpt, Gps, Km, Gmt, Gms, P, E, omega):
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
