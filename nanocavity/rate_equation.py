@@ -256,13 +256,28 @@ def photo_current(Kp, Km, P):
     """
     return np.einsum('ab,ijb->ij', Km - Kp, P)
 
+def power_spectrum3(Kp, Gp, Km, Gm, P, E, omega):
+    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
+    omega = omega.reshape(-1, 1, 1)
+    wm_ex = np.zeros(Km.shape)
+    wp_ex = np.zeros(Kp.shape)
+    for i in range(Km.shape[0]):
+        for j in range(Km.shape[1]):
+            wm_ex[i, j] = Km[:, i].sum() + Km[:, j].sum() \
+                    + Gm[:, i].sum() + Gm[:, j].sum()
+            wp_ex[i, j] = Kp[:, i].sum() + Kp[:, j].sum() \
+                    + Gp[:, i].sum() + Gp[:, j].sum()
+    Lm = ndist.lorentzian(-DE - omega, w=wm_ex)
+    Lp = ndist.lorentzian(DE - omega, w=wp_ex)
+    D = Km*Lm - Kp*Lp
+    return np.einsum('iab,...b->i...', D, P)
 
 def power_spectrum2(Kp, Km, P, E, omega):
-    DE = E.reshape(-1, 1) - E.reshape(1, -1)
+    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
     Lm = ndist.lorentzian(-DE - omega, w=Km)
     Lp = ndist.lorentzian(DE - omega, w=Kp)
-    D = Km[None]*Lm - Kp[None]*Lp
+    D = Km*Lm - Kp*Lp
     return np.einsum('iab,...b->i...', D, P)
 
 
