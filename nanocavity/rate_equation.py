@@ -256,19 +256,36 @@ def photo_current(Kp, Km, P):
     """
     return np.einsum('ab,ijb->ij', Km - Kp, P)
 
-def power_spectrum3(Kp, Gpt, Gps, Km, Gmt, Gms, P, E, omega):
+def power_spectrum3(Kp, Km, Gp, Gm, P, E, omega):
+    """
+    Function calculating the power spectrum
+
+    Parameters:
+    ------------
+    Kp: Adding a photon to the central system
+    Km: Removing a photon to the central system
+    Gp: Sum of rates adding particles to the system from electronic leads
+    Gm: Sum of rates removing particles from the system to electronic leads
+    P: Steady state populations
+    E: Eigenenergies of the central system
+    omega: Frequencies of emitted photons
+    """
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
     wm_ex = np.zeros(Km.shape)
     wp_ex = np.zeros(Kp.shape)
+    Rp = Kp + np.squeeze(Gp)
+    Rm = Km + np.squeeze(Gm)
     for i in range(Km.shape[0]):
         for j in range(Km.shape[1]):
-            wm_ex[i, j] = Km[:, i].sum() + Km[:, j].sum() \
-                    + Gmt[:, i].sum() + Gmt[:, j].sum() \
-                    + Gms[:, i].sum() + Gms[:, j].sum()
-            wp_ex[i, j] = Kp[:, i].sum() + Kp[:, j].sum() \
-                    + Gpt[:, i].sum() + Gpt[:, j].sum() \
-                    + Gps[:, i].sum() + Gps[:, j].sum()
+            wm_ex[i, j] = Rm[:, i].sum() + Rm[:, j].sum()
+            wp_ex[i, j] = Rp[:, i].sum() + Rp[:, j].sum()
+    s0 = Rp.sum(axis=0) 
+    wp_ex2 = s0[None, :] + s0[:, None]
+    s0 = Rm.sum(axis=0) 
+    wm_ex2 = s0[None, :] + s0[:, None]
+    print(np.where(np.abs(wp_ex-wp_ex2) > 1e-12 ))
+    print(np.where(np.abs(wm_ex-wm_ex2) > 1e-12 ))
     Lm = ndist.lorentzian(-DE - omega, w=wm_ex)
     Lp = ndist.lorentzian(DE - omega, w=wp_ex)
     D = Km*Lm - Kp*Lp
