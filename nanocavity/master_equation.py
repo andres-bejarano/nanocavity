@@ -122,4 +122,22 @@ def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=Fa
         I = kappa / (2 * np.pi) \
             * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
         return I
-    
+
+def g2_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva):
+    if package=='nanocavity':
+        H, [_, _, a] = no.H_tls(*H_parameters)
+        c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+        L = no.liouvillian(H, list(c_ops))
+        rho_st = stationary(L)
+        A = a.d * a
+        B = a * rho_st * a.d
+        S = correlation_AB(L, A, B, tlist) 
+        norm = max(S.real)
+        return S / norm
+
+    elif package=='qutip':
+        H, [_, _, a] = qo.H_tls(*H_parameters)
+        c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+        rho_st= qt.steadystate(H, list(c_ops))
+        g2, _ = qt.coherence_function_g2(H, state0=rho_st, taulist=tlist, c_ops=c_ops, a_op=a, solver='me')
+        return g2
