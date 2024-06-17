@@ -135,9 +135,7 @@ def g2(L, J, tlist):
     for k in range(0, len(El)):
         Ak = np.dot(w0, J.dot(vr[:, k]))
         Bk = np.dot(vl[:, k].conj(), J.dot(Rho_st))
-        print(Bk)
         if abs(Ak) > 1e-12:
-            print(k, Ak, Bk)
             G2 += Ak * Bk * np.exp(El[k] * tlist)
     G1 = max(G2.real)
     return G2 / G1
