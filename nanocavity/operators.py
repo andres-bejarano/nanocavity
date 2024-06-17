@@ -77,6 +77,13 @@ def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False
         return [dg, de, a], H + Hint, c_ops
     return [dg, de, a], H, c_ops
 
+def jump(c_ops):
+    J = 0
+    for c in c_ops:
+        J += np.kron(c, c.conj())
+    return J 
+
+
 def dissipator(c_ops, method='kron'):
     Id = np.eye(c_ops[0].shape[0])
     #Look https://arxiv.org/pdf/1504.05266

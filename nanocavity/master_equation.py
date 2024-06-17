@@ -123,21 +123,37 @@ def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=Fa
             * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
         return I
 
+def g2(L, J, tlist):
+    if isinstance(J, Operator):
+        J = J.toarray()
+    print(J.shape)
+    dim = J.shape[0]
+    Rho_st = stationary(L).reshape(dim)
+    G2 = np.zeros(len(tlist), dtype=np.complex128)
+    El, vl, vr = eig_norm(L)
+    w0 = np.eye(int(np.sqrt(dim))).reshape(1, dim)
+    for k in range(0, len(El)):
+        Ak = np.dot(w0, J.dot(vr[:, k]))
+        Bk = np.dot(vl[:, k].conj(), J.dot(Rho_st))
+        print(Bk)
+        if abs(Ak) > 1e-12:
+            print(k, Ak, Bk)
+            G2 += Ak * Bk * np.exp(El[k] * tlist)
+    G1 = max(G2.real)
+    return G2 / G1
+
 def g2_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva):
     if package=='nanocavity':
         H, [_, _, a] = no.H_tls(*H_parameters)
         c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        L = no.liouvillian(H, list(c_ops))
-        rho_st = stationary(L)
-        A = a.d * a
-        B = a * rho_st * a.d
-        S = correlation_AB(L, A, B, tlist) 
-        norm = max(S.real)
-        return S / norm
+        L = no.liouvillian(H, list(c_ops)) 
+        _, cm = no.collapses(a, H, kT, bath='bosonic', total=False)
+        J = no.jump(cm)
+        return g2(L, J, tlist)
 
     elif package=='qutip':
         H, [_, _, a] = qo.H_tls(*H_parameters)
         c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         rho_st= qt.steadystate(H, list(c_ops))
-        g2, _ = qt.coherence_function_g2(H, state0=rho_st, taulist=tlist, c_ops=c_ops, a_op=a, solver='me')
-        return g2
+        g2qt, _ = qt.coherence_function_g2(H, state0=rho_st, taulist=tlist, c_ops=c_ops, a_op=a, solver='me')
+        return g2qt
