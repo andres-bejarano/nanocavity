@@ -39,16 +39,15 @@ def Hqt(Eg, delta, omegac, coupling, u=0, rwa=True, max_bosons=1):
     else:
         Hint = coupling * (a + a.dag()) * (dg.dag() * de + de.dag() * dg)
     H = H0 + Hint
-    E, V = H.eigenstates()
     L = [dg, de, a]
     return H, L
 
 
 def Hamiltonian(package, Eg, delta, omegac, coupling, u=0, rwa=True, max_bosons=1, ret_nop=False):
     if package=='nanocavity':
-        return Hnc(Eg, delta, omegac, coupling, u=0, rwa=True, max_bosons=1, ret_nop=False)
+        return Hnc(Eg, delta, omegac, coupling, u, rwa, max_bosons, ret_nop)
     elif package=='qutip':
-        return Hqt(Eg, delta, omegac, coupling, u=0, rwa=True, max_bosons=1)
+        return Hqt(Eg, delta, omegac, coupling, u, rwa, max_bosons)
 
 
 def collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False):
@@ -131,10 +130,10 @@ def correlation(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=Fal
         H, [_, _, a] = Hamiltonian('nanocavity', *H_parameters)
         c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         L = no.liouvillian(H, list(c_ops))
-        S = correlation_AB(L, a.d, a, tlist)
+        S = nme.correlation_AB(L, a.d, a, tlist)
         return S
     elif package=='qutip':
-        H, [_, _, a] = tls.Hamiltonian('qutip', *H_parameters)
+        H, [_, _, a] = Hamiltonian('qutip', *H_parameters)
         c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         rho_st= qt.steadystate(H, list(c_ops))
         S = qt.correlation_2op_1t(H=H, state0=rho_st, taulist=tlist, c_ops=list(c_ops), a_op=a.dag(), b_op=a)
@@ -185,4 +184,3 @@ def g2(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
         rho_st= qt.steadystate(H, list(c_ops))
         g2qt, _ = qt.coherence_function_g2(H, state0=rho_st, taulist=tlist, c_ops=c_ops, a_op=a, solver='me')
         return g2qt
-
