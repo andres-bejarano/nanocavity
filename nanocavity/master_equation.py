@@ -96,4 +96,5 @@ def g2(L, J, tlist, cutoff=1e-12):
         Bk = vl[:, k].conj() @ J @ rho_st
         if abs(Ak) > cutoff:
             G2 += Ak * Bk * np.exp(El[k] * tlist)
-    return G2 / G1 ** 2
+    g2 = G2 / G1 ** 2
+    return g2.real
