@@ -56,7 +56,7 @@ def spectrum(L, a, wlist, data=False, cutoff=1e-12):
     Id = np.eye(dim)
     Ad = np.kron(a.conj().T, Id)
     A = np.kron(a, Id)
-    Rho_st = stationary(L).reshape(dim ** 2)
+    rho_st = stationary(L).reshape(dim ** 2)
     I = np.zeros(len(wlist), dtype=np.complex128)
 
     El, vl, vr = eig_norm(L)
@@ -66,7 +66,7 @@ def spectrum(L, a, wlist, data=False, cutoff=1e-12):
         print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
     for k in range(0, len(El)):
         Ak = w0 @ Ad @ vr[:, k]
-        Bk = vl[:, k].conj() @ A @ Rho_st
+        Bk = vl[:, k].conj() @ A @ rho_st
         if abs(Ak) > cutoff:
             if data:
                 print(f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}")
@@ -78,14 +78,14 @@ def g2(L, J, tlist, cutoff=1e-12):
     if isinstance(J, Operator):
         J = J.toarray()
     dim = J.shape[0]
-    Rho_st = stationary(L).reshape(dim)
+    rho_st = stationary(L).reshape(dim)
     G2 = np.zeros(len(tlist), dtype=np.complex128)
     El, vl, vr = eig_norm(L)
     w0 = np.eye(int(np.sqrt(dim))).reshape(1, dim)
     for k in range(0, len(El)):
         Ak = w0 @ J @ vr[:, k]
-        Bk = vl[:, k].conj() @ J @ Rho_st
+        Bk = vl[:, k].conj() @ J @ rho_st
         if abs(Ak) > cutoff:
             G2 += Ak * Bk * np.exp(El[k] * tlist)
-    G1 = w0 @ J @ Rho_st
+    G1 = w0 @ J @ rho_st
     return G2 / G1 ** 2
