@@ -187,7 +187,8 @@ def electro_current2(Gd, P, electrode=0):
     Parameters:
     ------------
     Gd: nd-array
-        Difference of transition rate matrices for adding and removing a particle
+        Difference of transition rate matrices for
+        adding and removing a particle
         Gd = G_p - G_m
     P: nd-array
         Populations; stationary solution of the rate equation
@@ -199,12 +200,12 @@ def electro_current2(Gd, P, electrode=0):
     I: nd_array
         current flowing through the specified electrode
     """
-    if electrode == 0:
-        return np.einsum('ijk,i...k->i...', Gd, P)
-    if electrode == 1:
-        return np.einsum('ijk,xi...k->i...', Gd, P)
-    if electrode == 2:
-        return np.einsum('ijk,xyi...k->i...', Gd, P)
+    axes = np.arange(P.ndim)
+    axes[0], axes[electrode] = electrode, 0
+    P = np.transpose(P, axes=axes)
+    I = np.einsum('ijk,i...k->i...', Gd, P)
+    I = np.transpose(I, axes=axes[:-1])
+    return I
 
 
 def electro_current(DGi, P, electrode='left'):
