@@ -61,6 +61,5 @@ def liouvillian(H, c_ops, method='kron'):
     elif method=='kron':
         L = 1j * (np.kron(Id, H) - np.kron(H, Id))
 
-    L += dissipator(c_ops, method)
-    
+    L += dissipator(c_ops, method)    
     return L
