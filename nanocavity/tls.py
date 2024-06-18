@@ -131,16 +131,16 @@ def correlation(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=Fal
         c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         L = no.liouvillian(H, list(c_ops))
         S = nme.correlation_AB(L, a.d, a, tlist)
-        return S
+    
     elif package=='qutip':
         c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         rho_st= qt.steadystate(H, list(c_ops))
         S = qt.correlation_2op_1t(H=H, state0=rho_st, taulist=tlist, c_ops=list(c_ops), a_op=a.dag(), b_op=a)
-        return S
+    return S
 
 
 def spectrum(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False, data=False):
-    H, [_, _, a] = Hamiltonian(package, *H_parameters)
+    H, [dg, de, a] = Hamiltonian(package, *H_parameters)
     if package=='nanocavity-rate':
         E, V = H.eigh()
         #transtion rates, populations and spectrum
@@ -152,7 +152,6 @@ def spectrum(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False,
         GR = (GpR + GmR)[None, :]
         P = nre.populations(K[np.newaxis, np.newaxis] + GL + GR)
         I = nre.power_spectrum(Kp, Km, P, E, wlist)
-        return E, P, I
 
     if package=='nanocavity':
         c_ops = collapses('nanocavity', H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
@@ -161,8 +160,8 @@ def spectrum(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False,
     
     if package=='qutip':
         c_ops = collapses('qutip', H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        I = kappa / (2 * np.pi) \
-            * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
+        I = kappa / (2 * np.pi) * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
+    
     return I
 
 def g2(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
