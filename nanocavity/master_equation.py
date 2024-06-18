@@ -21,7 +21,7 @@ def current(J, L):
     #w/v left/right eigenvectors
     El, vl, vr = eig_norm(L)
     index = np.argmin(np.abs(El))
-    return np.dot(vl[:, index], np.dot(J, vr[:, index]))
+    return vl[:, index].conj() @ J @ vr[:, index]
 
 
 def correlation_AB(L, A, B, tlist, cutoff=1e-12):
@@ -42,8 +42,8 @@ def correlation_AB(L, A, B, tlist, cutoff=1e-12):
 
     w0 = np.eye(dim).reshape(1, dim ** 2)
     for k in range(0, len(El)):
-        Ak = (np.dot(w0, A.dot(vr[:, k])))[0]
-        Bk = np.dot(vl[:, k].conj(), B.dot(Rho_st))
+        Ak = w0 @ A @ vr[:, k]
+        Bk = vl[:, k].conj() @ B @ Rho_st
         if abs(Ak) > cutoff:
             S += Ak * Bk * np.exp(El[k] * tlist)
     return S
@@ -65,8 +65,8 @@ def spectrum(L, a, wlist, data=False, cutoff=1e-12):
     if data:
         print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
     for k in range(0, len(El)):
-        Ak = (np.dot(w0, Ad.dot(vr[:, k])))[0]
-        Bk = np.dot(vl[:, k].conj(), A.dot(Rho_st))
+        Ak = w0 @ Ad @ vr[:, k]
+        Bk = vl[:, k].conj() @ A @ Rho_st
         if abs(Ak) > cutoff:
             if data:
                 print(f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}")
