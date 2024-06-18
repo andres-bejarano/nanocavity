@@ -53,21 +53,6 @@ def correlation_AB(L, A, B, tlist):
             S += Ak * Bk * np.exp(El[k] * tlist)
     return S
 
-def correlation_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
-    if package=='nanocavity':
-        H, [_, _, a] = no.H_tls(*H_parameters)
-        c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        L = no.liouvillian(H.toarray(), list(c_ops))
-        S = correlation_AB(L, a.d, a, tlist)
-        return S
-    elif package=='qutip':
-        H, [_, _, a] = qo.H_tls(*H_parameters)
-        c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        rho_st= qt.steadystate(H, list(c_ops))
-        S = qt.correlation_2op_1t(H=H, state0=rho_st, taulist=tlist, c_ops=list(c_ops), a_op=a.dag(), b_op=a)
-        return S
-
-
 def spectrum(L, a, wlist, data=False):
     if isinstance(a, Operator):
         a = a.toarray()
@@ -94,35 +79,6 @@ def spectrum(L, a, wlist, data=False):
             I += Ak * Bk * Dist
     return I.real
 
-
-def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False, data=False):
-    if package=='nanocavity-rate':
-        H, [dg, de, a] = no.H_tls(*H_parameters)
-        E, V = H.eigh()
-        #transtion rates, populations and spectrum
-        Kp, Km = nre.transition_rate(E, V,  a, kappa, kT, bath='bosonic')
-        K = Kp + Km
-        GpL, GmL = nre.transition_rate(E, V, [dg, de], gL*np.eye(2), VL, kT)
-        GpR, GmR = nre.transition_rate(E, V, [dg, de], gR*np.eye(2), VR, kT)
-        GL = (GpL + GmL)[:, None]  # VL, VR
-        GR = (GpR + GmR)[None, :]
-        P = nre.populations(K[np.newaxis, np.newaxis] + GL + GR)
-        I = nre.power_spectrum(Kp, Km, P, E, wlist)
-        return E, P, I
-
-    elif package=='nanocavity':
-        H, [dg, de, a] = no.H_tls(*H_parameters)
-        c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        L = no.liouvillian(H, list(c_ops))
-        I = spectrum(L, a, wlist, data=data)
-        return kappa * I
-    elif package=='qutip':
-        H, [dg, de, a] = qo.H_tls(*H_parameters)
-        c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        I = kappa / (2 * np.pi) \
-            * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
-        return I
-
 def g2(L, J, tlist, cutoff=1e-12):
     if isinstance(J, Operator):
         J = J.toarray()
@@ -139,18 +95,3 @@ def g2(L, J, tlist, cutoff=1e-12):
     G1 = w0 @ J @ Rho_st
     return G2 / G1 ** 2
 
-def g2_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
-    if package=='nanocavity':
-        H, [_, _, a] = no.H_tls(*H_parameters)
-        c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        L = no.liouvillian(H, list(c_ops)) 
-        _, cm = no.collapses(a, H, kT, bath='bosonic', total=False)
-        J = no.jump(cm)
-        return g2(L, J, tlist)
-
-    elif package=='qutip':
-        H, [_, _, a] = qo.H_tls(*H_parameters)
-        c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        rho_st= qt.steadystate(H, list(c_ops))
-        g2qt, _ = qt.coherence_function_g2(H, state0=rho_st, taulist=tlist, c_ops=c_ops, a_op=a, solver='me')
-        return g2qt
