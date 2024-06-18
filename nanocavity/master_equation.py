@@ -126,7 +126,6 @@ def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=Fa
 def g2(L, J, tlist):
     if isinstance(J, Operator):
         J = J.toarray()
-    print(J.shape)
     dim = J.shape[0]
     Rho_st = stationary(L).reshape(dim)
     G2 = np.zeros(len(tlist), dtype=np.complex128)
