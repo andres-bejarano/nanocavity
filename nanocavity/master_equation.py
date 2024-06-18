@@ -123,7 +123,7 @@ def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=Fa
             * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
         return I
 
-def g2(L, J, tlist):
+def g2(L, J, tlist, cutoff=1e-12):
     if isinstance(J, Operator):
         J = J.toarray()
     dim = J.shape[0]
@@ -134,7 +134,7 @@ def g2(L, J, tlist):
     for k in range(0, len(El)):
         Ak = w0 @ J @ vr[:, k]
         Bk = vl[:, k].conj() @ J @ Rho_st
-        if abs(Ak) > 1e-12:
+        if abs(Ak) > cutoff:
             G2 += Ak * Bk * np.exp(El[k] * tlist)
     G1 = w0 @ J @ Rho_st
     return G2 / G1 ** 2
