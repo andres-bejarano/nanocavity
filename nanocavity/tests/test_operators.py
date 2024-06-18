@@ -3,7 +3,6 @@ import nanocavity.operators as no
 import nanocavity.qutip.operators as qo
 import nanocavity.rate_equation as nre
 import nanocavity.tls as tls
-import qutip as qt
 
 
 
@@ -80,6 +79,7 @@ def Nanocav(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
 
 def test_collapses():
     for coupling in [0.005, 0.05, 0.5]:
+        H_parameters = Eg, delta, omegac, coupling
         for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
             Cqt = tls.collapses('qutip', H_parameters, VL, VR, kappa, gL, gR, kT)  
             Cnc = tls.collapses('nanocavity', H_parameters, VL, VR, kappa, gL, gR, kT)
@@ -87,7 +87,6 @@ def test_collapses():
             for i in range(len(Cnc)):
                 assert np.allclose(Cnc[i], Cqt[i].full())
 
-       
 def test_jump_operator():
     for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:  
         c_qt = tls.collapses('qutip', H_parameters, VL, VR, kappa, gL, gR, kT)
@@ -115,8 +114,8 @@ def test_dissipators():
 def test_liovillian():
     for coupling in [0.005, 0.05, 0.5]:
         H_parameters = Eg, delta, omegac, coupling
-        Hqt, [dg, de, a] = tls.Hamiltonian('qutip', *H_parameters)
-        Hnc, [Dg, De, A] = tls.Hamiltonian('nanocavity', *H_parameters)
+        Hqt, _ = tls.Hamiltonian('qutip', *H_parameters)
+        Hnc, _ = tls.Hamiltonian('nanocavity', *H_parameters)
         for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
             c_ops_qt = list(tls.collapses('qutip', H_parameters, VL, VR, kappa, gL, gR, kT))
             Lqt = qo.liouvillian(Hqt, c_ops_qt)

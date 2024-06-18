@@ -36,7 +36,6 @@ def fcs(VL=3, VR=-3):
     GL = (GpL + GmL)[:, None]  # VL, VR
     GR = (GpR + GmR)[None, :]
     K = Kp + Km
-    Gamma = K[np.newaxis, np.newaxis] + GL + GR
     return Ig_re, -Ie_re, Zg_re, Ze_re
 
 def test_eig_norm():
@@ -66,8 +65,8 @@ def test_eig_norm():
 def test_correlation_AB():
     tlist = np.linspace(0., 200, 10001)
     for coupling in [0.005, 0.05, 0.5]:
-        Hnc, [Dg, De, A] = tls.Hamiltonian('nanocavity', Eg, delta, omegac, coupling)
-        Hqt, [dg, de, a] = tls.Hamiltonian('qutip', Eg, delta, omegac, coupling)        
+        Hnc, [_, _, A] = tls.Hamiltonian('nanocavity', Eg, delta, omegac, coupling)
+        Hqt, [_, _, a] = tls.Hamiltonian('qutip', Eg, delta, omegac, coupling)        
         H_parameters = Eg, delta, omegac, coupling
         VL, VR = 3, -3
         for iva in (False, True):
@@ -90,8 +89,6 @@ def test_spectrum():
 def test_current():
     for VL, VR in [[3, -3], [2, 0], [-1, 2]]:
             [dg, de, a], Hqt, c_ops = tls.collapses('qutip', H_parameters, VL, VR, kappa, gL, gR, kT, alone=False)
-            _, Vqt = Hqt.eigenstates()
-
 
             #left electrode
             cp_gL, cm_gL = qo.collapses( dg, Hqt, kT, bath='fermionic', mu=VL, total=False)
@@ -116,8 +113,6 @@ def test_current():
 def test_noise():
     for VL, VR in [[-3, 0], [-2.1, 1], [0, 3]]:
             [dg, de, a], Hqt, c_ops = tls.collapses('qutip', H_parameters, VL, VR, kappa, gL, gR, kT, alone=False)
-            _, Vqt = Hqt.eigenstates()
-
 
             #left electrode
             cp_gL, cm_gL = qo.collapses(dg, Hqt, kT, bath='fermionic', mu=VL, total=False)
