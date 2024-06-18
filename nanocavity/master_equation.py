@@ -25,7 +25,7 @@ def current(J, L):
     return np.dot(vl[:, index], np.dot(J, vr[:, index]))
 
 
-def correlation_AB(L, A, B, tlist):
+def correlation_AB(L, A, B, tlist, cutoff=1e-12):
     if isinstance(A, Operator):
         A = A.toarray()
 
@@ -45,11 +45,11 @@ def correlation_AB(L, A, B, tlist):
     for k in range(0, len(El)):
         Ak = (np.dot(w0, A.dot(vr[:, k])))[0]
         Bk = np.dot(vl[:, k].conj(), B.dot(Rho_st))
-        if abs(Ak) > 1e-12:
+        if abs(Ak) > cutoff:
             S += Ak * Bk * np.exp(El[k] * tlist)
     return S
 
-def spectrum(L, a, wlist, data=False):
+def spectrum(L, a, wlist, data=False, cutoff=1e-12):
     if isinstance(a, Operator):
         a = a.toarray()
 
@@ -68,7 +68,7 @@ def spectrum(L, a, wlist, data=False):
     for k in range(0, len(El)):
         Ak = (np.dot(w0, Ad.dot(vr[:, k])))[0]
         Bk = np.dot(vl[:, k].conj(), A.dot(Rho_st))
-        if abs(Ak) > 1e-12:
+        if abs(Ak) > cutoff:
             if data:
                 print(f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}")
             Dist = ndist.lorentzian(wlist - El[k].imag, - 2 * El[k].real)
