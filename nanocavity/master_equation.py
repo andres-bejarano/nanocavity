@@ -18,7 +18,6 @@ def stationary(L):
     return V[:, idx0].reshape(d, d) / V[:, idx0].reshape(d, d).trace()
 
 def current(J, L):
-    J = J
     #w/v left/right eigenvectors
     El, vl, vr = eig_norm(L)
     index = np.argmin(np.abs(El))
