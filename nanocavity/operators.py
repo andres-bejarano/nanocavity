@@ -8,7 +8,6 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     
     E, V = H.eigh()
     dim = A_op.shape[0]
-    Vinv = np.linalg.inv(V)
     cp, cm = [], []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
