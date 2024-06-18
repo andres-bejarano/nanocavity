@@ -154,17 +154,16 @@ def spectrum(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False,
         I = nre.power_spectrum(Kp, Km, P, E, wlist)
         return E, P, I
 
-    elif package=='nanocavity':
+    if package=='nanocavity':
         c_ops = collapses('nanocavity', H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         L = no.liouvillian(H, list(c_ops))
-        I = nme.spectrum(L, a, wlist, data=data)
-        return kappa * I
+        I = kappa * nme.spectrum(L, a, wlist, data=data)
     
-    elif package=='qutip':
+    if package=='qutip':
         c_ops = collapses('qutip', H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         I = kappa / (2 * np.pi) \
             * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
-        return I
+    return I
 
 def g2(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
     H, [dg, de, a] = Hamiltonian(package, *H_parameters)
