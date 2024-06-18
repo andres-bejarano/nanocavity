@@ -132,14 +132,14 @@ def g2(L, J, tlist):
     El, vl, vr = eig_norm(L)
     w0 = np.eye(int(np.sqrt(dim))).reshape(1, dim)
     for k in range(0, len(El)):
-        Ak = np.dot(w0, J.dot(vr[:, k]))
-        Bk = np.dot(vl[:, k].conj(), J.dot(Rho_st))
+        Ak = w0 @ J @ vr[:, k]
+        Bk = vl[:, k].conj() @ J @ Rho_st
         if abs(Ak) > 1e-12:
             G2 += Ak * Bk * np.exp(El[k] * tlist)
-    G1 = max(G2.real)
-    return G2 / G1
+    G1 = w0 @ J @ Rho_st
+    return G2 / G1 ** 2
 
-def g2_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva):
+def g2_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
     if package=='nanocavity':
         H, [_, _, a] = no.H_tls(*H_parameters)
         c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
