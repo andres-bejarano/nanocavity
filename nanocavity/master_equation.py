@@ -33,17 +33,19 @@ def correlation_AB(L, A, B, tlist, cutoff=1e-12):
 
     dim = A.shape[0]
     Id = np.eye(dim)
+    
     A = np.kron(A, Id)
     B = np.kron(B, Id)
-    Rho_st = stationary(L).reshape(dim ** 2)
-    S = np.zeros(len(tlist), dtype=np.complex128)
-
+    
+    w0 = np.eye(dim).reshape(1, dim ** 2)
+    rho_st = stationary(L).reshape(dim ** 2)
     El, vl, vr = eig_norm(L)
 
-    w0 = np.eye(dim).reshape(1, dim ** 2)
+    S = np.zeros(len(tlist), dtype=np.complex128)
+    
     for k in range(0, len(El)):
         Ak = w0 @ A @ vr[:, k]
-        Bk = vl[:, k].conj() @ B @ Rho_st
+        Bk = vl[:, k].conj() @ B @ rho_st
         if abs(Ak) > cutoff:
             S += Ak * Bk * np.exp(El[k] * tlist)
     return S
@@ -54,14 +56,16 @@ def spectrum(L, a, wlist, data=False, cutoff=1e-12):
 
     dim = a.shape[0]
     Id = np.eye(dim)
+    
     Ad = np.kron(a.conj().T, Id)
     A = np.kron(a, Id)
+    
+    w0 = np.eye(dim).reshape(1, dim ** 2)
     rho_st = stationary(L).reshape(dim ** 2)
+    El, vl, vr = eig_norm(L)
+    
     I = np.zeros(len(wlist), dtype=np.complex128)
 
-    El, vl, vr = eig_norm(L)
-
-    w0 = np.eye(dim).reshape(1, dim ** 2)
     if data:
         print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
     for k in range(0, len(El)):
@@ -77,15 +81,19 @@ def spectrum(L, a, wlist, data=False, cutoff=1e-12):
 def g2(L, J, tlist, cutoff=1e-12):
     if isinstance(J, Operator):
         J = J.toarray()
+    
     dim = J.shape[0]
-    rho_st = stationary(L).reshape(dim)
-    G2 = np.zeros(len(tlist), dtype=np.complex128)
-    El, vl, vr = eig_norm(L)
+    
     w0 = np.eye(int(np.sqrt(dim))).reshape(1, dim)
+    rho_st = stationary(L).reshape(dim)
+    El, vl, vr = eig_norm(L)
+    
+    G1 = w0 @ J @ rho_st
+    G2 = np.zeros(len(tlist), dtype=np.complex128)
+    
     for k in range(0, len(El)):
         Ak = w0 @ J @ vr[:, k]
         Bk = vl[:, k].conj() @ J @ rho_st
         if abs(Ak) > cutoff:
             G2 += Ak * Bk * np.exp(El[k] * tlist)
-    G1 = w0 @ J @ rho_st
     return G2 / G1 ** 2
