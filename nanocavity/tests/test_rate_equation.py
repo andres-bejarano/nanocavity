@@ -115,8 +115,8 @@ def test_electro_current_single_level():
     E, v = H.eigsh()
 
     #transition rates matrix
-    GpL, GmL = nre.transition_rate(E, v, [d], gl, mu=VL)
-    GpR, GmR = nre.transition_rate(E, v, [d], gr, mu=VR)
+    GpL, GmL = nre.transition_rate(E, v, d, gl, mu=VL)
+    GpR, GmR = nre.transition_rate(E, v, d, gr, mu=VR)
     GL = (GpL + GmL)[:, None]  # VL, VR
     GR = (GpR + GmR)[None, :]
 
