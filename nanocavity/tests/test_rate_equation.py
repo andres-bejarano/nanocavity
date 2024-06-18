@@ -98,36 +98,6 @@ def test_asymmetrical_bias():
     assert np.allclose(P.sum(axis=2), 1)
 
 
-def test_electro_current_single_level2():
-    #chemical potential
-    VL = np.linspace(-3, 3, 3)
-    VR = np.linspace(-2, 4, 5)
-
-    #leads-exciton couplings
-    gl = 0.8
-    gr = 0.2
-
-    #Two level system operators
-    d, Nf = sq.composite(fermion_modes=1)
-
-    #Hamiltonian diagonalization
-    H = Nf
-    E, v = H.eigsh()
-
-    #transition rates matrix
-    GpL, GmL = nre.transition_rate(E, v, [d], gl, mu=VL)
-    GpR, GmR = nre.transition_rate(E, v, [d], gr, mu=VR)
-    GL = (GpL + GmL)[:, None]  # VL, VR
-    GR = (GpR + GmR)[None, :]
-
-    #populations
-    P = nre.populations(GL + GR)
-    
-    #current
-    IL = nre.electro_current2(GpL - GmL, P, 0)
-    IR = nre.electro_current2(GpR - GmR, P, 1)
-    assert np.allclose(IL, -IR)
-
 def test_electro_current_single_level():
     #chemical potential
     VL = np.linspace(-3, 3, 3)
@@ -154,9 +124,10 @@ def test_electro_current_single_level():
     P = nre.populations(GL + GR)
     
     #current
-    IL = nre.electro_current(GpL - GmL, P, 'left')
-    IR = nre.electro_current(GpR - GmR, P, 'right')
+    IL = nre.electro_current(GpL - GmL, P, 0)
+    IR = nre.electro_current(GpR - GmR, P, 1)
     assert np.allclose(IL, -IR)
+
 
 def test_electro_current_two_level():
     #chemical potential
@@ -185,8 +156,8 @@ def test_electro_current_two_level():
     P = nre.populations(GL + GR)
 
     #current
-    IL = nre.electro_current(GpL - GmL, P, 'left')
-    IR = nre.electro_current(GpR - GmR, P, 'right')
+    IL = nre.electro_current(GpL - GmL, P, 0)
+    IR = nre.electro_current(GpR - GmR, P, 1)
     
     assert np.allclose(IL, -IR)
 
