@@ -90,4 +90,3 @@ def g2(L, J, tlist, cutoff=1e-12):
             G2 += Ak * Bk * np.exp(El[k] * tlist)
     G1 = w0 @ J @ Rho_st
     return G2 / G1 ** 2
-
