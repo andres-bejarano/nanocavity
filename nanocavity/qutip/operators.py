@@ -152,3 +152,4 @@ def liouvillian(H, c_ops):
     L = 1j * (spre(H) - spost(H))
     L += dissipator(c_ops)
     return L
+
