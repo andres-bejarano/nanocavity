@@ -1,7 +1,6 @@
 import numpy as np
 import nanocavity.distributions as ndist
 import numpy.linalg as la
-import copy
 
 def matrix_elements(A, v, g):
     r""" Construction of an operator in given basis.
@@ -139,32 +138,23 @@ def bath_system_bath_rate(E, v, A, m, VL, VR, kT=0.1):
     return Mp, Mm
 
 
-def populations(rates):
+def populations(Gamma):
     r"""
     Computes the stationary solution of the rate equation \Gamma P = 0
 
     Parameters
     -----------
-    rates: list of ndarrays
-        A list containing one transition rate matrix per considered lead
+    rates: ndarray
+        Sum of individual transition rate matrices per lead
+        Can either have a dimension for every lead or a fixed relation
+        between biases in each lead.
+        Shape: V_0 x V_1 x ... V_n x H.shape
 
     Returns
     ----------
     P: Populations
     """
-    if not isinstance(rates, list):
-        rate = rates.copy()
-        rate = [rate]
-    else:
-        rate = copy.deepcopy(rates)
 
-    for i in range(len(rate)):
-        front = np.ones(len(rate) - i - 1)
-        back = np.ones(len(rate) - 1 - front.shape[0])
-        rate[i].shape = np.insert(rate[i].shape, 0, front)
-        rate[i].shape = np.insert(rate[i].shape, -2, back)
-
-    Gamma = sum(rate)
     k = Gamma.shape[-1]
 
     column_sum = Gamma.sum(axis=-2)
