@@ -1,6 +1,5 @@
 import numpy as np
 import nanocavity.distributions as ndist
-import secondquant as sq
 from secondquant.operator import Operator
 
 def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
@@ -54,7 +53,7 @@ def dissipator(c_ops, method='kron'):
 def liouvillian(H, c_ops, method='kron'):
     if isinstance(H, Operator):
         H = H.toarray()
-    
+    dim = H.shape[0]
     Id = np.eye(H.shape[0])
     #Writing the coherent evolution
     if method=='einsum':
