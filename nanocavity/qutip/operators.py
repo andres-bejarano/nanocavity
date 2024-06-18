@@ -1,6 +1,6 @@
 import numpy as np
 import nanocavity.distributions as ndist
-from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector, spre, spost, fdestroy, sigmaz, lindblad_dissipator
+from qutip import sprepost, spre, spost, lindblad_dissipator
 
 def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     """
@@ -9,7 +9,7 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     To identify the collapse operators, we must write the dissipator of our problem
         \\mathcal{D}^+[\\rho] = \\sum_{ij}  dist+(E_{ji}) A_{ji}^\\dagger\\rho A_{ij} - \\frac{1}{2}\\{A_{iJ} A^\\dagger_{ji}, \\rho\\}
 
-         \\mathcal{D}^-[\\rho] = \\sum_{ij}  dist^-(E_{ji}) A_{ij}\\rho A_{ji}^\dagger - \\frac{1}{2}\\{A_{ji}^\\dagger A_{ij}, \\rho\\}
+        \\mathcal{D}^-[\\rho] = \\sum_{ij}  dist^-(E_{ji}) A_{ij}\\rho A_{ji}^\dagger - \\frac{1}{2}\\{A_{ji}^\\dagger A_{ij}, \\rho\\}
 
 
     where A_{ij} is a system eigenoperator
@@ -25,16 +25,16 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     Parameters
     ----------
     A_op : Qobj or QobjEvo
-           Annihilation operator
+        Annihilation operator
 
     H : Qobj
         system hamiltonian.
 
     kT : float
-         Temperature of the bath.
+        Temperature of the bath.
 
     bath :  str
-         fermionic or bosonic bath.
+        fermionic or bosonic bath.
 
 
     Returns
@@ -70,7 +70,7 @@ def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
     To identify the collapse operators, we must write the dissipator of our problem
         \\mathcal{L}^+[\\rho] = \\sum_{ij} M F(E_{ji}) a_{ij}^\\dagger\\rho a_{ji} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
 
-         \\mathcal{L}^-[\\rho] = \\sum_{ij} M F(E_{ji}) a_{ij}^\\dagger\\rho a_{ji} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
+        \\mathcal{L}^-[\\rho] = \\sum_{ij} M F(E_{ji}) a_{ij}^\\dagger\\rho a_{ji} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
 
 
     where a_{ij} is a cavity system eigenoperator
@@ -89,19 +89,19 @@ def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
     Parameters
     ----------
     A_op : Qobj or QobjEvo
-           Annihilation operator for bosons.
+        Annihilation operator for bosons.
 
     E, V : Qobj
-           Eigenvalues and eigenstates of system hamiltonian.
+        Eigenvalues and eigenstates of system hamiltonian.
 
     VL, VR: float
-            Left/Right chemical potential (VL, VR).
+        Left/Right chemical potential (VL, VR).
 
     kT: float
         Temperature of the bath
 
     M: float
-       Coupling between leads
+        Coupling between leads
 
 
     Returns
@@ -152,5 +152,3 @@ def liouvillian(H, c_ops):
     L = 1j * (spre(H) - spost(H))
     L += dissipator(c_ops)
     return L
-
-
