@@ -144,11 +144,11 @@ def populations(Gamma):
 
     Parameters
     -----------
-    rates: ndarray
+    Gamma: ndarray
         Sum of individual transition rate matrices per lead
         Can either have a dimension for every lead or a fixed relation
         between biases in each lead.
-        Shape: V_0 x V_1 x ... V_n x H.shape
+        Shape: V_0 x ... V_n x H.shape
 
     Returns
     ----------
