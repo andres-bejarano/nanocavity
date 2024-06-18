@@ -180,7 +180,7 @@ def populations(rates):
     return P
 
 
-def electro_current2(Gd, P, electrode=0):
+def electro_current(Gd, P, electrode=0):
     r"""
     Stationary current flowing through a given electrode
 
@@ -206,24 +206,6 @@ def electro_current2(Gd, P, electrode=0):
     I = np.einsum('ijk,i...k->i...', Gd, P)
     I = np.transpose(I, axes=axes[:-1])
     return I
-
-
-def electro_current(DGi, P, electrode='left'):
-    r"""
-    Electro-current calculated in the lead left
-    Parameters
-    ----------
-    DGi: difference between transition rate matrix: transition in the system due to the injection of particles from the electrode i (Gpi) and transition in the system due to the extraction of particles from the system (Gpi). DGi = Gpi - Gpi
-    P: stationray solution of rate equation, populations
-    electrode: string specifying left or right electrode
-    Return 
-    ----------
-    I: electro-current 
-    """
-    if electrode=='left':
-        return np.einsum('iab,ijb->ij', DGi, P)
-    elif electrode=='right':
-        return np.einsum('jab,ijb->ij', DGi, P)
 
 
 def photo_current2(Kd, P):
