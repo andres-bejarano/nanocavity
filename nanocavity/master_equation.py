@@ -1,9 +1,5 @@
 import numpy as np
 import nanocavity.distributions as ndist
-import nanocavity.qutip.operators as qo
-import nanocavity.operators as no
-import nanocavity.rate_equation as nre
-import qutip as qt
 from scipy.linalg import eig
 from secondquant.operator import Operator
 
