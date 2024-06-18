@@ -190,6 +190,7 @@ def electro_current(Gd, P, electrode=0):
         Difference of transition rate matrices for
         adding and removing a particle
         Gd = G_p - G_m
+        shape: V_electrode x H.ndim x H.ndim
     P: nd-array
         shape: V_0 x V_1 x ... x V_n x H.ndim
         Populations; stationary solution of the rate equation
