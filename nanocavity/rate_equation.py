@@ -191,6 +191,7 @@ def electro_current(Gd, P, electrode=0):
         adding and removing a particle
         Gd = G_p - G_m
     P: nd-array
+        shape: V_0 x V_1 x ... x V_n x H.ndim
         Populations; stationary solution of the rate equation
     electrode: int
         specifying the electrode
@@ -199,6 +200,7 @@ def electro_current(Gd, P, electrode=0):
     -------
     I: nd_array
         current flowing through the specified electrode
+        shape: V_0 x V_1 x ... x V_n
     """
     axes = np.arange(P.ndim)
     axes[0], axes[electrode] = electrode, 0
