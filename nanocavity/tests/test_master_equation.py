@@ -143,3 +143,4 @@ def test_g2():
     g2nc = tls.g2('nanocavity', H_parameters, VL, VR, kappa, gL, gR, kT, tlist)
     g2qt = tls.g2('qutip', H_parameters, VL, VR, kappa, gL, gR, kT, tlist)
     assert np.allclose(g2nc, g2qt, atol=1e-1)
+

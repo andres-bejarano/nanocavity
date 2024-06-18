@@ -63,3 +63,4 @@ def liouvillian(H, c_ops, method='kron'):
 
     L += dissipator(c_ops, method)    
     return L
+
