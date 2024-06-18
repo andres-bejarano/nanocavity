@@ -153,9 +153,10 @@ def test_noise():
 
 def test_g2():
     VL, VR = 10, -10
-    iva=False
     coupling = 0.005 
+    delta = 0.99
     H_parameters = Eg, delta, omegac, coupling
-    tlist = np.linspace(0., 3000, 1000)
-    g2nc = nme.g2_tls('nanocavity', H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=iva)
-    g2qt = nme.g2_tls('qutip', H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=iva)
+    tlist = np.linspace(0., 3000, 10)
+    g2nc = nme.g2_tls('nanocavity', H_parameters, VL, VR, kappa, gL, gR, kT, tlist)
+    g2qt = nme.g2_tls('qutip', H_parameters, VL, VR, kappa, gL, gR, kT, tlist)
+    assert np.allclose(g2nc, g2qt, atol=1e-1)
