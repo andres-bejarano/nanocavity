@@ -1,9 +1,5 @@
 import numpy as np
 import nanocavity.distributions as ndist
-import nanocavity.qutip.operators as qo
-import nanocavity.operators as no
-import nanocavity.rate_equation as nre
-import qutip as qt
 from scipy.linalg import eig
 from secondquant.operator import Operator
 
@@ -22,14 +18,13 @@ def stationary(L):
     return V[:, idx0].reshape(d, d) / V[:, idx0].reshape(d, d).trace()
 
 def current(J, L):
-    J = J
     #w/v left/right eigenvectors
     El, vl, vr = eig_norm(L)
     index = np.argmin(np.abs(El))
-    return np.dot(vl[:, index], np.dot(J, vr[:, index]))
+    return vl[:, index].conj() @ J @ vr[:, index]
 
 
-def correlation_AB(L, A, B, tlist):
+def correlation_AB(L, A, B, tlist, cutoff=1e-12):
     if isinstance(A, Operator):
         A = A.toarray()
 
@@ -38,119 +33,68 @@ def correlation_AB(L, A, B, tlist):
 
     dim = A.shape[0]
     Id = np.eye(dim)
+    
     A = np.kron(A, Id)
     B = np.kron(B, Id)
-    Rho_st = stationary(L).reshape(dim ** 2)
-    S = np.zeros(len(tlist), dtype=np.complex128)
-
+    
+    w0 = np.eye(dim).reshape(1, dim ** 2)
+    rho_st = stationary(L).reshape(dim ** 2)
     El, vl, vr = eig_norm(L)
 
-    w0 = np.eye(dim).reshape(1, dim ** 2)
+    S = np.zeros(len(tlist), dtype=np.complex128)
+    
     for k in range(0, len(El)):
-        Ak = (np.dot(w0, A.dot(vr[:, k])))[0]
-        Bk = np.dot(vl[:, k].conj(), B.dot(Rho_st))
-        if abs(Ak) > 1e-12:
+        Ak = w0 @ A @ vr[:, k]
+        Bk = vl[:, k].conj() @ B @ rho_st
+        if abs(Ak) > cutoff:
             S += Ak * Bk * np.exp(El[k] * tlist)
     return S
 
-def correlation_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
-    if package=='nanocavity':
-        H, [_, _, a] = no.H_tls(*H_parameters)
-        c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        L = no.liouvillian(H.toarray(), list(c_ops))
-        S = correlation_AB(L, a.d, a, tlist)
-        return S
-    elif package=='qutip':
-        H, [_, _, a] = qo.H_tls(*H_parameters)
-        c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        rho_st= qt.steadystate(H, list(c_ops))
-        S = qt.correlation_2op_1t(H=H, state0=rho_st, taulist=tlist, c_ops=list(c_ops), a_op=a.dag(), b_op=a)
-        return S
-
-
-def spectrum(L, a, wlist, data=False):
+def spectrum(L, a, wlist, data=False, cutoff=1e-12):
     if isinstance(a, Operator):
         a = a.toarray()
 
     dim = a.shape[0]
     Id = np.eye(dim)
+    
     Ad = np.kron(a.conj().T, Id)
     A = np.kron(a, Id)
-    Rho_st = stationary(L).reshape(dim ** 2)
+    
+    w0 = np.eye(dim).reshape(1, dim ** 2)
+    rho_st = stationary(L).reshape(dim ** 2)
+    El, vl, vr = eig_norm(L)
+    
     I = np.zeros(len(wlist), dtype=np.complex128)
 
-    El, vl, vr = eig_norm(L)
-
-    w0 = np.eye(dim).reshape(1, dim ** 2)
     if data:
         print(f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}")
     for k in range(0, len(El)):
-        Ak = (np.dot(w0, Ad.dot(vr[:, k])))[0]
-        Bk = np.dot(vl[:, k].conj(), A.dot(Rho_st))
-        if abs(Ak) > 1e-12:
+        Ak = w0 @ Ad @ vr[:, k]
+        Bk = vl[:, k].conj() @ A @ rho_st
+        if abs(Ak) > cutoff:
             if data:
                 print(f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}")
             Dist = ndist.lorentzian(wlist - El[k].imag, - 2 * El[k].real)
             I += Ak * Bk * Dist
     return I.real
 
-
-def spectrum_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False, data=False):
-    if package=='nanocavity-rate':
-        H, [dg, de, a] = no.H_tls(*H_parameters)
-        E, V = H.eigh()
-        #transtion rates, populations and spectrum
-        Kp, Km = nre.transition_rate(E, V,  a, kappa, kT, bath='bosonic')
-        K = Kp + Km
-        GpL, GmL = nre.transition_rate(E, V, [dg, de], gL*np.eye(2), VL, kT)
-        GpR, GmR = nre.transition_rate(E, V, [dg, de], gR*np.eye(2), VR, kT)
-        GL = (GpL + GmL)[:, None]  # VL, VR
-        GR = (GpR + GmR)[None, :]
-        P = nre.populations(K[np.newaxis, np.newaxis] + GL + GR)
-        I = nre.power_spectrum(Kp, Km, P, E, wlist)
-        return E, P, I
-
-    elif package=='nanocavity':
-        H, [dg, de, a] = no.H_tls(*H_parameters)
-        c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        L = no.liouvillian(H, list(c_ops))
-        I = spectrum(L, a, wlist, data=data)
-        return kappa * I
-    elif package=='qutip':
-        H, [dg, de, a] = qo.H_tls(*H_parameters)
-        c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        I = kappa / (2 * np.pi) \
-            * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
-        return I
-
 def g2(L, J, tlist, cutoff=1e-12):
     if isinstance(J, Operator):
         J = J.toarray()
+    
     dim = J.shape[0]
-    Rho_st = stationary(L).reshape(dim)
-    G2 = np.zeros(len(tlist), dtype=np.complex128)
-    El, vl, vr = eig_norm(L)
+    
     w0 = np.eye(int(np.sqrt(dim))).reshape(1, dim)
+    rho_st = stationary(L).reshape(dim)
+    El, vl, vr = eig_norm(L)
+    
+    G1 = w0 @ J @ rho_st
+    G2 = np.zeros(len(tlist), dtype=np.complex128)
+    
     for k in range(0, len(El)):
         Ak = w0 @ J @ vr[:, k]
-        Bk = vl[:, k].conj() @ J @ Rho_st
+        Bk = vl[:, k].conj() @ J @ rho_st
         if abs(Ak) > cutoff:
             G2 += Ak * Bk * np.exp(El[k] * tlist)
-    G1 = w0 @ J @ Rho_st
-    return G2 / G1 ** 2
-
-def g2_tls(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
-    if package=='nanocavity':
-        H, [_, _, a] = no.H_tls(*H_parameters)
-        c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        L = no.liouvillian(H, list(c_ops)) 
-        _, cm = no.collapses(a, H, kT, bath='bosonic', total=False)
-        J = no.jump(cm)
-        return g2(L, J, tlist)
-
-    elif package=='qutip':
-        H, [_, _, a] = qo.H_tls(*H_parameters)
-        c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        rho_st= qt.steadystate(H, list(c_ops))
-        g2qt, _ = qt.coherence_function_g2(H, state0=rho_st, taulist=tlist, c_ops=c_ops, a_op=a, solver='me')
-        return g2qt
+    g2 = G2 / G1 ** 2
+    return g2.real

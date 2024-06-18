@@ -1,24 +1,6 @@
 import numpy as np
 import nanocavity.distributions as ndist
-import secondquant as sq
 from secondquant.operator import Operator
-
-#two level system coupled to single cavity mode
-def H_tls(Eg, delta, omega, coupling, u=0, rwa=True, max_bosons=1, ret_nop=False):
-    [dg, de, a], [Nfg, Nfe, Nb] = \
-        sq.composite(fermion_modes=2, boson_modes=1, max_bosons=max_bosons)
-    He = Eg * Nfg + (Eg +  delta) * Nfe + u * dg.d * de.d * de * dg
-    Hp = omega * Nb
-    H0 = He + Hp
-    if rwa:
-        Hint = coupling * (a.d * dg.d * de + a * de.d * dg)
-    else:
-        Hint = coupling * (a + a.d) * (dg.d * de + de.d * dg)
-    H = H0 +  Hint
-    L = [dg, de, a]
-    if ret_nop:
-        return H, L, [Nfg, Nfe, Nb]
-    return H, L
 
 def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     if isinstance(A_op, Operator):
@@ -26,7 +8,6 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     
     E, V = H.eigh()
     dim = A_op.shape[0]
-    Vinv = np.linalg.inv(V)
     cp, cm = [], []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
@@ -46,43 +27,11 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
         return cp + cm
     return cp, cm
 
-def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False):
-
-    H, [dg, de, a] = H_tls(*H_parameters)
-
-    if iva:
-        coupling = H_parameters[3]
-        Hint = coupling * (a.d * dg.d * de + a * de.d * dg)
-        H -= Hint
-    #left electrode
-    c_gL = collapses(dg, H, kT, bath='fermionic', mu=VL)
-    c_eL = collapses(de, H, kT, bath='fermionic', mu=VL)
-    CL = np.sqrt(gL) * np.array(c_gL + c_eL)
-
-    #right electrode
-    c_gR = collapses(dg, H, kT, bath='fermionic', mu=VR)
-    c_eR = collapses(de, H, kT, bath='fermionic', mu=VR)
-    CR = np.sqrt(gR) * np.array(c_gR + c_eR)
-
-    #cavity mode
-    CA = collapses(a, H, kT, bath='bosonic')
-
-    CA = np.sqrt(kappa) * np.array(CA)
-
-    c_ops = np.concatenate((CL, CR, CA))
-
-    if alone:
-        return c_ops
-    if iva:
-        return [dg, de, a], H + Hint, c_ops
-    return [dg, de, a], H, c_ops
-
 def jump(c_ops):
     J = 0
     for c in c_ops:
         J += np.kron(c, c.conj())
     return J 
-
 
 def dissipator(c_ops, method='kron'):
     Id = np.eye(c_ops[0].shape[0])
@@ -103,7 +52,7 @@ def dissipator(c_ops, method='kron'):
 def liouvillian(H, c_ops, method='kron'):
     if isinstance(H, Operator):
         H = H.toarray()
-    
+    dim = H.shape[0]
     Id = np.eye(H.shape[0])
     #Writing the coherent evolution
     if method=='einsum':
@@ -112,6 +61,6 @@ def liouvillian(H, c_ops, method='kron'):
     elif method=='kron':
         L = 1j * (np.kron(Id, H) - np.kron(H, Id))
 
-    L += dissipator(c_ops, method)
-    
+    L += dissipator(c_ops, method)    
     return L
+

@@ -1,27 +1,6 @@
 import numpy as np
 import nanocavity.distributions as ndist
-from qutip import qeye, tensor, destroy, sprepost, vector_to_operator, operator_to_vector, spre, spost, fdestroy, sigmaz, lindblad_dissipator
-
-def H_tls(Eg, delta, omega, coupling, u=0, rwa=True, max_bosons=1):
-    N = max_bosons + 1
-    dg = tensor(fdestroy(2, 0), qeye(N))
-    de = tensor(fdestroy(2, 1), qeye(N))
-
-    #sigmaz = [[1, 0], [0, -1]] is playing the role of permutation as
-    # |n_g, n_e> = -|n_e, n_g>
-    a = tensor(sigmaz(), sigmaz(), destroy(N))
-
-    He = Eg * dg.dag() * dg + (Eg + delta)* de.dag() * de +  u * dg.dag() * de.dag() * de * dg
-    Hp = omega * a.dag() * a
-    H0 = He + Hp
-    if rwa:
-        Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
-    else:
-        Hint = coupling * (a + a.dag()) * (dg.dag() * de + de.dag() * dg)
-    H = H0 + Hint
-    E, V = H.eigenstates()
-    L = [dg, de, a]
-    return H, L
+from qutip import sprepost, spre, spost, lindblad_dissipator
 
 def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     """
@@ -30,7 +9,7 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     To identify the collapse operators, we must write the dissipator of our problem
         \\mathcal{D}^+[\\rho] = \\sum_{ij}  dist+(E_{ji}) A_{ji}^\\dagger\\rho A_{ij} - \\frac{1}{2}\\{A_{iJ} A^\\dagger_{ji}, \\rho\\}
 
-         \\mathcal{D}^-[\\rho] = \\sum_{ij}  dist^-(E_{ji}) A_{ij}\\rho A_{ji}^\dagger - \\frac{1}{2}\\{A_{ji}^\\dagger A_{ij}, \\rho\\}
+        \\mathcal{D}^-[\\rho] = \\sum_{ij}  dist^-(E_{ji}) A_{ij}\\rho A_{ji}^\dagger - \\frac{1}{2}\\{A_{ji}^\\dagger A_{ij}, \\rho\\}
 
 
     where A_{ij} is a system eigenoperator
@@ -46,16 +25,16 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     Parameters
     ----------
     A_op : Qobj or QobjEvo
-           Annihilation operator
+        Annihilation operator
 
     H : Qobj
         system hamiltonian.
 
     kT : float
-         Temperature of the bath.
+        Temperature of the bath.
 
     bath :  str
-         fermionic or bosonic bath.
+        fermionic or bosonic bath.
 
 
     Returns
@@ -84,42 +63,6 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
         return cp + cm
     return cp, cm
 
-
-def collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, alone=True, iva=False):
-
-    H, [dg, de, a] = H_tls(*H_parameters)
-
-    if iva:
-        coupling = H_parameters[3] 
-        Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
-        H -= Hint
-    #left electrode
-    c_gL = collapses(dg, H, kT, bath='fermionic', mu=VL)
-    c_eL = collapses(de, H, kT, bath='fermionic', mu=VL)
-    CL = np.sqrt(gL) * np.array(c_gL + c_eL)
-
-    #right electrode
-    c_gR = collapses(dg, H, kT, bath='fermionic', mu=VR)
-    c_eR = collapses(de, H, kT, bath='fermionic', mu=VR)
-    CR = np.sqrt(gR) * np.array(c_gR + c_eR)
-
-    #cavity mode
-    CA = collapses(a, H, kT, bath='bosonic')
-
-    CA = np.sqrt(kappa) * np.array(CA)
-
-    if lead2lead:
-        c_lead = lead_cavity_lead_collapses(a, H, VL, VR, kT, m)
-        c_ops = np.concatenate((CL, CR, CA, c_lead))
-    else:
-        c_ops = np.concatenate((CL, CR, CA))
-
-    if alone:
-        return c_ops
-    if iva:
-        return [dg, de, a], H + Hint, c_ops
-    return [dg, de, a], H, c_ops
-
 def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
     """
     This collapses represent the tunneling electron from left/right to right/left electrode interacting with the cavity mode.
@@ -127,7 +70,7 @@ def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
     To identify the collapse operators, we must write the dissipator of our problem
         \\mathcal{L}^+[\\rho] = \\sum_{ij} M F(E_{ji}) a_{ij}^\\dagger\\rho a_{ji} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
 
-         \\mathcal{L}^-[\\rho] = \\sum_{ij} M F(E_{ji}) a_{ij}^\\dagger\\rho a_{ji} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
+        \\mathcal{L}^-[\\rho] = \\sum_{ij} M F(E_{ji}) a_{ij}^\\dagger\\rho a_{ji} - \\frac{1}{2}\\{a_{ij} a^\\dagger_{ji}, \\rho\\}
 
 
     where a_{ij} is a cavity system eigenoperator
@@ -146,19 +89,19 @@ def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
     Parameters
     ----------
     A_op : Qobj or QobjEvo
-           Annihilation operator for bosons.
+        Annihilation operator for bosons.
 
     E, V : Qobj
-           Eigenvalues and eigenstates of system hamiltonian.
+        Eigenvalues and eigenstates of system hamiltonian.
 
     VL, VR: float
-            Left/Right chemical potential (VL, VR).
+        Left/Right chemical potential (VL, VR).
 
     kT: float
         Temperature of the bath
 
     M: float
-       Coupling between leads
+        Coupling between leads
 
 
     Returns
@@ -209,5 +152,4 @@ def liouvillian(H, c_ops):
     L = 1j * (spre(H) - spost(H))
     L += dissipator(c_ops)
     return L
-
 

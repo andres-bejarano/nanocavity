@@ -2,9 +2,10 @@ import numpy as np
 import nanocavity.full_counting as nfcs
 import nanocavity.rate_equation as nre
 import nanocavity.operators as no
+import nanocavity.tls as tls
 
 def jc_rates():
-    H, L = no.H_tls(Eg=0.4, delta=0.9, omega=1.0, coupling=0.3)
+    H, L = tls.Hamiltonian('nanocavity', Eg=0.4, delta=0.9, omegac=1.0, coupling=0.3)
     e, v = H.eigh()
     VL = np.linspace(-2, 3, 3)
     VR = np.linspace(-3, 4, 2)
