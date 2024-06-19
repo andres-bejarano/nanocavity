@@ -123,13 +123,13 @@ def collapses(package, H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=F
     elif package=='qutip':
         return collapses_qt(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=lead2lead, alone=alone, iva=iva)
 
-def rho_st(package, H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, alone=True, iva=False, full=True):
+def rho_st(package, H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, iva=False, full=True):
+    H, [dg, de, a] = Hamiltonian(package, *H_parameters)
     if package=='nanocavity':
-        H, [dg, de, a] = Hamiltonian('nanocavity', *H_parameters)
         if full:
-            c_ops = collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, alone, iva)
+            c_ops = collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
             L = no.liouvillian(H, list(c_ops))
-            return nme.stationary(L)
+            rho = nme.stationary(L)
         else:
             E, V = H.eigh()
             #transtion rates, populations and spectrum
@@ -139,11 +139,12 @@ def rho_st(package, H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=Fals
             GpR, GmR = nre.transition_rate(E, V, [dg, de], gR*np.eye(2), VR, kT)
             GL = (GpL + GmL)[:, None]  # VL, VR
             GR = (GpR + GmR)[None, :]
-            return nre.populations(K[np.newaxis, np.newaxis] + GL + GR)
+            Gamma = K[np.newaxis, np.newaxis] + GL + GR
+            rho = nre.populations(Gamma)
     elif package=='qutip':
-        H, [dg, de, a] = Hamiltonian('nanocavity', *H_parameters)
-        c_ops = collapses_qt(H_parameters, VL, VR, kappa, gL, gR, kT, m, lead2lead, alone, iva)
-        return qt.steadystate(H, list(c_ops)).full() 
+        c_ops = collapses_qt(H_parameters, VL, VR, kappa, gL, gR, kT, m, lead2lead, alone=True, iva=iva)
+        rho = qt.steadystate(H, list(c_ops)).full() 
+    return rho
 
 def correlation(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
     H, [_, _, a] = Hamiltonian(package, *H_parameters)

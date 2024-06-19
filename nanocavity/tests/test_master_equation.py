@@ -62,6 +62,20 @@ def test_eig_norm():
     
     assert np.allclose(norm.all(), 1)
 
+def test_stationary():
+    for VL, VR in [[3, -3], [2, 0], [-1, 2]]:
+        for coupling in [0.005, 0.05, 0.5]:
+            
+            H_parameters = Eg, delta, omegac, coupling
+            H, [Dg, De, A] = tls.Hamiltonian('nanocavity', *H_parameters)
+            _, V = H.eigh()
+            Vinv = np.linalg.inv(V)
+            
+            Pme = tls.rho_st('nanocavity', H_parameters, VL, VR, kappa, gL, gR, kT).real
+            Pqt = tls.rho_st('qutip', H_parameters, VL, VR, kappa, gL, gR, kT).real
+            
+            assert np.allclose(Pme, Pqt)
+
 def test_correlation_AB():
     tlist = np.linspace(0., 200, 10001)
     for coupling in [0.005, 0.05, 0.5]:
