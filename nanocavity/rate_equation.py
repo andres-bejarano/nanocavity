@@ -256,6 +256,7 @@ def photo_current(Kp, Km, P):
     """
     return np.einsum('ab,ijb->ij', Km - Kp, P)
 
+
 def power_spectrum3(Kp, Km, Gp, Gm, P, E, omega):
     """
     Function calculating the power spectrum
