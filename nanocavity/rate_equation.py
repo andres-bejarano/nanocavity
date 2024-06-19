@@ -237,12 +237,42 @@ def photo_current(Kp, Km, P):
     return np.einsum('ab,ijb->ij', Km - Kp, P)
 
 
+def power_spectrum3(Kp, Km, Gp, Gm, P, E, omega):
+    """
+    Function calculating the power spectrum
+
+    Parameters:
+    ------------
+    Kp: Adding a photon to the central system
+    Km: Removing a photon to the central system
+    Gp: Sum of rates adding particles to the system from electronic leads
+    Gm: Sum of rates removing particles from the system to electronic leads
+    P: Steady state populations
+    E: Eigenenergies of the central system
+    omega: Frequencies of emitted photons
+    """
+    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
+    omega = omega.reshape(-1, 1, 1)
+
+    Rp = Kp + np.squeeze(Gp)
+    Rm = Km + np.squeeze(Gm)
+
+    sp = Rp.sum(axis=0)
+    wp = sp[None, :] + sp[:, None]
+    sm = Rm.sum(axis=0)
+    wm = sm[None, :] + sm[:, None]
+
+    Lm = ndist.lorentzian(-DE - omega, w=wm)
+    Lp = ndist.lorentzian(DE - omega, w=wp)
+    D = Km*Lm - Kp*Lp
+    return np.einsum('iab,...b->i...', D, P)
+
 def power_spectrum2(Kp, Km, P, E, omega):
-    DE = E.reshape(-1, 1) - E.reshape(1, -1)
+    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
     Lm = ndist.lorentzian(-DE - omega, w=Km)
     Lp = ndist.lorentzian(DE - omega, w=Kp)
-    D = Km[None]*Lm - Kp[None]*Lp
+    D = Km*Lm - Kp*Lp
     return np.einsum('iab,...b->i...', D, P)
 
 
