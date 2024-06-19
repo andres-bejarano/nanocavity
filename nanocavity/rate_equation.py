@@ -148,7 +148,7 @@ def populations(Gamma):
         Sum of individual transition rate matrices per lead
         Can either have a dimension for every lead or a fixed relation
         between biases in each lead.
-        Shape: V_0 x ... V_n x H.shape
+        Shape: V_0 x V_1 x ... V_n x H.shape[0] x H.shape[1]
 
     Returns
     ----------
