@@ -170,16 +170,19 @@ def populations(Gamma):
     return P
 
 
-def electro_current2(Gd, P, electrode=0):
+def electro_current(Gd, P, electrode=0):
     r"""
     Stationary current flowing through a given electrode
 
     Parameters:
     ------------
     Gd: nd-array
-        Difference of transition rate matrices for adding and removing a particle
+        Difference of transition rate matrices for
+        adding and removing a particle
         Gd = G_p - G_m
+        shape: V_electrode x H.ndim x H.ndim
     P: nd-array
+        shape: V_0 x V_1 x ... x V_n x H.ndim
         Populations; stationary solution of the rate equation
     electrode: int
         specifying the electrode
@@ -188,31 +191,18 @@ def electro_current2(Gd, P, electrode=0):
     -------
     I: nd_array
         current flowing through the specified electrode
+        shape: V_0 x V_1 x ... x V_n
     """
-    if electrode == 0:
-        return np.einsum('ijk,i...k->i...', Gd, P)
-    if electrode == 1:
-        return np.einsum('ijk,xi...k->i...', Gd, P)
-    if electrode == 2:
-        return np.einsum('ijk,xyi...k->i...', Gd, P)
-
-
-def electro_current(DGi, P, electrode='left'):
-    r"""
-    Electro-current calculated in the lead left
-    Parameters
-    ----------
-    DGi: difference between transition rate matrix: transition in the system due to the injection of particles from the electrode i (Gpi) and transition in the system due to the extraction of particles from the system (Gpi). DGi = Gpi - Gpi
-    P: stationray solution of rate equation, populations
-    electrode: string specifying left or right electrode
-    Return 
-    ----------
-    I: electro-current 
-    """
-    if electrode=='left':
-        return np.einsum('iab,ijb->ij', DGi, P)
-    elif electrode=='right':
-        return np.einsum('jab,ijb->ij', DGi, P)
+    if electrode == 'left':
+        electrode = 0
+    elif electrode == 'right':
+        electrode = 1
+    axes = np.arange(P.ndim)
+    axes[0], axes[electrode] = electrode, 0
+    P = np.transpose(P, axes=axes)
+    I = np.einsum('ijk,i...k->i...', Gd, P)
+    I = np.transpose(I, axes=axes[:-1])
+    return I
 
 
 def photo_current2(Kd, P):

@@ -97,8 +97,8 @@ def test_asymmetrical_bias():
     P = nre.populations(GL + GR)
     assert np.allclose(P.sum(axis=2), 1)
 
+
 def test_electro_current_single_level():
-    
     #chemical potential
     VL = np.linspace(-3, 3, 3)
     VR = np.linspace(-2, 4, 5)
@@ -115,8 +115,8 @@ def test_electro_current_single_level():
     E, v = H.eigsh()
 
     #transition rates matrix
-    GpL, GmL = nre.transition_rate(E, v, [d], gl, mu=VL)
-    GpR, GmR = nre.transition_rate(E, v, [d], gr, mu=VR)
+    GpL, GmL = nre.transition_rate(E, v, d, gl, mu=VL)
+    GpR, GmR = nre.transition_rate(E, v, d, gr, mu=VR)
     GL = (GpL + GmL)[:, None]  # VL, VR
     GR = (GpR + GmR)[None, :]
 
@@ -124,9 +124,13 @@ def test_electro_current_single_level():
     P = nre.populations(GL + GR)
     
     #current
-    IL = nre.electro_current(GpL - GmL, P, 'left')
-    IR = nre.electro_current(GpR - GmR, P, 'right')
-    assert np.allclose(IL, -IR)
+    IL = nre.electro_current(GpL - GmL, P, 0)
+    IR = nre.electro_current(GpR - GmR, P, 1)
+    IL2 = nre.electro_current(GpL - GmL, P, 'left')
+    IR2 = nre.electro_current(GpR - GmR, P, 'right')
+    assert np.allclose(IL, -IR2)
+    assert np.allclose(IL2, -IR)
+
 
 def test_electro_current_two_level():
     #chemical potential
@@ -155,10 +159,14 @@ def test_electro_current_two_level():
     P = nre.populations(GL + GR)
 
     #current
-    IL = nre.electro_current(GpL - GmL, P, 'left')
-    IR = nre.electro_current(GpR - GmR, P, 'right')
+    IL = nre.electro_current(GpL - GmL, P, 0)
+    IR = nre.electro_current(GpR - GmR, P, 1)
+    IL2 = nre.electro_current(GpL - GmL, P, 'left')
+    IR2 = nre.electro_current(GpR - GmR, P, 'right')
+
+    assert np.allclose(IL, -IR2)
+    assert np.allclose(IL2, -IR)
     
-    assert np.allclose(IL, -IR)
 
 def test_power_spectrum():
     #coupling with leads

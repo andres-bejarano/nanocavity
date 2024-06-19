@@ -45,6 +45,6 @@ def test_cumulants():
     Gamma = (Kp + Km)[np.newaxis, np.newaxis] + GL + GR
     P = nre.populations(Gamma)
     Iphnc = nre.photo_current(Kp, Km, P)
-    Ielnc = nre.electro_current(GpR - GmR, P, electrode='right')
+    Ielnc = nre.electro_current(GpR - GmR, P, electrode=1)
     assert np.allclose(Iphfcs, Iphnc)
     assert np.allclose(Ielfcs, Ielnc)
