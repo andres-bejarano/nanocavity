@@ -158,8 +158,8 @@ def populations(Gamma):
     k = Gamma.shape[-1]
 
     column_sum = Gamma.sum(axis=-2)
-    for i in range(k):
-        Gamma[..., i, i] = -column_sum[..., i]
+    idx = np.arange(Gamma.shape[-1])
+    Gamma[..., idx, idx] = -column_sum[..., idx]
 
     Gamma[..., k-1, :] = 1
     b_dims = Gamma.shape[0:-1]
