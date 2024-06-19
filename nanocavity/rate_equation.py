@@ -272,22 +272,17 @@ def power_spectrum3(Kp, Km, Gp, Gm, P, E, omega):
     """
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
-    wm_ex = np.zeros(Km.shape)
-    wp_ex = np.zeros(Kp.shape)
+
     Rp = Kp + np.squeeze(Gp)
     Rm = Km + np.squeeze(Gm)
-    for i in range(Km.shape[0]):
-        for j in range(Km.shape[1]):
-            wm_ex[i, j] = Rm[:, i].sum() + Rm[:, j].sum()
-            wp_ex[i, j] = Rp[:, i].sum() + Rp[:, j].sum()
-    s0 = Rp.sum(axis=0) 
-    wp_ex2 = s0[None, :] + s0[:, None]
-    s0 = Rm.sum(axis=0) 
-    wm_ex2 = s0[None, :] + s0[:, None]
-    print(np.where(np.abs(wp_ex-wp_ex2) > 1e-12 ))
-    print(np.where(np.abs(wm_ex-wm_ex2) > 1e-12 ))
-    Lm = ndist.lorentzian(-DE - omega, w=wm_ex)
-    Lp = ndist.lorentzian(DE - omega, w=wp_ex)
+
+    sp = Rp.sum(axis=0)
+    wp = sp[None, :] + sp[:, None]
+    sm = Rm.sum(axis=0)
+    wm = sm[None, :] + sm[:, None]
+
+    Lm = ndist.lorentzian(-DE - omega, w=wm)
+    Lp = ndist.lorentzian(DE - omega, w=wp)
     D = Km*Lm - Kp*Lp
     return np.einsum('iab,...b->i...', D, P)
 
