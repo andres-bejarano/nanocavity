@@ -205,7 +205,7 @@ def electro_current(Gd, P, electrode=0):
     """
     if electrode == 'left':
         electrode = 0
-    if electrode == 'right':
+    elif electrode == 'right':
         electrode = 1
     axes = np.arange(P.ndim)
     axes[0], axes[electrode] = electrode, 0
