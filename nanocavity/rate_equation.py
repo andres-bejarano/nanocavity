@@ -203,6 +203,10 @@ def electro_current(Gd, P, electrode=0):
         current flowing through the specified electrode
         shape: V_0 x V_1 x ... x V_n
     """
+    if electrode == 'left':
+        electrode = 0
+    if electrode == 'right':
+        electrode = 1
     axes = np.arange(P.ndim)
     axes[0], axes[electrode] = electrode, 0
     P = np.transpose(P, axes=axes)

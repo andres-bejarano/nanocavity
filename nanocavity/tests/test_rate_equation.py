@@ -126,7 +126,10 @@ def test_electro_current_single_level():
     #current
     IL = nre.electro_current(GpL - GmL, P, 0)
     IR = nre.electro_current(GpR - GmR, P, 1)
-    assert np.allclose(IL, -IR)
+    IL2 = nre.electro_current(GpL - GmL, P, 'left')
+    IR2 = nre.electro_current(GpR - GmR, P, 'right')
+    assert np.allclose(IL, -IR2)
+    assert np.allclose(IL2, -IR)
 
 
 def test_electro_current_two_level():
@@ -158,8 +161,12 @@ def test_electro_current_two_level():
     #current
     IL = nre.electro_current(GpL - GmL, P, 0)
     IR = nre.electro_current(GpR - GmR, P, 1)
+    IL2 = nre.electro_current(GpL - GmL, P, 'left')
+    IR2 = nre.electro_current(GpR - GmR, P, 'right')
+
+    assert np.allclose(IL, -IR2)
+    assert np.allclose(IL2, -IR)
     
-    assert np.allclose(IL, -IR)
 
 def test_power_spectrum():
     #coupling with leads
