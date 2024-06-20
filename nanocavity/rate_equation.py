@@ -267,16 +267,41 @@ def power_spectrum3(Kp, Km, Gp, Gm, P, E, omega):
     D = Km*Lm - Kp*Lp
     return np.einsum('iab,...b->i...', D, P)
 
-def power_spectrum2(Kp, Km, P, E, omega):
+def power_spectrum4(Kp, Km, P, E, omega):
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
     Lm = ndist.lorentzian(-DE - omega, w=Km)
     Lp = ndist.lorentzian(DE - omega, w=Kp)
     D = Km*Lm - Kp*Lp
+    for i in range(omega.shape[0]):
+        np.fill_diagonal(D[i, :, :], 0)
     return np.einsum('iab,...b->i...', D, P)
 
 
-def power_spectrum(Kp, Km, P, E, omega, state_resolved=False):
+def power_spectrum(Kp, Km, P, E, omega, width='cavity', Gp=0, Gm=0):
+    if width == 'cavity':
+        Wm = Km
+        Wp = Kp
+    if width == 'full':
+        Rp = Kp + np.squeeze(Gp)
+        Rm = Km + np.squeeze(Gm)
+        sp = Rp.sum(axis=0)
+        Wp = sp[None, :] + sp[:, None]
+        sm = Rm.sum(axis=0)
+        Wm = sm[None, :] + sm[:, None]
+
+    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
+    omega = omega.reshape(-1, 1, 1)
+    Lm = ndist.lorentzian(-DE - omega, w=Wm)
+    Lp = ndist.lorentzian(DE - omega, w=Wp)
+    D = Km*Lm - Kp*Lp
+    print('jo')
+    for i in range(omega.shape[0]):
+        np.fill_diagonal(D[i, :, :], 0)
+    return np.einsum('iab,...b->i...', D, P)
+
+
+def power_spectrum2(Kp, Km, P, E, omega, state_resolved=False):
     r""" power spectrum for system whose elements in the master equation corresponding to transition frequencies satisfy $\omega_{ab}-\omega_{cd}<< 1/tau{sys}$.(Secular approximation)
 
     Parameters
