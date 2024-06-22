@@ -68,11 +68,8 @@ def test_stationary():
             
             H_parameters = Eg, delta, omegac, coupling
             H, [Dg, De, A] = tls.Hamiltonian('nanocavity', *H_parameters)
-            _, V = H.eigh()
-            Vinv = np.linalg.inv(V)
-            
-            Pme = tls.rho_st('nanocavity', H_parameters, VL, VR, kappa, gL, gR, kT).real
-            Pqt = tls.rho_st('qutip', H_parameters, VL, VR, kappa, gL, gR, kT).real
+            Pme = tls.rho_st('nanocavity', H_parameters, VL, VR, kappa, gL, gR, kT)
+            Pqt = tls.rho_st('qutip', H_parameters, VL, VR, kappa, gL, gR, kT)
             
             assert np.allclose(Pme, Pqt)
 
