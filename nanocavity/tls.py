@@ -123,7 +123,28 @@ def collapses(package, H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=F
     elif package=='qutip':
         return collapses_qt(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=lead2lead, alone=alone, iva=iva)
 
-
+def rho_st(package, H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, iva=False, full=True):
+    H, [dg, de, a] = Hamiltonian(package, *H_parameters)
+    if package=='nanocavity':
+        if full:
+            c_ops = collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+            L = no.liouvillian(H, list(c_ops))
+            rho = nme.stationary(L)
+        else:
+            E, V = H.eigh()
+            #transtion rates, populations and spectrum
+            Kp, Km = nre.transition_rate(E, V,  a, kappa, kT, bath='bosonic')
+            K = Kp + Km
+            GpL, GmL = nre.transition_rate(E, V, [dg, de], gL*np.eye(2), VL, kT)
+            GpR, GmR = nre.transition_rate(E, V, [dg, de], gR*np.eye(2), VR, kT)
+            GL = (GpL + GmL)[:, None]  # VL, VR
+            GR = (GpR + GmR)[None, :]
+            Gamma = K[np.newaxis, np.newaxis] + GL + GR
+            rho = nre.populations(Gamma)
+    elif package=='qutip':
+        c_ops = collapses_qt(H_parameters, VL, VR, kappa, gL, gR, kT, m, lead2lead, alone=True, iva=iva)
+        rho = qt.steadystate(H, list(c_ops)).full() 
+    return rho
 
 def correlation(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
     H, [_, _, a] = Hamiltonian(package, *H_parameters)
@@ -139,29 +160,28 @@ def correlation(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=Fal
     return S
 
 
-def spectrum(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False, data=False):
+def spectrum(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False, data=False, full=True):
     H, [dg, de, a] = Hamiltonian(package, *H_parameters)
-    if package=='nanocavity-rate':
-        E, V = H.eigh()
-        #transtion rates, populations and spectrum
-        Kp, Km = nre.transition_rate(E, V,  a, kappa, kT, bath='bosonic')
-        K = Kp + Km
-        GpL, GmL = nre.transition_rate(E, V, [dg, de], gL*np.eye(2), VL, kT)
-        GpR, GmR = nre.transition_rate(E, V, [dg, de], gR*np.eye(2), VR, kT)
-        GL = (GpL + GmL)[:, None]  # VL, VR
-        GR = (GpR + GmR)[None, :]
-        P = nre.populations(K[np.newaxis, np.newaxis] + GL + GR)
-        I = nre.power_spectrum(Kp, Km, P, E, wlist)
-
-    if package=='nanocavity':
-        c_ops = collapses('nanocavity', H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        L = no.liouvillian(H, list(c_ops))
-        I = kappa * nme.spectrum(L, a, wlist, data=data)
     
+    if package=='nanocavity':
+        if full:
+            c_ops = collapses('nanocavity', H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+            L = no.liouvillian(H, list(c_ops))
+            I = kappa * nme.spectrum(L, a, wlist, data=data)
+        else:
+            E, V = H.eigh()
+            #transtion rates, populations and spectrum
+            Kp, Km = nre.transition_rate(E, V,  a, kappa, kT, bath='bosonic')
+            K = Kp + Km
+            GpL, GmL = nre.transition_rate(E, V, [dg, de], gL*np.eye(2), VL, kT)
+            GpR, GmR = nre.transition_rate(E, V, [dg, de], gR*np.eye(2), VR, kT)
+            GL = (GpL + GmL)[:, None]  # VL, VR
+            GR = (GpR + GmR)[None, :]
+            P = nre.populations(K[np.newaxis, np.newaxis] + GL + GR)
+            I = nre.power_spectrum(Kp, Km, P, E, wlist)
     if package=='qutip':
         c_ops = collapses('qutip', H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         I = kappa / (2 * np.pi) * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
-    
     return I
 
 def g2(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):

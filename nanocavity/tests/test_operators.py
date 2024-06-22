@@ -59,24 +59,6 @@ def test_Htls_nc_QuTiP():
             
 
 
-def Nanocav(VL=3, VR=-3, kappa=0.1, m=2.5e-2):
-    #nanocav-populations
-    H_parameters = Eg, delta, omegac, coupling
-    Hnc, [dg, de, a] = tls.Hamiltonian('nanocavity', *H_parameters)
-    Enc, Vnc = Hnc.eigh()
-    GpL, GmL = nre.transition_rate(Enc, Vnc, [dg, de], gL*np.eye(2), mu=VL, kT=kT)
-    GpR, GmR = nre.transition_rate(Enc, Vnc, [dg, de], gR*np.eye(2), mu=VR, kT=kT)
-    GL = (GpL + GmL)[:, None]  # VL, VR
-    GR = (GpR + GmR)[None, :]
-    #damping matrix
-    Kp, Km = nre.transition_rate(Enc, Vnc, a, kappa, kT=kT, bath='bosonic')
-    K = Kp + Km
-    #M direct tunneling
-    Mp, Mm = nre.bath_system_bath_rate(Enc, Vnc, a, m, VL, VR, kT)
-    #transtion rates matrix
-    Gamma = K[np.newaxis, np.newaxis] + GL + GR + Mp + Mm
-    return nre.populations(Gamma), Kp, Km, GpL, GmL
-
 def test_collapses():
     for coupling in [0.005, 0.05, 0.5]:
         H_parameters = Eg, delta, omegac, coupling
