@@ -279,6 +279,46 @@ def power_spectrum4(Kp, Km, P, E, omega):
 
 
 def power_spectrum(Kp, Km, P, E, omega, width='cavity', Gp=0, Gm=0):
+    r''' Function calculating the power spectrum within the rate
+    equation approach
+
+    Parameters:
+        -------
+        Kp: np.array
+            shape: H.dim x H.dim
+            Rate matrix describing the addition of a photon to the 
+            central system
+        Km: np.array
+            shape: H.dim x H.dim
+            Rate matrix describing the emission of a photon from the 
+            central system
+        P: np.array
+            shape: H.dim
+            Stationary solution of the rate equation (populations).
+        E: np.array
+            shape:H.dim
+            Eigenvalues of the central system
+        omega: np.array
+            shape: 1-D
+            Vector containing all frequencies along which the power spectrum
+            should be calculated
+        width: string
+            values = cavity, full
+            Method how the width of the transition is obtained
+            cavity: Only the lifetime due to coupling to the cavity is used
+            full: All tunneling rate matrices are considered
+
+        Gp: np.array
+            shape: V_0 x ... x V_n x H.dim x H.dim
+            Rate matrix describing the addition of electrons to the 
+            central system.
+            Contains all n-leads.
+        Gm: np.array
+            shape: V_0 x ... x V_n x H.dim x H.dim
+            Rate matrix describing the emission of electrons to the 
+            central system.
+            Contains all n-leads.
+    '''
     if width == 'cavity':
         Wm = Km
         Wp = Kp
@@ -295,7 +335,6 @@ def power_spectrum(Kp, Km, P, E, omega, width='cavity', Gp=0, Gm=0):
     Lm = ndist.lorentzian(-DE - omega, w=Wm)
     Lp = ndist.lorentzian(DE - omega, w=Wp)
     D = Km*Lm - Kp*Lp
-    print('jo')
     for i in range(omega.shape[0]):
         np.fill_diagonal(D[i, :, :], 0)
     return np.einsum('iab,...b->i...', D, P)
