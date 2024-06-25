@@ -32,9 +32,12 @@ def bath_dist(E, kT, rate, bath, mu=0, eV=0):
                 return float(Fermi_cb(eV+E, kT))
     return dist
 
-#lorentzian
-def lorentzian(E, w):
-    return (1. / np.pi) * ((w / 2.) / ((w ** 2 / 4.) + E ** 2))
+
+# lorentzian
+def lorentzian(E, w, epsilon=0):
+    denominator = w**2 / 4. + E**2
+    denominator = np.where(denominator < epsilon, epsilon, denominator)
+    return w / (2.*np.pi) / denominator
 
 #fininte-band
 def semi_circle(e, mu, w):
