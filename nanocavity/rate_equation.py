@@ -237,50 +237,10 @@ def photo_current(Kp, Km, P):
     return np.einsum('ab,ijb->ij', Km - Kp, P)
 
 
-def power_spectrum3(Kp, Km, Gp, Gm, P, E, omega):
-    """
-    Function calculating the power spectrum
-
-    Parameters:
-    ------------
-    Kp: Adding a photon to the central system
-    Km: Removing a photon to the central system
-    Gp: Sum of rates adding particles to the system from electronic leads
-    Gm: Sum of rates removing particles from the system to electronic leads
-    P: Steady state populations
-    E: Eigenenergies of the central system
-    omega: Frequencies of emitted photons
-    """
-    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
-    omega = omega.reshape(-1, 1, 1)
-
-    Rp = Kp + np.squeeze(Gp)
-    Rm = Km + np.squeeze(Gm)
-
-    sp = Rp.sum(axis=0)
-    wp = sp[None, :] + sp[:, None]
-    sm = Rm.sum(axis=0)
-    wm = sm[None, :] + sm[:, None]
-
-    Lm = ndist.lorentzian(-DE - omega, w=wm)
-    Lp = ndist.lorentzian(DE - omega, w=wp)
-    D = Km*Lm - Kp*Lp
-    return np.einsum('iab,...b->i...', D, P)
-
-def power_spectrum4(Kp, Km, P, E, omega):
-    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
-    omega = omega.reshape(-1, 1, 1)
-    Lm = ndist.lorentzian(-DE - omega, w=Km)
-    Lp = ndist.lorentzian(DE - omega, w=Kp)
-    D = Km*Lm - Kp*Lp
-    for i in range(omega.shape[0]):
-        np.fill_diagonal(D[i, :, :], 0)
-    return np.einsum('iab,...b->i...', D, P)
-
-
 def power_spectrum(Kp, Km, P, E, omega, width='cavity', Gp=0, Gm=0):
     r''' Function calculating the power spectrum within the rate
     equation approach
+    Only valid in the secular approximation
 
     Parameters:
         -------
@@ -338,37 +298,3 @@ def power_spectrum(Kp, Km, P, E, omega, width='cavity', Gp=0, Gm=0):
     for i in range(omega.shape[0]):
         np.fill_diagonal(D[i, :, :], 0)
     return np.einsum('iab,...b->i...', D, P)
-
-
-def power_spectrum2(Kp, Km, P, E, omega, state_resolved=False):
-    r""" power spectrum for system whose elements in the master equation corresponding to transition frequencies satisfy $\omega_{ab}-\omega_{cd}<< 1/tau{sys}$.(Secular approximation)
-
-    Parameters
-    ----------
-    Kp: transition rate matrix for a transition in the system due to the injection of particles from the environment.
-    Km: transition rate matrix for a transition in the system due to the extraction of particles from the system.
-    P: stationray solution of rate equation, populations
-    E: eigenstates of the system hamiltonian
-    omega: frequency of the emitted light
-
-    Return 
-    ----------
-    I: power spectrum map depending on left and right voltage $V_L$, $V_R$ and frequency of the emitted light $\omega$
-    """
-    # print(E.shape)
-    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
-    # print(DE.shape)
-    omega = omega.reshape(-1, 1, 1)
-    Lm = ndist.lorentzian(-DE - omega, w=Km)
-    Lp = ndist.lorentzian(DE - omega, w=Kp)
-    Km = Km[np.newaxis]
-    Kp = Kp[np.newaxis]
-    D = Km * Lm - Kp * Lp
-    # print(D.shape)
-    # print(P.shape)
-    #Ensuring that the diagonal is exactly zero
-    for i in range(omega.shape[0]):
-        np.fill_diagonal(D[i, : , :], 0)
-    if state_resolved:
-        return np.einsum('iab,jkb->bijk', D, P)
-    return np.einsum('iab,jkb->ijk', D, P)
