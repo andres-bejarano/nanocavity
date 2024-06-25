@@ -282,7 +282,7 @@ def power_spectrum(Kp, Km, P, E, omega, width='cavity', Gp=0, Gm=0):
     if width == 'cavity':
         Wm = Km
         Wp = Kp
-    if width == 'full':
+    elif width == 'full':
         Rp = Kp + np.squeeze(Gp)
         Rm = Km + np.squeeze(Gm)
         sp = Rp.sum(axis=0)
@@ -295,6 +295,6 @@ def power_spectrum(Kp, Km, P, E, omega, width='cavity', Gp=0, Gm=0):
     Lm = ndist.lorentzian(-DE - omega, w=Wm)
     Lp = ndist.lorentzian(DE - omega, w=Wp)
     D = Km*Lm - Kp*Lp
-    for i in range(omega.shape[0]):
-        np.fill_diagonal(D[i, :, :], 0)
+    idx = np.arange(0, E.shape[0])
+    D[:, idx, idx] = 0
     return np.einsum('iab,...b->i...', D, P)
