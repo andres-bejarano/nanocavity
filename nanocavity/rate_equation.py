@@ -246,11 +246,11 @@ def power_spectrum(Kp, Km, P, E, omega, width='cavity', Gp=0, Gm=0):
         -------
         Kp: np.array
             shape: H.dim x H.dim
-            Rate matrix describing the addition of a photon to the 
+            Rate matrix describing the addition of a photon to the
             central system
         Km: np.array
             shape: H.dim x H.dim
-            Rate matrix describing the emission of a photon from the 
+            Rate matrix describing the emission of a photon from the
             central system
         P: np.array
             shape: H.dim
@@ -270,12 +270,12 @@ def power_spectrum(Kp, Km, P, E, omega, width='cavity', Gp=0, Gm=0):
 
         Gp: np.array
             shape: V_0 x ... x V_n x H.dim x H.dim
-            Rate matrix describing the addition of electrons to the 
+            Rate matrix describing the addition of electrons to the
             central system.
             Contains all n-leads.
         Gm: np.array
             shape: V_0 x ... x V_n x H.dim x H.dim
-            Rate matrix describing the emission of electrons to the 
+            Rate matrix describing the emission of electrons to the
             central system.
             Contains all n-leads.
     '''
