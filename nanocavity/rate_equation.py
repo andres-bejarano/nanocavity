@@ -237,10 +237,10 @@ def photo_current(Kp, Km, P):
     return np.einsum('ab,ijb->ij', Km - Kp, P)
 
 
-def emission_spectrum3(Kp, Km, Gp, Gm, P, E, omega):
+
+def emission_spectrum(Km, P, E, omega, width='cavity', Gm=0):
     '''
     Function calculating the power spectrum
-
     Parameters:
         -------
         Kp: np.array
@@ -292,18 +292,12 @@ def emission_spectrum3(Kp, Km, Gp, Gm, P, E, omega):
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
 
-    Rm = Km + np.squeeze(Gm)
-    sm = Rm.sum(axis=0)
-    wm = sm[None, :] + sm[:, None]
 
     Lm = ndist.lorentzian(-DE - omega, w=wm)
     return np.einsum('iab,...b->i...', Km*Lm, P)
 
-def emission_spectrum2(Kp, Km, P, E, omega):
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
-    Lm = ndist.lorentzian(-DE - omega, w=Km)
-    return np.einsum('iab,...b->i...', Km*Lm, P)
 
 
 def power_spectrum(Kp, Km, P, E, omega, state_resolved=False):
