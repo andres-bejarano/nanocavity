@@ -239,14 +239,11 @@ def photo_current(Kp, Km, P):
 
 
 def emission_spectrum(Km, P, E, omega, width='cavity', Gm=0):
-    '''
-    Function calculating the power spectrum
+    r"""
+    Function calculating the emission spectrum
+    Implies the use of the secular approximation
     Parameters:
         -------
-        Kp: np.array
-            shape: H.dim x H.dim
-            Rate matrix describing the addition of a photon to the
-            central system
         Km: np.array
             shape: H.dim x H.dim
             Rate matrix describing the emission of a photon from the
@@ -266,39 +263,29 @@ def emission_spectrum(Km, P, E, omega, width='cavity', Gm=0):
             Method how the width of the transition is obtained
             cavity: Only the lifetime due to coupling to the cavity is used
             full: All tunneling rate matrices are considered
-
-        Gp: np.array
-            shape: V_0 x ... x V_n x H.dim x H.dim
-            Rate matrix describing the addition of electrons to the
-            central system.
-            Contains all n-leads.
         Gm: np.array
             shape: V_0 x ... x V_n x H.dim x H.dim
             Rate matrix describing the emission of electrons to the
             central system.
             Contains all n-leads.
-    '''
+
+    Returns:
+        -------
+        I(\omega): nd-array
+        Emission spectrum as a function of \omega
+    """
     if width == 'cavity':
         Wm = Km
-        Wp = Kp
     elif width == 'full':
-        Rp = Kp + np.squeeze(Gp)
         Rm = Km + np.squeeze(Gm)
-        sp = Rp.sum(axis=0)
-        Wp = sp[None, :] + sp[:, None]
         sm = Rm.sum(axis=0)
         Wm = sm[None, :] + sm[:, None]
 
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
 
-
-    Lm = ndist.lorentzian(-DE - omega, w=wm)
+    Lm = ndist.lorentzian(-DE - omega, w=Wm)
     return np.einsum('iab,...b->i...', Km*Lm, P)
-
-    DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
-    omega = omega.reshape(-1, 1, 1)
-
 
 def power_spectrum(Kp, Km, P, E, omega, state_resolved=False):
     r""" power spectrum for system whose elements in the master equation corresponding to transition frequencies satisfy $\omega_{ab}-\omega_{cd}<< 1/tau{sys}$.(Secular approximation)
