@@ -299,7 +299,7 @@ def test_emission_spectrum():
     Eg = -0.2
     delta = 0.99
     omegac = 1
-    coupling = 0.3
+    coupling = 0.0001
     #bath parameters
     gt = 1e-3 * np.eye(2)
     gs = 1e-3 * np.eye(2)
@@ -355,6 +355,7 @@ def test_emission_spectrum():
 
     Ire = nre.emission_spectrum(Km, P, Een, wlist, width='full', Gm = GmL + GmR)
     np.allclose(I, Ire)
+    assert np.allclose(I, Ire)
 
 
 def test_bath_system_bath_rate():
