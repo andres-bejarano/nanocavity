@@ -349,8 +349,8 @@ def test_emission_spectrum():
     P = nre.populations(Gamma)
 
     kplusg, wplusg, kminusg,  wminusg = parameters(coupling, omegac, delta, kappa, gt) 
-    I = peak(kminusg * (P[0, 0, im] + P[0, 0, ie1]), E[im]-E[ig], wminusg, wlist)
-    I += peak(kplusg * (P[0, 0, ip] + P[0, 0, ie1]), E[ip]-E[ig], wplusg, wlist)
+    I = peak(kminusg * (P[0, 0, im] + P[0, 0, ie1]), Een[im]-Een[ig], wminusg, wlist)
+    I += peak(kplusg * (P[0, 0, ip] + P[0, 0, ie1]), Een[ip]-Een[ig], wplusg, wlist)
     I += peak(kappa * (P[0, 0, i1] + P[0, 0, ige1]), omegac, 4 * gt[0, 0] + kappa, wlist)
 
     Ire = nre.emission_spectrum(Km, P, Een, wlist, width='full', Gm = GmL + GmR)
