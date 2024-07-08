@@ -237,7 +237,7 @@ def photo_current(Kp, Km, P):
     return np.einsum('ab,ijb->ij', Km - Kp, P)
 
 
-def emission_spectrum(Km, P, E, omega, width='cavity', Kp=0, Gp=0, Gm=0):
+def spectrum(Km, P, E, omega, width='cavity', Kp=0, Gp=0, Gm=0):
     r"""
     Function calculating the emission spectrum
     Implies the use of the secular approximation
