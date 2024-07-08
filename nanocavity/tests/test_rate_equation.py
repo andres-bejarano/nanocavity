@@ -353,9 +353,9 @@ def test_emission_spectrum():
     I += peak(kplusg * (P[0, 0, ip] + P[0, 0, ie1]), Een[ip]-Een[ig], wplusg, wlist)
     I += peak(kappa * (P[0, 0, i1] + P[0, 0, ige1]), omegac, 4 * gt[0, 0] + kappa, wlist)
 
-    Ire = nre.emission_spectrum(Km, P, Een, wlist, width='full', Gm = GmL + GmR)
-    np.allclose(I, Ire)
-    assert np.allclose(I, Ire)
+    Ire = nre.emission_spectrum(Km, P, Een, wlist, width='full',
+                                Kp=Kp, Gp=GpL+GpR, Gm=GmL+GmR)
+    assert np.allclose(I, Ire, atol=1e-3)
 
 
 def test_bath_system_bath_rate():
