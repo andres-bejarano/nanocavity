@@ -21,22 +21,26 @@ def rate_parameters(modes=1):
 
 
 def peak(height, position, fwhm, wlist):
-    # print(wlist.shape)
-    # print(position.shape)
     return height * ndist.lorentzian(wlist - position, fwhm)
 
 
-def parameters(coupling, omegac, delta, kappa, gt):
-    detuning = omegac - delta 
+def parameters(coupling, omegac, delta, kappa, gt, gs):
+    detuning = omegac - delta
     theta = 0.5 * np.arctan(2 * coupling / detuning)
-    
-    kplusg = kappa * np.cos(theta) ** 2
-    wplusg = 4 * gt[0,0]  + kplusg 
 
-    kminusg = kappa * np.sin(theta) ** 2
-    wminusg = 4 * gt[0,0] + kminusg 
+    Kpg = kappa * np.cos(theta) ** 2
+    Wpg = 4 * gt[0, 0] + Kpg
 
-    return kplusg, wplusg, kminusg,  wminusg
+    Kmg = kappa * np.sin(theta) ** 2
+    Wmg = 4 * gt[0, 0] + Kmg
+
+    Kme = kappa * (1+np.sin(theta)**2)
+    Wme = 2 * (gt[0, 0]+gs[0, 0]) + Kme
+
+    Kpe = kappa * (1+np.cos(theta)**2)
+    Wpe = 2 * (gt[0, 0]+gs[0, 0]) + Kpe
+
+    return Kpg, Wpg, Kmg,  Wmg, Wme, Wpe
 
 def test_matrix_elements():
     for i in range(1, 4):
@@ -296,14 +300,14 @@ def test_photo_current():
 
 def test_spectrum():
     #system parameters
-    Eg = -0.2
-    delta = 0.99
+    Eg = -0.3
+    delta = 0.9
     omegac = 1
-    coupling = 0.0001
+    coupling = 0.3
 
     #bath parameters
-    gt = 1e-3 * np.eye(2)
-    gs = 1e-3 * np.eye(2)
+    gt = 2e-3 * np.eye(2)
+    gs = 2e-3 * np.eye(2)
     kappa = 0.1
     kT = 1e-2
     wlist = np.linspace(0., 1.8, 103)
@@ -349,14 +353,18 @@ def test_spectrum():
     Gamma = K[np.newaxis, np.newaxis] + GL + GR
     P = nre.populations(Gamma)
 
-    kplusg, wplusg, kminusg,  wminusg = parameters(coupling, omegac, delta, kappa, gt) 
-    I = peak(kminusg * (P[0, 0, im] + P[0, 0, ie1]), Een[im]-Een[ig], wminusg, wlist)
-    I += peak(kplusg * (P[0, 0, ip] + P[0, 0, ie1]), Een[ip]-Een[ig], wplusg, wlist)
-    I += peak(kappa * (P[0, 0, i1] + P[0, 0, ige1]), omegac, 4 * gt[0, 0] + kappa, wlist)
+    Kpg, Wpg, Kmg,  Wmg, Wme, Wpe = parameters(
+            coupling, omegac, delta, kappa, gt, gs)
+    I = peak(Kmg * (P[0, 0, im]), Een[im]-Een[ig], Wmg, wlist)
+    I += peak(Kmg * (P[0, 0, ie1]), Een[im]-Een[ig], Wpe, wlist)
+    I += peak(Kpg * (P[0, 0, ip]), Een[ip]-Een[ig], Wpg, wlist)
+    I += peak(Kpg * (P[0, 0, ie1]), Een[ip]-Een[ig], Wme, wlist)
+    I += peak(kappa * (P[0, 0, i1] + P[0, 0, ige1]), omegac,
+              2 * (gt[0, 0]+gs[0, 0]) + kappa, wlist)
 
     Ire = nre.spectrum(Km, P, Een, wlist, width='full',
                                 Kp=Kp, Gp=GpL+GpR, Gm=GmL+GmR)
-    assert np.allclose(I, Ire, atol=1e-3)
+    assert np.allclose(I, Ire)
 
 
 def test_bath_system_bath_rate():
