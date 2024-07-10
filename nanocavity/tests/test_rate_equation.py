@@ -29,10 +29,10 @@ def parameters(coupling, omegac, delta, kappa, gt, gs):
     theta = 0.5 * np.arctan(2 * coupling / detuning)
 
     Kpg = kappa * np.cos(theta) ** 2
-    Wpg = 4 * gt[0, 0] + Kpg
+    Wpg = 2 * (gt[0, 0] + gs[0, 0]) + Kpg
 
     Kmg = kappa * np.sin(theta) ** 2
-    Wmg = 4 * gt[0, 0] + Kmg
+    Wmg = 2 * (gt[0, 0] + gs[0, 0]) + Kmg
 
     Kme = kappa * (1+np.sin(theta)**2)
     Wme = 2 * (gt[0, 0]+gs[0, 0]) + Kme
@@ -306,8 +306,8 @@ def test_spectrum():
     coupling = 0.3
 
     #bath parameters
-    gt = 2e-3 * np.eye(2)
-    gs = 2e-3 * np.eye(2)
+    gt = 1e-3 * np.eye(2)
+    gs = 1e-3 * np.eye(2)
     kappa = 0.1
     kT = 1e-2
     wlist = np.linspace(0., 1.8, 103)
@@ -364,7 +364,7 @@ def test_spectrum():
 
     Ire = nre.spectrum(Km, P, Een, wlist, width='full',
                                 Kp=Kp, Gp=GpL+GpR, Gm=GmL+GmR)
-    assert np.allclose(I, Ire)
+    assert np.allclose(I, np.squeeze(Ire))
 
 
 def test_bath_system_bath_rate():
