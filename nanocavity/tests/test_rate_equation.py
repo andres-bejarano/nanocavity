@@ -307,7 +307,7 @@ def test_spectrum():
 
     #bath parameters
     gt = 1e-3 * np.eye(2)
-    gs = 1e-3 * np.eye(2)
+    gs = 2e-3 * np.eye(2)
     kappa = 0.1
     kT = 1e-2
     wlist = np.linspace(0., 1.8, 103)
