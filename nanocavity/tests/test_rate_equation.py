@@ -19,6 +19,29 @@ def rate_parameters(modes=1):
         e, v = H.eigsh()
         return d, e, v, g
 
+
+def peak(height, position, fwhm, wlist):
+    return height * ndist.lorentzian(wlist - position, fwhm)
+
+
+def parameters(coupling, omegac, delta, kappa, gt, gs):
+    detuning = omegac - delta
+    theta = 0.5 * np.arctan(2 * coupling / detuning)
+
+    Kpg = kappa * np.cos(theta) ** 2
+    Wpg = 2 * (gt[0, 0] + gs[0, 0]) + Kpg
+
+    Kmg = kappa * np.sin(theta) ** 2
+    Wmg = 2 * (gt[0, 0] + gs[0, 0]) + Kmg
+
+    Kme = kappa * (1+np.sin(theta)**2)
+    Wme = 2 * (gt[0, 0]+gs[0, 0]) + Kme
+
+    Kpe = kappa * (1+np.cos(theta)**2)
+    Wpe = 2 * (gt[0, 0]+gs[0, 0]) + Kpe
+
+    return Kpg, Wpg, Kmg,  Wmg, Wme, Wpe
+
 def test_matrix_elements():
     for i in range(1, 4):
         d, e, v, g =  rate_parameters(i)
@@ -168,72 +191,6 @@ def test_electro_current_two_level():
     assert np.allclose(IL2, -IR)
     
 
-def test_power_spectrum():
-    #coupling with leads
-    gl = 1e-3 * np.eye(2)
-    gr = 1e-3 * np.eye(2)
-
-    g = gl[0, 0]
-
-    #light-matter coupling
-    eg = 0.2
-    delta = 0.9
-    omega_c = 1
-    lambd = 0.3
-    theta = 0.5 * np.angle((omega_c - delta) +  lambd*2j)
-
-    #damping
-    kappa = 1
-
-
-    #VL,VR, kBT
-    VL = np.linspace(-3, 3, 5)
-    VR = np.linspace(-3, 3, 2)
-    kT = 1e-2
-
-    #hamiltonian
-    [d1, d2, a], [Nf1, Nf2, Nb] = sq.composite(fermion_modes=2, boson_modes=1, max_bosons=1)
-    H0 = eg * Nf1 + (eg +  delta) * Nf2 + omega_c * Nb
-    Hint = a.d * d1.d * d2 + a * d2.d * d1
-
-    #Hamiltonian diagonalization
-    H = H0 + lambd * Hint
-    e, v = H.eigsh()
-    idx = [0, 1, 2, 5]
-    e = e[idx]
-    v = v[:, idx]
-
-    #electrodes transition rates
-    GpL, GmL = nre.transition_rate(e, v, [d1, d2], gl, mu=VL, kT=kT)
-    GpR, GmR = nre.transition_rate(e, v, [d1, d2], gl, mu=VR, kT=kT)
-    GL = (GpL + GmL)[:, None]  # VL, VR
-    GR = (GpR + GmR)[None, :]
-
-    #damping matrix
-    Kp, Km = nre.transition_rate(e, v, [a], kappa, kT=kT, bath='bosonic')
-    K = Kp + Km
-    #transtion rates
-    Gamma = K[np.newaxis, np.newaxis] + GL + GR
-
-    #populations
-    P = nre.populations(Gamma)
-    Pm = P[:, :, 2][np.newaxis]
-    Pp = P[:, :, 3][np.newaxis]
-
-    #photo-current numerical
-    omega = np.linspace(0, 3, 3)
-    Egm = e[2] - e[1]
-    Egp = e[3] - e[1]
-    wide_gm = K[1, 2]
-    wide_gp = K[1, 3]
-    Lm = ndist.lorentzian(Egm - omega, wide_gm)[:, np.newaxis, np.newaxis]
-    Lp = ndist.lorentzian(Egp - omega, wide_gp)[:, np.newaxis, np.newaxis]
-
-    Ig = np.sin(theta) ** 2 * Pm * Lm + np.cos(theta) ** 2 * Pp * Lp
-    I = nre.power_spectrum(Kp, Km, P, e, omega)
-
-    assert np.allclose(Ig, I)
-
 def test_photo_current():
     #parameters
     omegac = 1
@@ -272,12 +229,80 @@ def test_photo_current():
     P = nre.populations(Gamma)
 
     I = np.round(nre.photo_current(Kp, Km, P), 4)
-    print(I)
     assert np.allclose(I, g[0, 0]/2)
+
+
+def test_spectrum():
+    #system parameters
+    Eg = -0.3
+    delta = 0.9
+    omegac = 1
+    coupling = 0.3
+
+    #bath parameters
+    gt = 1e-3 * np.eye(2)
+    gs = 2e-3 * np.eye(2)
+    kappa = 0.1
+    kT = 1e-2
+    wlist = np.linspace(0., 1.8, 103)
+
+
+    Vt = 3
+    Vs = -3
+
+    [d1, d2, a], [Nf1, Nf2, Nb] = \
+        sq.composite(fermion_modes=2, boson_modes=1, max_bosons=1)
+    H0 = Eg * Nf1 + (Eg +  delta) * Nf2 + omegac * Nb
+    Hint = coupling * (a.d * d1.d * d2 + a * d2.d * d1)
+    H = H0 +  Hint
+    Een, Est = H.eigsh(k=H.shape[0])
+
+    E0 = 0
+    E01 = omegac
+    Eg1 = Eg + omegac
+    Ee = Eg + delta
+    Ee1 = Ee + omegac
+    Ege = 2 * Eg + delta
+    Ege1 =  Ege + omegac
+
+    rabi =  np.sqrt((omegac - delta) ** 2 + (2 * coupling) ** 2)
+    Eplus = Eg + (omegac + delta) / 2 + rabi / 2
+    Eminus = Eg + (omegac + delta) / 2 - rabi / 2  
+
+    E = np.array([E0, E01, Eg, Eminus, Eplus, Ee1, Ege, Ege1])
+    L = []
+    diff = np.abs(E[:, np.newaxis] - Een)
+    L = np.argmin(diff, axis=1)
+    [i0, i1, ig, im, ip, ie1, ige, ige1] = L
+
+    GpL, GmL = nre.transition_rate(Een, Est, [d1, d2], gt, mu=Vt, kT=kT)
+    GpR, GmR = nre.transition_rate(Een, Est, [d1, d2], gs, mu=Vs, kT=kT)
+    GL = (GpL + GmL)[:, None]  # VL, VR
+    GR = (GpR + GmR)[None, :]
+
+    #damping matrix
+    Kp, Km = nre.transition_rate(Een, Est, [a], kappa, kT=kT, bath='bosonic')
+    K = Kp + Km
+
+    #transtion rates
+    Gamma = K[np.newaxis, np.newaxis] + GL + GR
+    P = nre.populations(Gamma)
+
+    Kpg, Wpg, Kmg,  Wmg, Wme, Wpe = parameters(
+            coupling, omegac, delta, kappa, gt, gs)
+    I = peak(Kmg * (P[0, 0, im]), Een[im]-Een[ig], Wmg, wlist)
+    I += peak(Kmg * (P[0, 0, ie1]), Een[im]-Een[ig], Wpe, wlist)
+    I += peak(Kpg * (P[0, 0, ip]), Een[ip]-Een[ig], Wpg, wlist)
+    I += peak(Kpg * (P[0, 0, ie1]), Een[ip]-Een[ig], Wme, wlist)
+    I += peak(kappa * P[0, 0, i1], omegac, 4*gt[0, 0] + kappa, wlist)
+    I += peak(kappa * P[0, 0, ige1], omegac, 4*gs[0, 0] + kappa, wlist)
+
+    Ire = nre.spectrum(Km, Kp, GpL+GpR, GmL+GmR, P, Een, wlist)
+    assert np.allclose(I, np.squeeze(Ire))
+
 
 def test_bath_system_bath_rate():
     #parameters
-
     omegac = 1
     kappa = 1
     kT = 1e-1
