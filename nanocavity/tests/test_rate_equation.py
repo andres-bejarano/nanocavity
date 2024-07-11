@@ -359,8 +359,8 @@ def test_spectrum():
     I += peak(Kmg * (P[0, 0, ie1]), Een[im]-Een[ig], Wpe, wlist)
     I += peak(Kpg * (P[0, 0, ip]), Een[ip]-Een[ig], Wpg, wlist)
     I += peak(Kpg * (P[0, 0, ie1]), Een[ip]-Een[ig], Wme, wlist)
-    I += peak(kappa * (P[0, 0, i1] + P[0, 0, ige1]), omegac,
-              2 * (gt[0, 0]+gs[0, 0]) + kappa, wlist)
+    I += peak(kappa * P[0, 0, i1], omegac, 4*gt[0, 0] + kappa, wlist)
+    I += peak(kappa * P[0, 0, ige1], omegac, 4*gs[0, 0] + kappa, wlist)
 
     Ire = nre.spectrum(Km, P, Een, wlist, width='full',
                                 Kp=Kp, Gp=GpL+GpR, Gm=GmL+GmR)
