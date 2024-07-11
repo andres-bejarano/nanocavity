@@ -280,7 +280,7 @@ def spectrum(Km, P, E, omega, width='cavity', Kp=0, Gp=0, Gm=0):
 
     Returns:
         -------
-        I(\omega): nd-array
+        I(\omega): 1d-array
         Emission spectrum as a function of \omega
     """
     if width == 'cavity':
