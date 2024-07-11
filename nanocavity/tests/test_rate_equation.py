@@ -312,6 +312,7 @@ def test_spectrum():
     kT = 1e-2
     wlist = np.linspace(0., 1.8, 103)
 
+
     Vt = 3
     Vs = -3
 
@@ -362,8 +363,7 @@ def test_spectrum():
     I += peak(kappa * P[0, 0, i1], omegac, 4*gt[0, 0] + kappa, wlist)
     I += peak(kappa * P[0, 0, ige1], omegac, 4*gs[0, 0] + kappa, wlist)
 
-    Ire = nre.spectrum(Km, P, Een, wlist, width='full',
-                                Kp=Kp, Gp=GpL+GpR, Gm=GmL+GmR)
+    Ire = nre.spectrum(Km, Kp, GpL+GpR, GmL+GmR, P, Een, wlist)
     assert np.allclose(I, np.squeeze(Ire))
 
 
