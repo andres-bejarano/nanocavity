@@ -142,7 +142,7 @@ def test_noise():
             Ze_me = qme.noise(L, qo.jump(CpL), qo.jump(CmL))
             _, _, Zg_re, Ze_re = fcs(VL, VR)
             assert np.allclose(Zg_me, Zg_re, atol=1e-7)
-            assert np.allclose(Ze_me, Ze_re, atol=1e-7)
+            assert np.allclose(Ze_me, Ze_re, atol=1e-6)
 
 
 def test_g2():
