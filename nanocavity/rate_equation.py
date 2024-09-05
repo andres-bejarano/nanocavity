@@ -165,8 +165,10 @@ def populations(Gamma):
     b_dims = Gamma.shape[0:-1]
     b = np.zeros(b_dims)
     b[..., k-1] = 1
+    print(Gamma.shape)
+    print(b.shape)
 
-    P = la.solve(Gamma, b)
+    P = la.solve(Gamma, b[..., None])[..., 0]
     return P
 
 
