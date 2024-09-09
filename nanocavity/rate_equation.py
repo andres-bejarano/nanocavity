@@ -100,7 +100,9 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
         f_mat_p = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
         f_mat_m = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
         f_list_p = ndist.fermi_dirac(DElistp, kT=kT, mu=mu)
+        f_list_p = np.where(f_list_p > 0, f_list_p, 0)
         f_list_m = 1 - ndist.fermi_dirac(-DElistm, kT=kT, mu=mu)
+        f_list_m = np.where(f_list_m > 0, f_list_m, 0)
 
         f_mat_p[:, mask.T] = f_list_p
         f_mat_m[:, mask] = f_list_m
@@ -112,7 +114,9 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
         n_mat_p = np.zeros((M.shape[0], M.shape[1]))
         n_mat_m = np.zeros((M.shape[0], M.shape[1]))
         n_list_p = ndist.bose_einstein(DElistp, kT=kT)
+        n_list_p = np.where(n_list_p > 0, n_list_p, 0)
         n_list_m = 1 + ndist.bose_einstein(-DElistm, kT=kT)
+        n_list_m = np.where(n_list_m > 0, n_list_m, 0)
 
         n_mat_p[mask.T] = n_list_p
         n_mat_m[mask] = n_list_m
