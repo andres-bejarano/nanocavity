@@ -44,21 +44,29 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     """
     #We can place this line outside of this function, but for now, we can accept this overhead since it makes the code easier to read and does not impose a significant cost, as we call the collapse function at most twice.
     E, V = H.eigenstates()
+    print(E)
+    dim = E.shape[0]
+    E_ij = E.reshape(dim, 1) - E.reshape(1, dim)
+    if bath == 'bosonic':
+        nbij = ndist.bose_einstein(E_ij, kT)
+        nbij = np.where(nbij > 0, nbij, 0)
+        np.fill_diagonal(nbij, 0)
+        print(nbij)
+    elif bath == 'fermionic':
+        fdij = ndist.fermi_dirac(E_ij, kT)
+        fdij = np.where(fdij > 0, fdij, 0)
     cp, cm = [], []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
             Mij = A_op.matrix_element(V[i], V[j])
             if abs(Mij) > cutoff:
-                Eji = Ej - Ei
                 P = Mij * (V[i] * V[j].dag())
                 if bath=='bosonic':
-                    nb = ndist.bose_einstein(Eji, kT=kT)
-                    cp.append(np.sqrt(nb) * P.dag())
-                    cm.append(np.sqrt(1 + nb) * P)
+                    cp.append(np.sqrt(nbij[i, j]) * P.dag())
+                    cm.append(np.sqrt(1 + nbij[i, j]) * P)
                 elif bath=='fermionic':
-                    fd = ndist.fermi_dirac(Eji, kT=kT, mu=mu)
-                    cp.append(np.sqrt(fd) * P.dag())
-                    cm.append(np.sqrt(1 - fd) * P)
+                    cp.append(np.sqrt(fdij[i, j]) * P.dag())
+                    cm.append(np.sqrt(1 - fdij[i, j]) * P)
     if total:
         return cp + cm
     return cp, cm

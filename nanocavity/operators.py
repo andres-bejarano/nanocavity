@@ -2,27 +2,35 @@ import numpy as np
 import nanocavity.distributions as ndist
 from secondquant.operator import Operator
 
+
 def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
-    if isinstance(A_op, Operator):
-        A_op = A_op.toarray()
-    
     E, V = H.eigh()
+
+    M_ij = A_op.inner(V)
     dim = A_op.shape[0]
+    E_ij = E.reshape(dim, 1) - E.reshape(1, dim)
+    # E, V = H.eigh()
+    if bath == 'bosonic':
+        nbij = ndist.bose_einstein(E_ij, kT)
+        nbij = np.where(nbij > 0, nbij, 0)
+        np.fill_diagonal(nbij, 0)
+        print(nbij)
+    elif bath == 'fermionic':
+        fdij = ndist.fermi_dirac(E_ij, kT)
+        fdij = np.where(fdij > 0, fdij, 0)
     cp, cm = [], []
-    for i, Ei in enumerate(E):
-        for j, Ej in enumerate(E):
-            Mij = V[:, i].T @ A_op @ V[:, j]
-            if abs(Mij) > cutoff:
-                Eji = Ej - Ei
-                P = Mij * V[:,  i].reshape(dim, 1) @ V[:, j].reshape(1, dim)
-                if bath=='bosonic':
-                    nb = ndist.bose_einstein(Eji, kT=kT)
-                    cp.append(np.sqrt(nb) * P.conj().T)
-                    cm.append(np.sqrt(1 + nb) * P)
-                elif bath=='fermionic':
-                    fd = ndist.fermi_dirac(Eji, kT=kT, mu=mu)
-                    cp.append(np.sqrt(fd) * P.conj().T)
-                    cm.append(np.sqrt(1 - fd) * P)
+    for i in range(dim):
+        for j in range(dim):
+            if abs(M_ij[i, j]) > cutoff:
+                P = M_ij[i, j] * \
+                        V[:, i].reshape(dim, 1) @ V[:, j].reshape(1, dim)
+                if bath == 'bosonic':
+                    cp.append(np.sqrt(nbij[i, j]) * P.conj().T)
+                    cm.append(np.sqrt(1 + nbij[i, j]) * P)
+
+                elif bath == 'fermionic':
+                    cp.append(np.sqrt(fdij[i, j]) * P.conj().T)
+                    cm.append(np.sqrt(1 - fdij[i, j]) * P)
     if total:
         return cp + cm
     return cp, cm
