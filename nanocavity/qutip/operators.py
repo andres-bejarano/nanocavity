@@ -56,6 +56,7 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     elif bath == 'fermionic':
         fd_fi = ndist.fermi_dirac(E_fi, kT, mu)
         fd_fi_m = 1-fd_fi
+
     cp, cm = [], []
     for f in range(dim):
         for i in range(dim):

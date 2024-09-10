@@ -113,10 +113,10 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     elif bath == 'bosonic':
         n_mat_p = np.zeros((M.shape[0], M.shape[1]))
         n_mat_m = np.zeros((M.shape[0], M.shape[1]))
-        n_list_p = ndist.bose_einstein(DElistp, kT=kT)
-        n_list_p = np.where(n_list_p > 0, n_list_p, 0)
-        n_list_m = 1 + ndist.bose_einstein(-DElistm, kT=kT)
-        n_list_m = np.where(n_list_m > 0, n_list_m, 0)
+        n_list_p = np.where(DElistp > 0,
+                            ndist.bose_einstein(DElistp, kT=kT), 0)
+        n_list_m = np.where(DElistm < 0,
+                            1 + ndist.bose_einstein(-DElistm, kT=kT), 0)
 
         n_mat_p[mask.T] = n_list_p
         n_mat_m[mask] = n_list_m
