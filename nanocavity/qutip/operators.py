@@ -44,14 +44,12 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     """
     #We can place this line outside of this function, but for now, we can accept this overhead since it makes the code easier to read and does not impose a significant cost, as we call the collapse function at most twice.
     E, V = H.eigenstates()
-    print(E)
     dim = E.shape[0]
     E_ij = E.reshape(dim, 1) - E.reshape(1, dim)
     if bath == 'bosonic':
         nbij = ndist.bose_einstein(E_ij, kT)
         nbij = np.where(nbij > 0, nbij, 0)
         np.fill_diagonal(nbij, 0)
-        print(nbij)
     elif bath == 'fermionic':
         fdij = ndist.fermi_dirac(E_ij, kT)
         fdij = np.where(fdij > 0, fdij, 0)
