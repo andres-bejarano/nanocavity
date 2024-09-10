@@ -58,27 +58,27 @@ def bose_matrix(E, kT=0.1):
 
 def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     """
-    Calculates the transition rates between many-body states to be
-    used in rate equtions. Returns a 3d numpy array with axis 0
-    corresponding to the chemical potential and axis 1 and 2
-    to the eigenstates.
+        Calculates the transition rates between many-body states to be
+        used in rate equtions. Returns a 3d numpy array with axis 0
+        corresponding to the chemical potential and axis 1 and 2
+        to the eigenstates.
 
-    Parameters
-    ----------
-    E: system eigenvalues
-    v: system eigenvectors
-    A: list of all annihilation operators which interact with the
-        considered bath
-    g: coupling to the each level considered in A
-    kT: temperature
-    mu: chemical potential of the lead (only relevant for fermionic baths)
-    bath: considering a fermionic or bosonic bath
+        Parameters
+        ----------
+        E: system eigenvalues
+        v: system eigenvectors
+        A: list of all annihilation operators which interact with the
+            considered bath
+        g: coupling to the each level considered in A
+        kT: temperature
+        mu: chemical potential of the lead (only relevant for fermionic baths)
+        bath: considering a fermionic or bosonic bath
 
-    Returns
-    ---------
-    rates_p: transition rate matrix for adding particles to the central system
-    rates_m: transition rate matrix for removing particles to
-                the central system
+        Returns
+        ---------
+        rates_p: transition rate matrix for adding particles to the central system
+        rates_m: transition rate matrix for removing particles to
+                    the central system
     """
     if not isinstance(mu, np.ndarray):
         mu = np.array(mu)
@@ -100,9 +100,7 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
         f_mat_p = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
         f_mat_m = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
         f_list_p = ndist.fermi_dirac(DElistp, kT=kT, mu=mu)
-        f_list_p = np.where(f_list_p > 0, f_list_p, 0)
         f_list_m = 1 - ndist.fermi_dirac(-DElistm, kT=kT, mu=mu)
-        f_list_m = np.where(f_list_m > 0, f_list_m, 0)
 
         f_mat_p[:, mask.T] = f_list_p
         f_mat_m[:, mask] = f_list_m
