@@ -45,26 +45,29 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     #We can place this line outside of this function, but for now, we can accept this overhead since it makes the code easier to read and does not impose a significant cost, as we call the collapse function at most twice.
     E, V = H.eigenstates()
     dim = E.shape[0]
-    E_ij = E.reshape(dim, 1) - E.reshape(1, dim)
+    E_fi = E.reshape(dim, 1) - E.reshape(1, dim)
     if bath == 'bosonic':
-        nbij = ndist.bose_einstein(E_ij, kT)
-        nbij = np.where(nbij > 0, nbij, 0)
-        np.fill_diagonal(nbij, 0)
+        # This rate is for photon absorption, thus the final state must be 
+        # higher in energy than the initial one
+        nb_fi = np.where(E_fi > 0, ndist.bose_einstein(E_fi, kT), 0)
+        # This rate is for photon emission, thus the final state must be 
+        # lower in energy than the initial one
+        nb_fi_m = np.where(E_fi < 0, 1 + ndist.bose_einstein(-E_fi, kT), 0)
     elif bath == 'fermionic':
-        fdij = ndist.fermi_dirac(E_ij, kT)
-        fdij = np.where(fdij > 0, fdij, 0)
+        fd_fi = ndist.fermi_dirac(E_fi, kT, mu)
+        fd_fi_m = 1-fd_fi
     cp, cm = [], []
-    for i, Ei in enumerate(E):
-        for j, Ej in enumerate(E):
-            Mij = A_op.matrix_element(V[i], V[j])
-            if abs(Mij) > cutoff:
-                P = Mij * (V[i] * V[j].dag())
+    for f in range(dim):
+        for i in range(dim):
+            Mfi = A_op.matrix_element(V[f], V[i])
+            if abs(Mfi) > cutoff:
+                P = Mfi * (V[f] * V[i].dag())
                 if bath=='bosonic':
-                    cp.append(np.sqrt(nbij[i, j]) * P.dag())
-                    cm.append(np.sqrt(1 + nbij[i, j]) * P)
+                    cp.append(np.sqrt(nb_fi[f, i]) * P.dag())
+                    cm.append(np.sqrt(nb_fi_m[f, i]) * P)
                 elif bath=='fermionic':
-                    cp.append(np.sqrt(fdij[i, j]) * P.dag())
-                    cm.append(np.sqrt(1 - fdij[i, j]) * P)
+                    cp.append(np.sqrt(fd_fi[f, i]) * P.dag())
+                    cm.append(np.sqrt(fd_fi_m[f, i]) * P)
     if total:
         return cp + cm
     return cp, cm
