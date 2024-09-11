@@ -58,27 +58,27 @@ def bose_matrix(E, kT=0.1):
 
 def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     """
-    Calculates the transition rates between many-body states to be
-    used in rate equtions. Returns a 3d numpy array with axis 0
-    corresponding to the chemical potential and axis 1 and 2
-    to the eigenstates.
+        Calculates the transition rates between many-body states to be
+        used in rate equtions. Returns a 3d numpy array with axis 0
+        corresponding to the chemical potential and axis 1 and 2
+        to the eigenstates.
 
-    Parameters
-    ----------
-    E: system eigenvalues
-    v: system eigenvectors
-    A: list of all annihilation operators which interact with the
-        considered bath
-    g: coupling to the each level considered in A
-    kT: temperature
-    mu: chemical potential of the lead (only relevant for fermionic baths)
-    bath: considering a fermionic or bosonic bath
+        Parameters
+        ----------
+        E: system eigenvalues
+        v: system eigenvectors
+        A: list of all annihilation operators which interact with the
+            considered bath
+        g: coupling to the each level considered in A
+        kT: temperature
+        mu: chemical potential of the lead (only relevant for fermionic baths)
+        bath: considering a fermionic or bosonic bath
 
-    Returns
-    ---------
-    rates_p: transition rate matrix for adding particles to the central system
-    rates_m: transition rate matrix for removing particles to
-                the central system
+        Returns
+        ---------
+        rates_p: transition rate matrix for adding particles to the central system
+        rates_m: transition rate matrix for removing particles to
+                    the central system
     """
     if not isinstance(mu, np.ndarray):
         mu = np.array(mu)
@@ -111,8 +111,10 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     elif bath == 'bosonic':
         n_mat_p = np.zeros((M.shape[0], M.shape[1]))
         n_mat_m = np.zeros((M.shape[0], M.shape[1]))
-        n_list_p = ndist.bose_einstein(DElistp, kT=kT)
-        n_list_m = 1 + ndist.bose_einstein(-DElistm, kT=kT)
+        n_list_p = np.where(DElistp > 0,
+                            ndist.bose_einstein(DElistp, kT=kT), 0)
+        n_list_m = np.where(DElistm < 0,
+                            1 + ndist.bose_einstein(-DElistm, kT=kT), 0)
 
         n_mat_p[mask.T] = n_list_p
         n_mat_m[mask] = n_list_m

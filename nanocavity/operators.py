@@ -2,27 +2,67 @@ import numpy as np
 import nanocavity.distributions as ndist
 from secondquant.operator import Operator
 
+
 def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
-    if isinstance(A_op, Operator):
-        A_op = A_op.toarray()
-    
+    '''
+        Function to calculate the collapse operators which are needed to
+        build a Liouvillian with secondquant operators
+        Parameters:
+            ----
+            A_op: secondquantoperator
+                annihilation operator 
+            H:  secondquant operator 
+                Hamiltonian of the central system
+            kT: float
+                Temperature
+            bath: string
+                Either 'fermionic' or 'bosonic'
+            mu: float
+                chemical potential
+            total: logical
+                Switch wether to return the sum of collapse operators or
+                the individual opperators
+            cutoff: float
+                cutoff for the considered transition matrix elements
+        Returns
+        -------
+        total = True: cp + cm
+            List of collapse operators
+        total = False: cp, cm
+            two lists of collapse operators for adding or removing particles
+    '''
     E, V = H.eigh()
+
+    # Transition matrix elements between final (f) and initial (i) states
+    # Thus the first index refers to the final state 
+    M_fi = A_op.inner(V)
     dim = A_op.shape[0]
+    # Matrix of all energy differences in the system between final and initial
+    # state
+    E_fi = E.reshape(dim, 1) - E.reshape(1, dim)
+    if bath == 'bosonic':
+        # This rate is for photon absorption, thus the final state must be 
+        # higher in energy than the initial one
+        nb_fi_p = np.where(E_fi > 0, ndist.bose_einstein(E_fi, kT), 0)
+        # This rate is for photon emission, thus the final state must be 
+        # lower in energy than the initial one
+        nb_fi_m = np.where(E_fi < 0, 1 + ndist.bose_einstein(-E_fi, kT), 0)
+    elif bath == 'fermionic':
+        fd_fi_p = ndist.fermi_dirac(E_fi, kT, mu)
+        fd_fi_m = 1-fd_fi_p
     cp, cm = [], []
-    for i, Ei in enumerate(E):
-        for j, Ej in enumerate(E):
-            Mij = V[:, i].T @ A_op @ V[:, j]
-            if abs(Mij) > cutoff:
-                Eji = Ej - Ei
-                P = Mij * V[:,  i].reshape(dim, 1) @ V[:, j].reshape(1, dim)
-                if bath=='bosonic':
-                    nb = ndist.bose_einstein(Eji, kT=kT)
-                    cp.append(np.sqrt(nb) * P.conj().T)
-                    cm.append(np.sqrt(1 + nb) * P)
-                elif bath=='fermionic':
-                    fd = ndist.fermi_dirac(Eji, kT=kT, mu=mu)
-                    cp.append(np.sqrt(fd) * P.conj().T)
-                    cm.append(np.sqrt(1 - fd) * P)
+    for f in range(dim):
+        for i in range(dim):
+            if abs(M_fi[f, i]) > cutoff:
+                P = M_fi[f, i] * \
+                        V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
+                if bath == 'bosonic':
+                    cp.append(np.sqrt(nb_fi_p[f, i]) * P.conj().T)
+                    cm.append(np.sqrt(nb_fi_m[f, i]) * P)
+
+                elif bath == 'fermionic':
+                    cp.append(np.sqrt(fd_fi_p[f, i]) * P.conj().T)
+                    cm.append(np.sqrt(fd_fi_m[f, i]) * P)
     if total:
         return cp + cm
     return cp, cm
