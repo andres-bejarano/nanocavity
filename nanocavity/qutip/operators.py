@@ -49,12 +49,12 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     if bath == 'bosonic':
         # This rate is for photon absorption, thus the final state must be 
         # higher in energy than the initial one
-        nb_fi = np.where(E_fi > 0, ndist.bose_einstein(E_fi, kT), 0)
+        nb_fi_p = np.where(E_fi > 0, ndist.bose_einstein(E_fi, kT), 0)
         # This rate is for photon emission, thus the final state must be 
         # lower in energy than the initial one
         nb_fi_m = np.where(E_fi < 0, 1 + ndist.bose_einstein(-E_fi, kT), 0)
     elif bath == 'fermionic':
-        fd_fi = ndist.fermi_dirac(E_fi, kT, mu)
+        fd_fi_p = ndist.fermi_dirac(E_fi, kT, mu)
         fd_fi_m = 1-fd_fi
 
     cp, cm = [], []
@@ -64,10 +64,10 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
             if abs(Mfi) > cutoff:
                 P = Mfi * (V[f] * V[i].dag())
                 if bath=='bosonic':
-                    cp.append(np.sqrt(nb_fi[f, i]) * P.dag())
+                    cp.append(np.sqrt(nb_fi_p[f, i]) * P.dag())
                     cm.append(np.sqrt(nb_fi_m[f, i]) * P)
                 elif bath=='fermionic':
-                    cp.append(np.sqrt(fd_fi[f, i]) * P.dag())
+                    cp.append(np.sqrt(fd_fi_p[f, i]) * P.dag())
                     cm.append(np.sqrt(fd_fi_m[f, i]) * P)
     if total:
         return cp + cm
