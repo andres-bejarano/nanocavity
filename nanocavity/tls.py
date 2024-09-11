@@ -6,7 +6,7 @@ import nanocavity.master_equation as nme
 import qutip as qt
 import secondquant as sq
 
-def Hnc(Eg, delta, omegac, coupling, u=0, rwa=False, max_bosons=1, ret_nop=False):
+def Hnc(Eg, delta, omegac, coupling, u=0, rwa=True, max_bosons=1, ret_nop=False):
     [dg, de, a], [Nfg, Nfe, Nb] = \
         sq.composite(fermion_modes=2, boson_modes=1, max_bosons=max_bosons)
     He = Eg * Nfg + (Eg +  delta) * Nfe + u * dg.d * de.d * de * dg
@@ -22,7 +22,7 @@ def Hnc(Eg, delta, omegac, coupling, u=0, rwa=False, max_bosons=1, ret_nop=False
         return H, L, [Nfg, Nfe, Nb]
     return H, L
 
-def Hqt(Eg, delta, omegac, coupling, u=0, rwa=False, max_bosons=1):
+def Hqt(Eg, delta, omegac, coupling, u=0, rwa=True, max_bosons=1):
     N = max_bosons + 1
     dg = qt.tensor(qt.fdestroy(2, 0), qt.qeye(N))
     de = qt.tensor(qt.fdestroy(2, 1), qt.qeye(N))
@@ -43,7 +43,7 @@ def Hqt(Eg, delta, omegac, coupling, u=0, rwa=False, max_bosons=1):
     return H, L
 
 
-def Hamiltonian(package, Eg, delta, omegac, coupling, u=0, rwa=False, max_bosons=1, ret_nop=False):
+def Hamiltonian(package, Eg, delta, omegac, coupling, u=0, rwa=True, max_bosons=1, ret_nop=False):
     if package=='nanocavity':
         return Hnc(Eg, delta, omegac, coupling, u, rwa, max_bosons, ret_nop)
     elif package=='qutip':
