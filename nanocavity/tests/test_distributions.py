@@ -15,6 +15,9 @@ def test_fermi_dirac_arrays():
     e = np.linspace(-100, 100, 10).reshape((2, 5))
     nf = fermi_dirac(e)
     assert nf.shape == e.shape
+    # 1 - nF(-e) == nF(e)
+    nf2 = 1 - fermi_dirac(-e)
+    assert np.allclose(nf, nf2)
     nf = fermi_dirac(0, mu=e)
     assert nf.shape == e.shape
     nf = fermi_dirac(e, 1)
@@ -32,11 +35,14 @@ def test_bose_einstein():
     assert np.allclose(bose_einstein(e, 0.1), nb)
     assert np.allclose(bose_einstein(e, 0.01), nb)
     assert not np.allclose(bose_einstein(e, 100), nb)
-    
+
 def test_bose_einstein_arrays():
     e = np.linspace(-100, 100, 10).reshape((2, 5))
     nb = bose_einstein(e)
     assert nb.shape == e.shape
+    # 1 + nB(-e) == -nB(e)
+    nb2 = 1 + bose_einstein(-e)
+    assert np.allclose(-nb, nb2)
 
 def test_bath_dist():
     for bath in ['bosonic', 'fermionic', 'leadtolead']:
