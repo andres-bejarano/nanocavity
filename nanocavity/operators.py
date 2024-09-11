@@ -24,6 +24,12 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
                 the individual opperators
             cutoff: float
                 cutoff for the considered transition matrix elements
+        Returns
+        -------
+        total = True: cp + cm
+            List of collapse operators
+        total = False: cp, cm
+            two lists of collapse operators for adding or removing particles
     '''
     E, V = H.eigh()
 
