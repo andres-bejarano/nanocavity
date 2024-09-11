@@ -55,7 +55,7 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
         nb_fi_m = np.where(E_fi < 0, 1 + ndist.bose_einstein(-E_fi, kT), 0)
     elif bath == 'fermionic':
         fd_fi_p = ndist.fermi_dirac(E_fi, kT, mu)
-        fd_fi_m = 1-fd_fi
+        fd_fi_m = 1-fd_fi_
 
     cp, cm = [], []
     for f in range(dim):
