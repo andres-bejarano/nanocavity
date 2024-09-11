@@ -4,10 +4,35 @@ from secondquant.operator import Operator
 
 
 def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
+    '''
+        Function to calculate the collapse operators which are needed to
+        build a Liouvillian with secondquant operators
+        Parameters:
+            ----
+            A_op: secondquantoperator
+                annihilation operator 
+            H:  secondquant operator 
+                Hamiltonian of the central system
+            kT: float
+                Temperature
+            bath: string
+                Either 'fermionic' or 'bosonic'
+            mu: float
+                chemical potential
+            total: logical
+                Switch wether to return the sum of collapse operators or
+                the individual opperators
+            cutoff: float
+                cutoff for the considered transition matrix elements
+    '''
     E, V = H.eigh()
 
+    # Transition matrix elements between final (f) and initial (i) states
+    # Thus the first index refers to the final state 
     M_fi = A_op.inner(V)
     dim = A_op.shape[0]
+    # Matrix of all energy differences in the system between final and initial
+    # state
     E_fi = E.reshape(dim, 1) - E.reshape(1, dim)
     if bath == 'bosonic':
         # This rate is for photon absorption, thus the final state must be 
