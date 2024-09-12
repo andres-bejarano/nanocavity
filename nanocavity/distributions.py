@@ -1,7 +1,7 @@
 import numpy as np
 
 #fermi-dirac distribution
-def fermi_dirac(E, kT=0.1, mu=0):
+def fermi_dirac(E, kT, mu=0):
     if not isinstance(E, np.ndarray):
         E = np.array(E)
     # 709 is approximately the largest number for which exp(x) won't overflow
@@ -9,7 +9,7 @@ def fermi_dirac(E, kT=0.1, mu=0):
     return 1 / (np.exp(x) + 1)
 
 #bose-einstein distribution
-def bose_einstein(E, kT=0.1, mu=0):
+def bose_einstein(E, kT, mu=0):
     if not isinstance(E, np.ndarray):
         E = np.array(E)
     x = np.clip((E - mu) / kT, None, 709)

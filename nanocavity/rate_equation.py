@@ -26,7 +26,7 @@ def matrix_elements(A, v, g):
     MGM = np.einsum('iab,ij,jab->ab', M.conj(), g, M)
     return MGM
 
-def fermi_matrix(E, kT=0.1, mu=0):
+def fermi_matrix(E, kT, mu=0):
     r""" Construction of numpy array whose matrix elements are fermi functions evaluated for each energy differences and chemical potential.
     Parameters
     ----------
@@ -45,18 +45,18 @@ def fermi_matrix(E, kT=0.1, mu=0):
     
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     mu = mu.reshape(-1, 1, 1) 
-    f = ndist.fermi_dirac(E=DE, kT=kT, mu=mu)
+    f = ndist.fermi_dirac(DE, kT, mu)
     return f
 
-def bose_matrix(E, kT=0.1):
+def bose_matrix(E, kT):
     if not isinstance(E, np.ndarray):
         E = np.array(E)
     DE = E.reshape(-1, 1) - E.reshape(1, -1)
-    nb = ndist.bose_einstein(E=DE, kT=kT)
+    nb = ndist.bose_einstein(DE, kT)
     np.fill_diagonal(nb, 0)
     return nb
 
-def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
+def transition_rate(E, v, A, g, kT, mu=0, bath='fermionic'):
     """
         Calculates the transition rates between many-body states to be
         used in rate equtions. Returns a 3d numpy array with axis 0
@@ -99,8 +99,8 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
     if bath == 'fermionic':
         f_mat_p = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
         f_mat_m = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
-        f_list_p = ndist.fermi_dirac(DElistp, kT=kT, mu=mu)
-        f_list_m = 1 - ndist.fermi_dirac(-DElistm, kT=kT, mu=mu)
+        f_list_p = ndist.fermi_dirac(DElistp, kT, mu)
+        f_list_m = 1 - ndist.fermi_dirac(-DElistm, kT, mu)
 
         f_mat_p[:, mask.T] = f_list_p
         f_mat_m[:, mask] = f_list_m
@@ -112,9 +112,9 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
         n_mat_p = np.zeros((M.shape[0], M.shape[1]))
         n_mat_m = np.zeros((M.shape[0], M.shape[1]))
         n_list_p = np.where(DElistp > 0,
-                            ndist.bose_einstein(DElistp, kT=kT), 0)
+                            ndist.bose_einstein(DElistp, kT), 0)
         n_list_m = np.where(DElistm < 0,
-                            1 + ndist.bose_einstein(-DElistm, kT=kT), 0)
+                            1 + ndist.bose_einstein(-DElistm, kT), 0)
 
         n_mat_p[mask.T] = n_list_p
         n_mat_m[mask] = n_list_m
@@ -122,7 +122,7 @@ def transition_rate(E, v, A, g, kT=0.1, mu=0, bath='fermionic'):
         K_m = n_mat_m * M
         return K_p, K_m
 
-def bath_system_bath_rate(E, v, A, m, VL, VR, kT=0.1):
+def bath_system_bath_rate(E, v, A, m, VL, VR, kT):
     if not isinstance(E, np.ndarray):
         E = np.array(E)
     if not isinstance(VL, np.ndarray):
