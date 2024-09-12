@@ -3,22 +3,21 @@ from nanocavity.distributions import *
 
 
 def test_fermi_dirac():
-    assert fermi_dirac(0) == 0.5
+    assert fermi_dirac(0, 0.1) == 0.5
     e = [-1e5, -100, 0, 100, 1e5]
     nf = [1, 1, 0.5, 0, 0]
-    assert np.allclose(fermi_dirac(e), nf)
     assert np.allclose(fermi_dirac(e, 0.1), nf)
     assert np.allclose(fermi_dirac(e, 0.01), nf)
     assert not np.allclose(fermi_dirac(e, 100), nf)
 
 def test_fermi_dirac_arrays():
     e = np.linspace(-100, 100, 10).reshape((2, 5))
-    nf = fermi_dirac(e)
+    nf = fermi_dirac(e, 0.1)
     assert nf.shape == e.shape
     # 1 - nF(-e) == nF(e)
-    nf2 = 1 - fermi_dirac(-e)
+    nf2 = 1 - fermi_dirac(-e, 0.1)
     assert np.allclose(nf, nf2)
-    nf = fermi_dirac(0, mu=e)
+    nf = fermi_dirac(0, 0.1, mu=e)
     assert nf.shape == e.shape
     nf = fermi_dirac(e, 1)
     assert nf.shape == e.shape
@@ -28,20 +27,19 @@ def test_fermi_dirac_arrays():
     assert nf.shape == e.shape
 
 def test_bose_einstein():
-    assert bose_einstein(1e5) < 1e-100
+    assert bose_einstein(1e5, 0.1) < 1e-100
     e = [-1e5, -100, 0, 100, 1e5]
     nb = [-1, -1, np.inf, 0, 0]
-    assert np.allclose(bose_einstein(e), nb)
     assert np.allclose(bose_einstein(e, 0.1), nb)
     assert np.allclose(bose_einstein(e, 0.01), nb)
     assert not np.allclose(bose_einstein(e, 100), nb)
 
 def test_bose_einstein_arrays():
     e = np.linspace(-100, 100, 10).reshape((2, 5))
-    nb = bose_einstein(e)
+    nb = bose_einstein(e, 0.1)
     assert nb.shape == e.shape
     # 1 + nB(-e) == -nB(e)
-    nb2 = 1 + bose_einstein(-e)
+    nb2 = 1 + bose_einstein(-e, 0.1)
     assert np.allclose(-nb, nb2)
 
 def test_bath_dist():
