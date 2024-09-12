@@ -2,18 +2,22 @@ import numpy as np
 from nanocavity.distributions import *
 
 
-def test_fermi_dirac(): 
-    assert fermi_dirac(-100) == 1.0
+def test_fermi_dirac():
     assert fermi_dirac(0) == 0.5
-    assert fermi_dirac(100) == 0.0
-    assert fermi_dirac(-100, 0.1) == 1.0
-    assert fermi_dirac(0, 0.1) == 0.5
-    assert fermi_dirac(100, 0.1) == 0.0
+    e = [-1e5, -100, 0, 100, 1e5]
+    nf = [1, 1, 0.5, 0, 0]
+    assert np.allclose(fermi_dirac(e), nf)
+    assert np.allclose(fermi_dirac(e, 0.1), nf)
+    assert np.allclose(fermi_dirac(e, 0.01), nf)
+    assert not np.allclose(fermi_dirac(e, 100), nf)
 
 def test_fermi_dirac_arrays():
     e = np.linspace(-100, 100, 10).reshape((2, 5))
     nf = fermi_dirac(e)
     assert nf.shape == e.shape
+    # 1 - nF(-e) == nF(e)
+    nf2 = 1 - fermi_dirac(-e)
+    assert np.allclose(nf, nf2)
     nf = fermi_dirac(0, mu=e)
     assert nf.shape == e.shape
     nf = fermi_dirac(e, 1)
@@ -24,10 +28,21 @@ def test_fermi_dirac_arrays():
     assert nf.shape == e.shape
 
 def test_bose_einstein():
-    assert bose_einstein(0) == np.inf
-    assert bose_einstein(100) == 0.0
-    assert bose_einstein(0, 0.1) == np.inf
-    assert bose_einstein(100, 0.1) == 0.0
+    assert bose_einstein(1e5) < 1e-100
+    e = [-1e5, -100, 0, 100, 1e5]
+    nb = [-1, -1, np.inf, 0, 0]
+    assert np.allclose(bose_einstein(e), nb)
+    assert np.allclose(bose_einstein(e, 0.1), nb)
+    assert np.allclose(bose_einstein(e, 0.01), nb)
+    assert not np.allclose(bose_einstein(e, 100), nb)
+
+def test_bose_einstein_arrays():
+    e = np.linspace(-100, 100, 10).reshape((2, 5))
+    nb = bose_einstein(e)
+    assert nb.shape == e.shape
+    # 1 + nB(-e) == -nB(e)
+    nb2 = 1 + bose_einstein(-e)
+    assert np.allclose(-nb, nb2)
 
 def test_bath_dist():
     for bath in ['bosonic', 'fermionic', 'leadtolead']:
@@ -57,3 +72,8 @@ def test_semi_circle():
     assert sc[2] == 0
     sc = semi_circle(e, mu=e, w=1)
     assert sc.shape == (3, 3)
+
+def test_Fermi_cb():
+    e = np.linspace(-2, 2, 3)
+    x = Fermi_cb(e, 0.1)
+    assert np.allclose(x, [4.12230725e-09, 0.1, 2.0])
