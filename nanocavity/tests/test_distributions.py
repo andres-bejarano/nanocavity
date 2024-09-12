@@ -72,3 +72,8 @@ def test_semi_circle():
     assert sc[2] == 0
     sc = semi_circle(e, mu=e, w=1)
     assert sc.shape == (3, 3)
+
+def test_Fermi_cb():
+    e = np.linspace(-2, 2, 3)
+    x = Fermi_cb(e, 0.1)
+    assert np.allclose(x, [4.12230725e-09, 0.1, 2.0])

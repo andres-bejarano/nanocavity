@@ -13,7 +13,8 @@ def bose_einstein(E, kT=0.1, mu=0):
     if not isinstance(E, np.ndarray):
         E = np.array(E)
     x = np.clip((E - mu) / kT, None, 709)
-    return 1 / np.expm1(x)
+    safe_division = np.divide(1, np.expm1(x), where=(x != 0), out=np.zeros_like(x))
+    return np.where(x == 0, np.inf, safe_division)
 
 def bath_dist(E, kT, rate, bath, mu=0, eV=0):
     if bath == 'bosonic':
@@ -55,7 +56,9 @@ def semi_circle(e, mu, w):
     y = (1 - x ** 2) ** 0.5
     return np.squeeze(y)
 
-#intregral of two fermi function \int dy f_l(y)(1-f_r(y+x)) = x/1-e^{x/kBT}
-#it appears tipycally in coulomb blockade
-def Fermi_cb(x, kT):
-    return np.where(x == 0, kT, x/(1-np.exp(-x/kT)))
+#intregral of two fermi functions \int dy f_l(y)(1-f_r(y+x)) = x/(1-e^{-x/kT})
+#it appears typically in Coulomb blockade
+def Fermi_cb(E, kT):
+    x = np.clip(E / kT, -709, None)
+    safe_division = np.divide(x, -np.expm1(-x), where=(x != 0), out=np.zeros_like(x))
+    return kT * np.where(x == 0, 1, safe_division)
