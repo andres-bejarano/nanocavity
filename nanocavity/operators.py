@@ -70,12 +70,16 @@ def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
     return cp, cm
 
 def jump(c_ops):
+    if not isinstance(c_ops, list):
+        raise TypeError("c_ops must be a list")
     J = 0
     for c in c_ops:
         J += np.kron(c, c.conj())
     return J 
 
 def dissipator(c_ops, method='kron'):
+    if not isinstance(c_ops, list):
+        raise TypeError("c_ops must be a list")
     Id = np.eye(c_ops[0].shape[0])
     #Look https://arxiv.org/pdf/1504.05266
     L = 0
@@ -92,6 +96,8 @@ def dissipator(c_ops, method='kron'):
     return L
 
 def liouvillian(H, c_ops, method='kron'):
+    if not isinstance(c_ops, list):
+        raise TypeError("c_ops must be a list")
     if isinstance(H, Operator):
         H = H.toarray()
     dim = H.shape[0]
