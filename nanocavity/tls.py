@@ -71,7 +71,7 @@ def collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False)
     #cavity mode
     CA = no.collapses(a, H, kT, 'bosonic', kappa)
 
-    c_ops = np.concatenate((CL, CR, CA))
+    c_ops = CL + CR + CA
 
     if alone:
         return c_ops
@@ -103,9 +103,9 @@ def collapses_qt(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, 
 
     if lead2lead:
         c_lead = qo.lead_cavity_lead_collapses(a, H, VL, VR, kT, m)
-        c_ops = np.concatenate((CL, CR, CA, c_lead))
+        c_ops = CL + CR + CA + c_lead
     else:
-        c_ops = np.concatenate((CL, CR, CA))
+        c_ops = CL + CR + CA
 
     if alone:
         return c_ops
