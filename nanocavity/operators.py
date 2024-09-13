@@ -3,7 +3,7 @@ import nanocavity.distributions as ndist
 from secondquant.operator import Operator
 
 
-def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
+def collapses(A_op, H, kT, bath, g, mu=0, total=True, cutoff=1e-12):
     '''
         Function to calculate the collapse operators which are needed to
         build a Liouvillian with secondquant operators
@@ -19,6 +19,8 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
                 Either 'fermionic' or 'bosonic'
             mu: float
                 chemical potential
+            g: float
+                coupling strength
             total: logical
                 Switch wether to return the sum of collapse operators or
                 the individual opperators
@@ -57,12 +59,12 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
                 P = M_fi[f, i] * \
                         V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
                 if bath == 'bosonic':
-                    cp.append(np.sqrt(nb_fi_p[f, i]) * P.conj().T)
-                    cm.append(np.sqrt(nb_fi_m[f, i]) * P)
+                    cp.append(np.sqrt(g * nb_fi_p[f, i]) * P.conj().T)
+                    cm.append(np.sqrt(g* nb_fi_m[f, i]) * P)
 
                 elif bath == 'fermionic':
-                    cp.append(np.sqrt(fd_fi_p[f, i]) * P.conj().T)
-                    cm.append(np.sqrt(fd_fi_m[f, i]) * P)
+                    cp.append(np.sqrt(g * fd_fi_p[f, i]) * P.conj().T)
+                    cm.append(np.sqrt(g * fd_fi_m[f, i]) * P)
     if total:
         return cp + cm
     return cp, cm

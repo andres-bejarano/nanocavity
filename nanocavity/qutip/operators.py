@@ -2,7 +2,7 @@ import numpy as np
 import nanocavity.distributions as ndist
 from qutip import sprepost, spre, spost, lindblad_dissipator
 
-def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
+def collapses(A_op, H, kT, bath, g, mu=0, total=True, cutoff=1e-12):
     """
     This script describes the collapse operator defined below. We will have an operator A_op of the system that interacts with a given bath, which is in thermal equilibrium and will be characterized by the Fermi-Dirac or Bose-Einstein function depending on its nature.
 
@@ -36,6 +36,9 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
     bath :  str
         fermionic or bosonic bath.
 
+    g: float
+        coupling strength
+
 
     Returns
     -------
@@ -64,11 +67,11 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
             if abs(Mfi) > cutoff:
                 P = Mfi * (V[f] * V[i].dag())
                 if bath=='bosonic':
-                    cp.append(np.sqrt(nb_fi_p[f, i]) * P.dag())
-                    cm.append(np.sqrt(nb_fi_m[f, i]) * P)
+                    cp.append(np.sqrt(g * nb_fi_p[f, i]) * P.dag())
+                    cm.append(np.sqrt(g * nb_fi_m[f, i]) * P)
                 elif bath=='fermionic':
-                    cp.append(np.sqrt(fd_fi_p[f, i]) * P.dag())
-                    cm.append(np.sqrt(fd_fi_m[f, i]) * P)
+                    cp.append(np.sqrt(g * fd_fi_p[f, i]) * P.dag())
+                    cm.append(np.sqrt(g * fd_fi_m[f, i]) * P)
     if total:
         return cp + cm
     return cp, cm
