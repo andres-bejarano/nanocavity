@@ -17,10 +17,10 @@ def collapses(A_op, H, kT, bath, g, mu=0, total=True, cutoff=1e-12):
                 Temperature
             bath: string
                 Either 'fermionic' or 'bosonic'
-            mu: float
-                chemical potential
             g: float
                 coupling strength
+            mu: float
+                chemical potential
             total: logical
                 Switch wether to return the sum of collapse operators or
                 the individual opperators
