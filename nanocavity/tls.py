@@ -219,7 +219,7 @@ def collapses_nc_vi(H, ops, VL, VR, kappa, gL, gR, kT):
     #cavity mode
     CA = no.collapses(a_ph, H, kT, bath='bosonic', rate=kappa)
 
-    c_ops = np.concatenate((CL, CR, CA))
+    c_ops = CL + CR + CA
     return c_ops
 
 def collapses_qt_vi(H, ops, VL, VR, kappa, gL, gR, kT):
@@ -265,7 +265,7 @@ def collapses_qt_vi(H, ops, VL, VR, kappa, gL, gR, kT):
 
     CA = qo.collapses(a_ph, H, kT, bath='bosonic', rate=kappa)
 
-    c_ops = np.concatenate((CL, CR, CA))
+    c_ops = CL + CR + CA
     return c_ops
 
 def collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False):
