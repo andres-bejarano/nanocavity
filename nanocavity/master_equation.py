@@ -83,6 +83,7 @@ def g2(L, J, tlist, cutoff=1e-12):
         J = J.toarray()
     
     dim = J.shape[0]
+    tlist = np.array(tlist, dtype=np.complex128)
     
     w0 = np.eye(int(np.sqrt(dim))).reshape(1, dim)
     rho_st = stationary(L).reshape(dim)
