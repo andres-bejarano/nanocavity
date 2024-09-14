@@ -121,9 +121,9 @@ def test_current():
             CmL = list(np.sqrt(gL) * np.array(cm_gL + cm_eL))
 
             #cavity mode
-           cap, cam = qo.collapses(a, Hqt, kT, bath='bosonic', total=False)
-           Cp = list(np.sqrt(kappa) * np.array(cap))
-          Cm = list(np.sqrt(kappa) * np.array(cam))
+            cap, cam = qo.collapses(a, Hqt, kT, bath='bosonic', total=False)
+            Cp = list(np.sqrt(kappa) * np.array(cap))
+            Cm = list(np.sqrt(kappa) * np.array(cam))
 
             L = qo.liouvillian(Hqt, list(c_ops))
 
@@ -133,7 +133,6 @@ def test_current():
 
             #assert np.allclose(Ig_me, Ig_re)
             #assert np.allclose(Ie_me, Ie_re)"""
-            
 
 def test_g2():
     VL, VR = 10, -10
