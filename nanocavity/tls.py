@@ -207,18 +207,17 @@ def collapses_nc_vi(H, ops, VL, VR, kappa, gL, gR, kT):
     a_ph = ops[2]
 
     #left electrode
-    c_gL = no.collapses(dg, H, kT, bath='fermionic', mu=VL)
-    c_eL = no.collapses(de, H, kT, bath='fermionic', mu=VL)
-    CL = np.sqrt(gL) * np.array(c_gL + c_eL)
+    c_gL = no.collapses(dg, H, kT, bath='fermionic', rate=gL, mu=VL)
+    c_eL = no.collapses(de, H, kT, bath='fermionic', rate=gL, mu=VL)
+    CL = c_gL + c_eL
 
     #left electrode
-    c_gR = no.collapses(dg, H, kT, bath='fermionic', mu=VR)
-    c_eR = no.collapses(de, H, kT, bath='fermionic', mu=VR)
-    CR = np.sqrt(gR) * np.array(c_gR + c_eR)
+    c_gR = no.collapses(dg, H, kT, bath='fermionic', rate=gR, mu=VR)
+    c_eR = no.collapses(de, H, kT, bath='fermionic', rate=gR, mu=VR)
+    CR = c_gR + c_eR
 
     #cavity mode
-    CA = no.collapses(a_ph, H, kT, bath='bosonic')
-    CA = np.sqrt(kappa) * np.array(CA)
+    CA = no.collapses(a_ph, H, kT, bath='bosonic', rate=kappa)
 
     c_ops = np.concatenate((CL, CR, CA))
     return c_ops
@@ -256,16 +255,15 @@ def collapses_qt_vi(H, ops, VL, VR, kappa, gL, gR, kT):
     de = ops[1]
     a_ph = ops[2]
 
-    c_gL = qo.collapses(dg, H, kT, bath='fermionic', mu=VL)
-    c_eL = qo.collapses(de, H, kT, bath='fermionic', mu=VL)
-    CL = np.sqrt(gL) * np.array(c_gL + c_eL)
+    c_gL = qo.collapses(dg, H, kT, bath='fermionic', rate=gL, mu=VL)
+    c_eL = qo.collapses(de, H, kT, bath='fermionic', rate=gL, mu=VL)
+    CL = c_gL + c_eL
 
-    c_gR = qo.collapses(dg, H, kT, bath='fermionic', mu=VR)
-    c_eR = qo.collapses(de, H, kT, bath='fermionic', mu=VR)
-    CR = np.sqrt(gR) * np.array(c_gR + c_eR)
+    c_gR = qo.collapses(dg, H, kT, bath='fermionic', rate=gR, mu=VR)
+    c_eR = qo.collapses(de, H, kT, bath='fermionic', rate=gR, mu=VR)
+    CR = c_gR + c_eR
 
-    CA = qo.collapses(a_ph, H, kT, bath='bosonic')
-    CA = np.sqrt(kappa) * np.array(CA)
+    CA = qo.collapses(a_ph, H, kT, bath='bosonic', rate=kappa)
 
     c_ops = np.concatenate((CL, CR, CA))
     return c_ops
