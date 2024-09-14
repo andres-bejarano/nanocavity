@@ -59,21 +59,19 @@ def collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False)
         Hint = coupling * (a.d * dg.d * de + a * de.d * dg)
         H -= Hint
     #left electrode
-    c_gL = no.collapses(dg, H, kT, bath='fermionic', mu=VL)
-    c_eL = no.collapses(de, H, kT, bath='fermionic', mu=VL)
-    CL = np.sqrt(gL) * np.array(c_gL + c_eL)
+    c_gL = no.collapses(dg, H, kT, 'fermionic', gL, mu=VL)
+    c_eL = no.collapses(de, H, kT, 'fermionic', gL, mu=VL)
+    CL = c_gL + c_eL
 
     #right electrode
-    c_gR = no.collapses(dg, H, kT, bath='fermionic', mu=VR)
-    c_eR = no.collapses(de, H, kT, bath='fermionic', mu=VR)
-    CR = np.sqrt(gR) * np.array(c_gR + c_eR)
+    c_gR = no.collapses(dg, H, kT, 'fermionic', gR, mu=VR)
+    c_eR = no.collapses(de, H, kT, 'fermionic', gR, mu=VR)
+    CR = c_gR + c_eR
 
     #cavity mode
-    CA = no.collapses(a, H, kT, bath='bosonic')
+    CA = no.collapses(a, H, kT, 'bosonic', kappa)
 
-    CA = np.sqrt(kappa) * np.array(CA)
-
-    c_ops = np.concatenate((CL, CR, CA))
+    c_ops = CL + CR + CA
 
     if alone:
         return c_ops
@@ -91,25 +89,23 @@ def collapses_qt(H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, 
         Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
         H -= Hint
     #left electrode
-    c_gL = qo.collapses(dg, H, kT, bath='fermionic', mu=VL)
-    c_eL = qo.collapses(de, H, kT, bath='fermionic', mu=VL)
-    CL = np.sqrt(gL) * np.array(c_gL + c_eL)
+    c_gL = qo.collapses(dg, H, kT, 'fermionic', gL, mu=VL)
+    c_eL = qo.collapses(de, H, kT, 'fermionic', gL, mu=VL)
+    CL = c_gL + c_eL
 
     #right electrode
-    c_gR = qo.collapses(dg, H, kT, bath='fermionic', mu=VR)
-    c_eR = qo.collapses(de, H, kT, bath='fermionic', mu=VR)
-    CR = np.sqrt(gR) * np.array(c_gR + c_eR)
+    c_gR = qo.collapses(dg, H, kT, 'fermionic', gR, mu=VR)
+    c_eR = qo.collapses(de, H, kT, 'fermionic', gR, mu=VR)
+    CR = c_gR + c_eR
 
     #cavity mode
-    CA = qo.collapses(a, H, kT, bath='bosonic')
-
-    CA = np.sqrt(kappa) * np.array(CA)
+    CA = qo.collapses(a, H, kT, 'bosonic', kappa)
 
     if lead2lead:
         c_lead = qo.lead_cavity_lead_collapses(a, H, VL, VR, kT, m)
-        c_ops = np.concatenate((CL, CR, CA, c_lead))
+        c_ops = CL + CR + CA + c_lead
     else:
-        c_ops = np.concatenate((CL, CR, CA))
+        c_ops = CL + CR + CA
 
     if alone:
         return c_ops
@@ -189,7 +185,7 @@ def g2(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
     if package=='nanocavity':
         c_ops = collapses('nanocavity', H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         L = no.liouvillian(H, list(c_ops))
-        _, cm = no.collapses(a, H, kT, bath='bosonic', total=False)
+        _, cm = no.collapses(a, H, kT, bath='bosonic', rate=kappa, total=False)
         J = no.jump(cm)
         return nme.g2(L, J, tlist)
 

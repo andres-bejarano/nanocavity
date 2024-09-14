@@ -3,7 +3,7 @@ import nanocavity.distributions as ndist
 from secondquant.operator import Operator
 
 
-def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
+def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
     '''
         Function to calculate the collapse operators which are needed to
         build a Liouvillian with secondquant operators
@@ -17,6 +17,8 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
                 Temperature
             bath: string
                 Either 'fermionic' or 'bosonic'
+            rate: float
+                coupling strength
             mu: float
                 chemical potential
             total: logical
@@ -57,23 +59,27 @@ def collapses(A_op, H, kT, bath, mu=0, total=True, cutoff=1e-12):
                 P = M_fi[f, i] * \
                         V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
                 if bath == 'bosonic':
-                    cp.append(np.sqrt(nb_fi_p[f, i]) * P.conj().T)
-                    cm.append(np.sqrt(nb_fi_m[f, i]) * P)
+                    cp.append(np.sqrt(rate * nb_fi_p[f, i]) * P.conj().T)
+                    cm.append(np.sqrt(rate * nb_fi_m[f, i]) * P)
 
                 elif bath == 'fermionic':
-                    cp.append(np.sqrt(fd_fi_p[f, i]) * P.conj().T)
-                    cm.append(np.sqrt(fd_fi_m[f, i]) * P)
+                    cp.append(np.sqrt(rate * fd_fi_p[f, i]) * P.conj().T)
+                    cm.append(np.sqrt(rate * fd_fi_m[f, i]) * P)
     if total:
         return cp + cm
     return cp, cm
 
 def jump(c_ops):
+    if not isinstance(c_ops, list):
+        raise TypeError("c_ops must be a list")
     J = 0
     for c in c_ops:
         J += np.kron(c, c.conj())
     return J 
 
 def dissipator(c_ops, method='kron'):
+    if not isinstance(c_ops, list):
+        raise TypeError("c_ops must be a list")
     Id = np.eye(c_ops[0].shape[0])
     #Look https://arxiv.org/pdf/1504.05266
     L = 0
@@ -90,6 +96,8 @@ def dissipator(c_ops, method='kron'):
     return L
 
 def liouvillian(H, c_ops, method='kron'):
+    if not isinstance(c_ops, list):
+        raise TypeError("c_ops must be a list")
     if isinstance(H, Operator):
         H = H.toarray()
     dim = H.shape[0]
