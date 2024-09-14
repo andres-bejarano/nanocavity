@@ -43,12 +43,232 @@ def Hqt(Eg, delta, omegac, coupling, u=0, rwa=True, max_bosons=1):
     return H, L
 
 
+def Hnc_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
+    '''
+        Function calculating the Hamiltonian describing a TLS to a
+        cavity and a vibronic environment.
+        Utilizes secondquant operators
+
+        Parameters:
+        -------
+        Eg: Float
+            Ground state Energy
+        Delta: Float
+            Splitting between ground and excited state
+        hw_ph: Float
+            energy of the cavity (photon) mdoe
+        g_ph: Float
+            coupling strength to the cavity
+        hw_vi: Float
+            Energy of the vibronic (phonon mode)
+        g_vi: Float
+            Coupling to the phonon mode
+        U: Float
+            Coulomb repulsion
+        max_bosons: list of 2 ints
+            List specifying the maximum numbers of bosons considered in the
+            cavity and the vibronic mode
+        rwa: logical
+            Switch if rotating wave should be applied or not. Defaults to false
+
+        Returns:
+        ------
+        H: secondquant operator
+            Total Hamiltonian
+        H0: secondquant operator
+            Hamiltonian w/o interaciton between TLS and photons/vibrons
+        Hint: secondquant operator
+            Interaction Hamiltonian
+        anni_list: list
+            List containing the annihilation operators
+        num_list: list
+            List containing the number operators
+    '''
+    [dg, de, a_ph, a_vi], [ng, ne, n_ph, n_vi] = \
+        sq.composite(fermion_modes=2, boson_modes=max_bosons)
+    H_e = Eg * ng + (Eg+Delta) * ne + U*ng*ne
+    H_ph = hw_ph*n_ph
+    H_vi = hw_vi*n_vi
+    if rwa:
+        H_m_ph = g_ph * (a_ph.d*dg.d*de + a_ph*de.d*dg)
+    else:
+        H_m_ph = g_ph * (a_ph.d+a_ph) * (dg.d*de + de.d*dg)
+    H_m_vi = g_vi * (a_vi.d + a_vi) * ne
+    H0 = H_e + H_ph + H_vi
+    Hint = H_m_vi + H_m_ph
+
+    H = H0 + Hint
+    anni_list = [dg, de, a_ph, a_vi]
+    num_list = [ng, ne, n_ph, n_vi]
+    return H, H0, Hint, anni_list, num_list
+
+
+def Hqt_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
+    '''
+        Function calculating the Hamiltonian describing a TLS to a cavity
+        and a vibronic environment.
+        Utilizes qutip operators
+
+        Parameters:
+            -------
+            Eg: Float
+                Ground state Energy
+            Delta: Float
+                Splitting between ground and excited state
+            hw_ph: Float
+                energy of the cavity (photon) mdoe
+            g_ph: Float
+                coupling strength to the cavity
+            hw_vi: Float
+                Energy of the vibronic (phonon mode)
+            g_vi: Float
+                Coupling to the phonon mode
+            U: Float
+                Coulomb repulsion
+            max_bosons: list of 2 ints
+                List specifying the maximum numbers of bosons considered in the
+                cavity and the vibronic mode
+
+        Returns:
+            ------
+            H: qutip operator
+                Total Hamiltonian
+            H0: qutip operator
+                Hamiltonian w/o interaciton between TLS and photons/vibrons
+            Hint: qutip operator
+                Interaction Hamiltonian
+            anni_list: list
+                List containing the annihilation operators
+    '''
+
+    N_ph = max_bosons[0] + 1
+    N_vi = max_bosons[1] + 1
+
+    dg = qt.tensor(qt.fdestroy(2, 0), qt.qeye(N_ph), qt.qeye(N_vi))
+    de = qt.tensor(qt.fdestroy(2, 1), qt.qeye(N_ph), qt.qeye(N_vi))
+    a_ph = qt.tensor(qt.sigmaz(), qt.sigmaz(), qt.destroy(N_ph), qt.qeye(N_vi))
+    a_vi = qt.tensor(qt.sigmaz(), qt.sigmaz(), qt.qeye(N_ph), qt.destroy(N_vi))
+
+    He = Eg*dg.dag()*dg + (Eg+Delta) * de.dag()*de +\
+        U * dg.dag()*dg * de.dag()*de
+    Hph = hw_ph * a_ph.dag() * a_ph
+    if rwa:
+        H_m_ph = g_ph * (a_ph.dag() * dg.dag() * de + a_ph * de.dag() * dg)
+    else:
+        H_m_ph = g_ph * (a_ph.dag()+a_ph) * (dg.dag()*de + de.dag()*dg)
+    Hvi = hw_vi * a_vi.dag() * a_vi
+    H_m_vi = g_vi * (a_vi.dag() + a_vi) * de.dag()*de
+
+    H0 = He + Hph + Hvi
+    H_int = H_m_ph + H_m_vi
+    H = H0 + H_int
+
+    anni_list = [dg, de, a_ph, a_vi]
+    return H, H0, H_int, anni_list
+
+
 def Hamiltonian(package, Eg, delta, omegac, coupling, u=0, rwa=True, max_bosons=1, ret_nop=False):
     if package=='nanocavity':
         return Hnc(Eg, delta, omegac, coupling, u, rwa, max_bosons, ret_nop)
     elif package=='qutip':
         return Hqt(Eg, delta, omegac, coupling, u, rwa, max_bosons)
 
+def collapses_nc_vi(H, ops, VL, VR, kappa, gL, gR, kT):
+    ''' 
+        Function to calculate the collapse operators with secondquant operators
+
+        Parameters:
+        -----
+        H: secondquant operator
+            Hamiltonian
+        ops: list with 3 entries
+            List containing the annihilation operators for the ground and 
+            excited state, as well as the phononic one
+        VL: float
+            bias at the left lead
+        VR: float
+            bias at the right lead
+        kappa: float
+            Cavity damping
+        gL: float
+            coupling of the left lead to the central system
+        gR: float
+            coupling of the right lead to the central system
+        kT: float
+            Temperature
+
+        Returns:
+        -----
+        c_ops: list
+            List containing the collapse operators
+    '''
+    dg = ops[0] 
+    de = ops[1]
+    a_ph = ops[2]
+
+    #left electrode
+    c_gL = no.collapses(dg, H, kT, bath='fermionic', mu=VL)
+    c_eL = no.collapses(de, H, kT, bath='fermionic', mu=VL)
+    CL = np.sqrt(gL) * np.array(c_gL + c_eL)
+
+    #left electrode
+    c_gR = no.collapses(dg, H, kT, bath='fermionic', mu=VR)
+    c_eR = no.collapses(de, H, kT, bath='fermionic', mu=VR)
+    CR = np.sqrt(gR) * np.array(c_gR + c_eR)
+
+    #cavity mode
+    CA = no.collapses(a_ph, H, kT, bath='bosonic')
+    CA = np.sqrt(kappa) * np.array(CA)
+
+    c_ops = np.concatenate((CL, CR, CA))
+    return c_ops
+
+def collapses_qt_vi(H, ops, VL, VR, kappa, gL, gR, kT):
+    ''' 
+    Function to calculate the collapse operators with secondquant operators
+
+    Parameters:
+        -----
+        H: qutip operator
+            Hamiltonian
+        ops: list with 3 entries
+            List containing the annihilation operators for the ground and 
+            excited state, as well as the phononic one
+        VL: float
+            bias at the left lead
+        VR: float
+            bias at the right lead
+        kappa: float
+            Cavity damping
+        gL: float
+            coupling of the left lead to the central system
+        gR: float
+            coupling of the right lead to the central system
+        kT: float
+            Temperature
+
+    Returns:
+        -----
+        c_ops: list
+            List containing the collapse operators
+    '''
+    dg = ops[0]
+    de = ops[1]
+    a_ph = ops[2]
+
+    c_gL = qo.collapses(dg, H, kT, bath='fermionic', mu=VL)
+    c_eL = qo.collapses(de, H, kT, bath='fermionic', mu=VL)
+    CL = np.sqrt(gL) * np.array(c_gL + c_eL)
+
+    c_gR = qo.collapses(dg, H, kT, bath='fermionic', mu=VR)
+    c_eR = qo.collapses(de, H, kT, bath='fermionic', mu=VR)
+    CR = np.sqrt(gR) * np.array(c_gR + c_eR)
+
+    CA = qo.collapses(a_ph, H, kT, bath='bosonic')
+    CA = np.sqrt(kappa) * np.array(CA)
+
+    c_ops = np.concatenate((CL, CR, CA))
+    return c_ops
 
 def collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False):
 
@@ -155,6 +375,19 @@ def correlation(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=Fal
         S = qt.correlation_2op_1t(H=H, state0=rho_st, taulist=tlist, c_ops=list(c_ops), a_op=a.dag(), b_op=a)
     return S
 
+def spectrum_vi(package, H, op_list, VL, VR, kappa, gL, gR, kT, wlist, Hint=0):
+    if package == 'nanocavity' or package == 'nc':
+        c_ops = collapses_nc_vi(H-Hint, op_list, VL, VR, kappa, gL, gR, kT)
+        L = no.liouvillian(H, c_ops)
+        I = kappa * nme.spectrum(L, op_list[2], wlist)
+    elif package == 'qutip' or package == 'qt':
+        c_ops = collapses_qt_vi(H, op_list, VL, VR, kappa, gL, gR, kT)
+        a = op_list[2]
+        I = kappa / (2 * np.pi) * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
+    else:
+        print("Either calculate the spectrum with nanocavity or qutip")
+        return 0
+    return I
 
 def spectrum(package, H_parameters, VL, VR, kappa, gL, gR, kT, wlist, iva=False, data=False, full=True):
     H, [dg, de, a] = Hamiltonian(package, *H_parameters)
