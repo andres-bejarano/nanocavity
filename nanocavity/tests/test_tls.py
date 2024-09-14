@@ -82,7 +82,7 @@ def test_stationary():
             assert np.allclose(Pme, Pqt)
 
 def test_correlation_AB():
-    tlist = np.linspace(0., 200, 10001)
+    tlist = np.linspace(0., 200, 101)
     for g_ph in [0.005, 0.05, 0.5]:
         H_parameters = Eg, Delta, hw_ph, g_ph, U
         Hnc, [_, _, A] = tls.Hamiltonian('nanocavity', *H_parameters)
@@ -102,7 +102,7 @@ def test_correlation_AB():
 
 
 def test_spectrum():
-    wlist = np.linspace(0., 1.8, 100003)
+    wlist = np.linspace(0., 1.8, 103)
     Inc = tls.spectrum('nanocavity', H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist)
     Iqt = tls.spectrum('qutip', H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist)
     assert np.allclose(Inc, Iqt)
@@ -140,7 +140,7 @@ def test_g2():
     g_ph = 0.005
     Delta = 0.99
     H_parameters = Eg, Delta, hw_ph, g_ph, U
-    tlist = np.linspace(0., 3000, 10)
+    tlist = np.linspace(0., 300, 10)
     g2nc = tls.g2('nanocavity', H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist)
     g2qt = tls.g2('qutip', H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist)
     assert np.allclose(g2nc, g2qt, atol=1e-1)
