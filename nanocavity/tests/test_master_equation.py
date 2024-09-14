@@ -91,7 +91,7 @@ def test_correlation_AB():
             assert np.allclose(Snc.real, Sqt.real, atol=1e-5)
             assert np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
 
-def test_sepctrum_vi():
+def test_spectrum_vi():
     wlist = np.linspace(0., 1.8, 200)
     hw_vi = 1.9e-1
     g_vi = 1e-8
@@ -101,6 +101,7 @@ def test_sepctrum_vi():
     Inc = tls.spectrum_vi('nc', H_nc, anni_list_nc, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist)
     Iqt = tls.spectrum_vi('qt', H_qt, anni_list_qt, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist)
     assert np.allclose(Inc, Iqt)
+
 def test_spectrum():
     # wlist = np.linspace(0., 1.8, 100003)
     wlist = np.linspace(0., 1.8, 103)
@@ -113,8 +114,8 @@ def test_current():
             [dg, de, a], Hqt, c_ops = tls.collapses('qutip', H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, alone=False)
 
             #left electrode
-            cp_gL, cm_gL = qo.collapses( dg, Hqt, kT, bath='fermionic', rate=gL, mu=VL, total=False)
-            cp_eL, cm_eL = qo.collapses(de, Hqt, kT, bath='fermionic', rate=gL, mu=VL, total=False)
+            cp_gL, cm_gL = qo.collapses( dg, Hqt, kT, bath='fermionic', rate=Gamma_L, mu=VL, total=False)
+            cp_eL, cm_eL = qo.collapses(de, Hqt, kT, bath='fermionic', rate=Gamma_L, mu=VL, total=False)
             CpL = cp_gL + cp_eL
             CmL = cm_gL + cm_eL
 
@@ -137,8 +138,8 @@ def test_noise():
             [dg, de, a], Hqt, c_ops = tls.collapses('qutip', H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, alone=False)
 
             #left electrode
-            cp_gL, cm_gL = qo.collapses(dg, Hqt, kT, bath='fermionic', rate=gL, mu=VL, total=False)
-            cp_eL, cm_eL = qo.collapses(de, Hqt, kT, bath='fermionic', rate=gL, mu=VL, total=False)
+            cp_gL, cm_gL = qo.collapses(dg, Hqt, kT, bath='fermionic', rate=Gamma_L, mu=VL, total=False)
+            cp_eL, cm_eL = qo.collapses(de, Hqt, kT, bath='fermionic', rate=Gamma_L, mu=VL, total=False)
             CpL = cp_gL + cp_eL
             CmL = cm_gL + cm_eL
             
