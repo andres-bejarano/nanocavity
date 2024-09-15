@@ -68,8 +68,6 @@ def Emp(H_parameters, max_bosons=1):
     Eminus = Eg + (hw_ph + (2 * n - 1) * Delta) / 2 - OmegaR / 2
     return Eminus, Eplus
 
-
-
 def theta(Delta, hw_ph, g_ph, max_bosons=1):
     ''' 
         The angle mixed states
