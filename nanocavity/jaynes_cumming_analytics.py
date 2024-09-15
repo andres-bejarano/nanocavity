@@ -246,7 +246,7 @@ def spectrum_iva(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=
     v1 = np.stack([v1p, v1m]).T
     w1 = v1.conj()
 
-    norm = np.einsum("ai,ai->i", w1.conj(), v1) **  0.5
+    norm = np.einsum("ai,ai->i", w1.conj(), v1) ** 0.5
     v1 /= norm
     w1 /= norm.conj()
 
@@ -255,7 +255,7 @@ def spectrum_iva(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=
     A1m = v1[0, 1]
     A1p = v1[0, 0]
     B1m = w1[0, 1].conjugate() * Pg1 + w1[1, 1].conjugate() * Pg1_e
-    B1p = w1[0, 0].conjugate() * Pg1 +  w1[1, 0].conjugate() * Pg1_e
+    B1p = w1[0, 0].conjugate() * Pg1 + w1[1, 0].conjugate() * Pg1_e
 
     h1p = A1p * B1p
     h1m = A1m * B1m
@@ -304,10 +304,10 @@ def spectrum_iva(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=
     L2p = ndist.lorentzian(wlist - E2p.imag, - 2 * E2p.real)
     L2m = ndist.lorentzian(wlist - E2m.imag, - 2 * E2m.real)
 
-    peak2 =  h2m * L2m +  h2p * L2p
+    peak2 = h2m * L2m + h2p * L2p
 
     #peak at hw_ph
-    peak3 =  (P1 + Pge1) * ndist.lorentzian(wlist - hw_ph, (2 * Gamma_L + 2 * Gamma_R + kappa))
+    peak3 = (P1 + Pge1) * ndist.lorentzian(wlist - hw_ph, (2 * Gamma_L + 2 * Gamma_R + kappa))
     A3 = 1
     width3 = -(2 * Gamma_L + 2 * Gamma_R + kappa) / 2
 
@@ -318,7 +318,7 @@ def spectrum_iva(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=
         print(f"2 {np.abs(A1p):.6f} {np.abs(B1p):.6f} {E1p.real:.6f} {E1p.imag:.6f}")
         print(f"3 {np.abs(A2m):.6f} {np.abs(B2m):.6f} {E2m.real:.6f} {E2m.imag:.6f}")
         print(f"4 {np.abs(A2p):.6f} {np.abs(B2p):.6f} {E2p.real:.6f} {E2p.imag:.6f}")
-        print(f"5 {np.abs(A3):.6f} {np.abs(P1):.6f}  {width3:.6f} {hw_ph:.6f}")
+        print(f"5 {np.abs(A3):.6f} {np.abs(P1):.6f} {width3:.6f} {hw_ph:.6f}")
         print(f"6 {np.abs(A3):.6f} {np.abs(Pge1):.6f} {width3:.6f} {hw_ph:.6f}")
     I =  kappa * np.real(peak1 + peak2 + peak3)
     if width:
