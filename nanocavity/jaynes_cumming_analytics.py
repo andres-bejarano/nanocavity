@@ -294,13 +294,7 @@ def spectrum_iva(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=
 
     h2p = A2p * B2p
     h2m = A2m * B2m
-
-    L2m = ndist.lorentzian(wlist - E1m.imag, - 2 * E1m.real)
-    L2p = ndist.lorentzian(wlist - E1p.imag, - 2 * E1p.real)
-
-    h2p = A2p * B2p
-    h2m = A2m * B2m
-
+    
     L2p = ndist.lorentzian(wlist - E2p.imag, - 2 * E2p.real)
     L2m = ndist.lorentzian(wlist - E2m.imag, - 2 * E2m.real)
 
