@@ -34,7 +34,7 @@ where the Rabi frequency (\Omega_R^n) is:
 '''
 
 
-def Omega_R(hw_ph, Delta, g_ph, max_bosons=1):
+def Omega_R(Delta, hw_ph, g_ph, max_bosons=1):
     ''' The Rabi frequency
         Parameters:
             ----
@@ -64,8 +64,8 @@ def Epm(H_parameters, max_bosons=1):
     n = max_bosons
     Eg, Delta, hw_ph, g_ph = H_parameters[:4]
     OmegaR = Omega_R(Delta, hw_ph, g_ph, n)
-    Eplus = Eg + (hw_ph + (2 * n -1) * Delta) / 2 + OmegaR  / 2
-    Eminus = Eg + (hw_ph + (2 * n -1) * Delta) / 2 - OmegaR  / 2
+    Eplus = Eg + (hw_ph + (2 * n - 1) * Delta) / 2 + OmegaR  / 2
+    Eminus = Eg + (hw_ph + (2 * n - 1) * Delta) / 2 - OmegaR / 2
     return Eminus, Eplus
 
 
