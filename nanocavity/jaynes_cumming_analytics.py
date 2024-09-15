@@ -179,7 +179,7 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
         Pg1 = rho[ig1, ig1]
         Pg1_e = rho[ig1, ie]
         Pe1 = rho[ie1, ie1]
-        return [P1, Pge1, Pg1, Pg1_e, Pe1]
+        return P1, Pge1, Pg1, Pg1_e, Pe1
 
     else:
         E, _ = H.eigh()
@@ -189,7 +189,7 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
         Pm = rho[im, im]
         Pp = rho[ip, ip]
         Pe1 = rho[ie1, ie1]
-    return [P1, Pge1, Pm, Pp, Pe1]
+    return P1, Pge1, Pm, Pp, Pe1
 
 
 
