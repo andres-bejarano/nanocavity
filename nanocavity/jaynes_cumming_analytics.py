@@ -225,8 +225,7 @@ def spectrum_iva(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=
     H_parameters = H_parameters[:5]
     _, Delta, hw_ph, g_ph, _ = H_parameters
     H_parameters = *H_parameters, True
-    [P1, Pge1, Pg1, Pg1_e, Pe1]= \
-        rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=True)
+    P1, Pge1, Pg1, Pg1_e, Pe1 = rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=True)
 
     OmegaR = Omega_R(Delta, hw_ph, g_ph)
     #this analytical solutions works for large bias limit VL>>VR
@@ -359,8 +358,7 @@ def spectrum_sec(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=
     H_parameters = H_parameters[:5]
     Eg, Delta, hw_ph, g_ph, _ = H_parameters
     H_parameters = *H_parameters, True
-    [P1, Pge1, Pm, Pp, Pe1]= \
-        rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=False)
+    P1, Pge1, Pm, Pp, Pe1 = rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=False)
 
     OmegaR = Omega_R(Delta, hw_ph, g_ph)
     angle = theta(Delta, hw_ph, g_ph) 
