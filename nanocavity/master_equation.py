@@ -79,6 +79,8 @@ def spectrum(L, a, wlist, data=False, cutoff=1e-12):
     return I.real
 
 def g2(L, J, tlist, cutoff=1e-12):
+    if not isinstance(tlist, np.ndarray):
+        tlist = np.array(tlist)
     if isinstance(J, Operator):
         J = J.toarray()
     
