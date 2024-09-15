@@ -324,7 +324,7 @@ def spectrum_iva(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=
     I =  kappa * np.real(peak1 + peak2 + peak3)
     if width:
         return I, [E1m.imag, E1p.imag, -2 * E1m.real, -2 * E1p.real]
-    return kappa * np.real(peak1 + peak2 + peak3)
+    return I
 
 
 
@@ -420,7 +420,7 @@ def spectrum_sec(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=
 
 def spectrum(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=False, width=False, iva=False):
     if iva:
-        return spectrum_iva(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=False, width=False)
+        return spectrum_iva(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data, width)
     else:
-        return spectrum_sec(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=False, width=False)
+        return spectrum_sec(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data, width)
 
