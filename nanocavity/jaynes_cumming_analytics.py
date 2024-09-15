@@ -50,7 +50,7 @@ def Omega_R(Delta, hw_ph, g_ph, max_bosons=1):
     return np.sqrt(delta ** 2 + 4 * n * g_ph ** 2)
 
 
-def Epm(H_parameters, max_bosons=1):
+def Emp(H_parameters, max_bosons=1):
     '''
         The mixed energies
         Parameters
@@ -84,7 +84,7 @@ def theta(Delta, hw_ph, g_ph, max_bosons=1):
     '''
     n = max_bosons
     delta = hw_ph - Delta
-    theta = 0.5 * np.arctan(2 * np.sqrt() * g_ph / delta)
+    theta = 0.5 * np.arctan(2 * np.sqrt(n) * g_ph / delta)
     return theta
 
 
@@ -112,7 +112,7 @@ def E_index(H_parameters, Elist, states='bare'):
     if states=='bare':
         E = np.array([E0, E1, Eg, Eg1, Ee, Ee1, Ege, Ege1])
     if states=='dress':
-        Eminus, Eplus = Epm(H_parameters)
+        Eminus, Eplus = Emp(H_parameters)
         E = np.array([E0, E1, Eg, Eminus, Eplus, Ee1, Ege, Ege1])
     L = []
     diff = np.abs(E[:, np.newaxis] - Elist)
