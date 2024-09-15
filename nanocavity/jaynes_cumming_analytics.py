@@ -138,7 +138,7 @@ def E_index(H_parameters, Elist, states='bare'):
     L = np.argmin(diff, axis=1)
     return L
 
-def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT):
+def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
     ''' 
         When we sweep one of the parameters in the Jaynes-Cummings model, we find that the arrangement of the energy levels changes, and therefore the labels of the density matrix also change. For this reason, we created this function, which ensures that even if the ordering of the energy levels changes, the labels of the density matrix remain consistent.
         Parameters:
@@ -162,27 +162,38 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     #We need the bare energies (without coupling)
     #H_parameters = Eg, Delta, hw_ph, g_ph, U, True
     #system hamiltonian
-    _, H, c_ops = tls.collapses('nanocavity', H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=True, alone=False)
+    _, H, c_ops = tls.collapses('nanocavity', H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva, alone=False)
 
-    #list of bare energies
-    E = H.toarray().diagonal()
-    
-    #density matrix in iva
+    #density matrix 
     L = no.liouvillian(H, list(c_ops))
     rho = nme.stationary(L)
 
-    #we extract the index of the energies
-    [i0, i1, ig, ig1, ie, ie1, ige, ige1] = E_index(H_parameters, E)
-    P1 = rho[i1, i1]
-    Pge1 = rho[ige1, ige1]
-    Pg1 = rho[ig1, ig1]
-    Pg1_e = rho[ig1, ie]
-    Pe1 = rho[ie1, ie1]
-    return [P1, Pge1, Pg1, Pg1_e, Pe1]
+
+    #list of bare energies
+    if iva:
+        E = H.toarray().diagonal()
+        #we extract the index of the energies
+        [i0, i1, ig, ig1, ie, ie1, ige, ige1] = E_index(H_parameters, E)
+        P1 = rho[i1, i1]
+        Pge1 = rho[ige1, ige1]
+        Pg1 = rho[ig1, ig1]
+        Pg1_e = rho[ig1, ie]
+        Pe1 = rho[ie1, ie1]
+        return [P1, Pge1, Pg1, Pg1_e, Pe1]
+
+    else:
+        E, _ = H.eigh()
+        [i0, i1, ig, im, ip, ie1, ige, ige1] = E_index(H_parameters, E, 'dress')
+        P1 = rho[i1, i1]
+        Pge1 = rho[ige1, ige1]
+        Pm = rho[im, im]
+        Pp = rho[ip, ip]
+        Pe1 = rho[ie1, ie1]
+    return [P1, Pge1, Pm, Pp, Pe1]
 
 
 
-def spectrum(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=False, width=False):
+def spectrum_iva(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=False, width=False):
     '''
         Spectrum analytical solution as sum of lorentzians
         Parameters
@@ -206,6 +217,8 @@ def spectrum(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=Fals
                 array with discretization of the energies
             data: logic
                 the width and height position values of each Lorentzian that contributes to the spectrum.
+            width: logic
+                return the main width and energies
     '''
 
     #H_parameters = Eg, Delta, hw_ph, g_ph, U, True
@@ -213,7 +226,7 @@ def spectrum(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=Fals
     _, Delta, hw_ph, g_ph, _ = H_parameters
     H_parameters = *H_parameters, True
     [P1, Pge1, Pg1, Pg1_e, Pe1]= \
-        rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT)
+        rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=True)
 
     OmegaR = Omega_R(Delta, hw_ph, g_ph)
     #this analytical solutions works for large bias limit VL>>VR
@@ -312,3 +325,102 @@ def spectrum(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=Fals
     if width:
         return I, [E1m.imag, E1p.imag, -2 * E1m.real, -2 * E1p.real]
     return kappa * np.real(peak1 + peak2 + peak3)
+
+
+
+def spectrum_sec(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=False, width=False):
+    '''
+        Spectrum analytical solution as sum of lorentzians
+        Parameters
+            ----
+            H_parameters: tuple
+                contains the central system model parameters 
+                H_parameters = Eg, Delta, hw_ph, g_ph, U
+            VL: float
+                left chemical potential
+            VR: float
+                right chemical potential
+            kappa: float
+                damping rate
+            Gamma_L: float
+                left tunneling rates
+            Gamma_R: float
+                left tunneling rates
+            kT: float
+                Temperature
+            wlist: numpy array
+                array with discretization of the energies
+            data: logic
+                print the width and height position values of each Lorentzian that contributes to the spectrum.
+            width: logic
+                return the main width and energies
+    '''
+    #H_parameters = Eg, Delta, hw_ph, g_ph, U, True
+    H_parameters = H_parameters[:5]
+    Eg, Delta, hw_ph, g_ph, _ = H_parameters
+    H_parameters = *H_parameters, True
+    [P1, Pge1, Pm, Pp, Pe1]= \
+        rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=False)
+
+    OmegaR = Omega_R(Delta, hw_ph, g_ph)
+    angle = theta(Delta, hw_ph, g_ph) 
+    Em, Ep = Emp((Eg, Delta, hw_ph, g_ph))
+    #coeficientes A1, A2,  eqs 64, 65. 77, 78
+    A1 = 1 
+    A2 = 1
+    B1 = P1
+    B2 = Pge1
+    E1 = hw_ph
+    E2 = hw_ph
+    Gamma_1 = kappa + 4 * Gamma_L
+    Gamma_2 = kappa + 4 * Gamma_R
+
+    I = A1 * B1 * ndist.lorentzian(wlist - E1, Gamma_1)
+    I =+ A2 * B2 * ndist.lorentzian(wlist - E2, Gamma_2)
+
+    #coeficients A3, A4, B3, B4 eqs 66, 67, 88, 89
+    A3 = np.sin(angle)
+    A4 = -1j * np.sin(angle)
+    B3 = np.sin(angle) * Pm
+    B4 = 1j * np.sin(angle) * Pe1
+    E3 = Em - Eg
+    E4 = Em - Eg
+    Gamma_3 =  2 * (Gamma_L + Gamma_R) + kappa * np.sin(angle) ** 2
+    Gamma_4 =  2 * (Gamma_L + Gamma_R) + kappa * np.sin(angle) ** 2
+    
+
+    I =+ A3 * B3 * ndist.lorentzian(wlist - E3, Gamma_3)
+    I =+ A4 * B4 * ndist.lorentzian(wlist - E4, Gamma_4)
+
+    #coeficients A5, A6, B5, B6 eqs 68, 69, 97, 98
+    A5 = np.cos(angle)
+    A6 = 1j * np.cos(angle)
+    B5 = np.cos(angle) * Pp
+    B6 = -1j * np.cos(angle) * Pe1
+    E5 = Ep - Eg
+    E6 = Ep - Eg
+    Gamma_5 =  2 * (Gamma_L + Gamma_R) + kappa * np.cos(angle) ** 2
+    Gamma_6 =  2 * (Gamma_L + Gamma_R) + kappa * np.cos(angle) ** 2
+
+
+    I =+ A6 * B5 * ndist.lorentzian(wlist - E5, Gamma_6)
+    I =+ A6 * B6 * ndist.lorentzian(wlist - E6, Gamma_6)
+    
+    if data==True:
+        print(f"1 {np.abs(A1):.6f} {np.abs(B1):.6f} {Gamma_1:.6f} {E1:.6f}")
+        print(f"2 {np.abs(A2):.6f} {np.abs(B2):.6f} {Gamma_2:.6f} {E2:.6f}")
+        print(f"1 {np.abs(A3):.6f} {np.abs(B3):.6f} {Gamma_3:.6f} {E3:.6f}")
+        print(f"1 {np.abs(A4):.6f} {np.abs(B4):.6f} {Gamma_4:.6f} {E4:.6f}")
+        print(f"1 {np.abs(A5):.6f} {np.abs(B5):.6f} {Gamma_5:.6f} {E5:.6f}")
+        print(f"1 {np.abs(A6):.6f} {np.abs(B6):.6f} {Gamma_6:.6f} {E6:.6f}")
+
+    if width:
+        return kappa * I, [E3, E5, Gamma_3, Gamma_5]
+    return kappa * I
+
+def spectrum(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=False, width=False, iva=False):
+    if iva:
+        return spectrum_iva(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=False, width=False)
+    else:
+        return spectrum_sec(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=False, width=False)
+
