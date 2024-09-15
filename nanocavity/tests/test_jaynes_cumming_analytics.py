@@ -23,8 +23,9 @@ def test_theta():
     # Test when detuning goes to zero
 
     theta1 = jc.theta(1, 1, 3)
-
+    theta2 = jc.theta(1, 3, 0)
     assert np.allclose(theta1, np.pi / 4)
+    assert np.allclose(theta2, 0)
 
 def test_check_degeneracy():
     A = np.array([2, 3, 4, 5, 2])

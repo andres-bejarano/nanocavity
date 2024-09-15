@@ -84,9 +84,21 @@ def theta(Delta, hw_ph, g_ph, max_bosons=1):
     '''
     n = max_bosons
     delta = hw_ph - Delta
-    theta = 0.5 * np.arctan(2 * np.sqrt(n) * g_ph / delta)
+    
+    if np.isclose(delta, 0):
+        theta = np.pi / 4
+    else:
+        theta = 0.5 * np.arctan(2 * np.sqrt(n) * g_ph / delta)
     return theta
 
+def check_degeneracy(arr):
+    ''' Check if the array has any repeated elements (degeneracy) '''
+    seen = set()
+    for num in arr:
+        if num in seen:
+            return True  # Found a repeated element
+        seen.add(num)
+    return False  # No repeated elements
 
 def E_index(H_parameters, Elist, states='bare'):
     '''
@@ -111,9 +123,16 @@ def E_index(H_parameters, Elist, states='bare'):
     Ege1 =  Ege + hw_ph + U
     if states=='bare':
         E = np.array([E0, E1, Eg, Eg1, Ee, Ee1, Ege, Ege1])
+        
+        if check_degeneracy(E):
+            return 'Try non degenerate spectrum'
+    
     if states=='dress':
         Eminus, Eplus = Emp(H_parameters)
         E = np.array([E0, E1, Eg, Eminus, Eplus, Ee1, Ege, Ege1])
+        
+        if check_degeneracy(E):
+            return 'Try non degenerate spectrum'
     L = []
     diff = np.abs(E[:, np.newaxis] - Elist)
     L = np.argmin(diff, axis=1)
@@ -163,7 +182,7 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT):
 
 
 
-def spectrum(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=False):
+def spectrum(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=False, width=False):
     '''
         Spectrum analytical solution as sum of lorentzians
         Parameters
@@ -289,5 +308,7 @@ def spectrum(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, data=Fals
         print(f"4 {np.abs(A2p):.6f} {np.abs(B2p):.6f} {E2p.real:.6f} {E2p.imag:.6f}")
         print(f"5 {np.abs(A3):.6f} {np.abs(P1):.6f}  {width3:.6f} {hw_ph:.6f}")
         print(f"6 {np.abs(A3):.6f} {np.abs(Pge1):.6f} {width3:.6f} {hw_ph:.6f}")
-
+    I =  kappa * np.real(peak1 + peak2 + peak3)
+    if width:
+        return I, [E1m.imag, E1p.imag, -2 * E1m.real, -2 * E1p.real]
     return kappa * np.real(peak1 + peak2 + peak3)
