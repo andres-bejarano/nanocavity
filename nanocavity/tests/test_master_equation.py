@@ -97,23 +97,32 @@ def test_stationary_single_cavity_mode():
     #parameters
     hw_ph = 1
     kappa = 0.1
-    kT = 1e-2
+    kT = 1e-1
     n = np.arange(10)
 
     a, Nb = sq.composite(boson_modes=1, max_bosons=max(n))
     
     H = hw_ph * Nb
+    
     #numerics
-    c_ops = no.collapses(a, H, kT, 'bosonic', kappa)
-    L = no.liouvillian(H, c_ops)
-    P = nme.stationary(L).diagonal()
+    cp, cm = no.collapses(a, H, kT, 'bosonic', kappa, total=False)
+    L = no.liouvillian(H, cp + cm)
+    Pn = nme.stationary(L).diagonal()
+
+    # photons coming out
+    In = nme.current(no.jump(cm), L)
 
     #analytics
     Gup = kappa * ndist.bose_einstein(hw_ph, kT)
     Gdw = kappa * (1 + ndist.bose_einstein(hw_ph, kT))
     x = Gup / Gdw
     gamma = (1 - x) / (1 - x ** (max(n) + 1))
-    Pn = gamma * x ** n
-    assert np.allclose(P, Pn)
+    Pa = gamma * x ** n
+    
+    #tr(Jrho) = tr(a rho a^\dagger) = <n>
+    Ia = kappa * ndist.bose_einstein(hw_ph, kT)
+    
+    assert np.allclose(Pa, Pn)
+    assert np.allclose(Ia, In)
 
 
