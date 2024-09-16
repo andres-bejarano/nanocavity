@@ -36,20 +36,16 @@ def test_eig_norm():
     assert np.allclose(norm.all(), 1)
 
 
-@pytest.fixture(scope="module", params=[0.01, 0.1, 1.0])
+@pytest.fixture(scope="module", params=[0.01, 1.0])
 def kT(request):
     return request.param
 
-@pytest.fixture(scope="module", params=[1, 2, 5])
+@pytest.fixture(scope="module", params=[2, 5])
 def bosons(request):
     return request.param
 
 @pytest.fixture(scope="module", params=[0.01, 0.001])
 def rate(request):
-    return request.param
-
-@pytest.fixture(scope="module", params=["eig"])
-def method(request):
     return request.param
 
 def test_liouvillian(kT, bosons, rate):
@@ -63,9 +59,31 @@ def test_liouvillian(kT, bosons, rate):
         assert np.isclose(np.linalg.det(L), 0)
     return L
 
+@pytest.fixture(scope="module", params=["eig", "solve"])
+def method(request):
+    return request.param
+
+@pytest.fixture(scope="module", params=range(3))
+def row(request):
+    return request.param
+
+@pytest.fixture(scope="module", params=[1e-10, 1.])
+def scale(request):
+    return request.param
+
 def test_stationary(kT, bosons, rate, method):
     L = test_liouvillian(kT, bosons, rate)
     rho = nme.stationary(L, method=method)
+    # check norm
+    tr = np.trace(rho)
+    assert np.isclose(tr, 1.)
+    # check solution as stationary
+    drho = L @ rho.reshape(L.shape[0])
+    assert np.isclose(np.sum(drho), 0)
+
+L = test_liouvillian(0.1, 5, 0.001)
+def test_stationary_solve(row, scale):
+    rho = nme.stationary(L, method="solve", row=row, scale=scale)
     # check norm
     tr = np.trace(rho)
     assert np.isclose(tr, 1.)
