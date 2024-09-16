@@ -67,10 +67,10 @@ def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
             if abs(Mfi) > cutoff:
                 P = Mfi * (V[f] * V[i].dag())
                 if bath=='bosonic':
-                    cp.append(np.sqrt(rate * nb_fi_p[f, i]) * P.dag())
+                    cp.append(np.sqrt(rate * nb_fi_p.T[f, i]) * P.dag())
                     cm.append(np.sqrt(rate * nb_fi_m[f, i]) * P)
                 elif bath=='fermionic':
-                    cp.append(np.sqrt(rate * fd_fi_p[f, i]) * P.dag())
+                    cp.append(np.sqrt(rate * fd_fi_p.T[f, i]) * P.dag())
                     cm.append(np.sqrt(rate * fd_fi_m[f, i]) * P)
     if total:
         return cp + cm
