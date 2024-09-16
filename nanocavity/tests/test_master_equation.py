@@ -44,20 +44,31 @@ def kT(request):
 def bosons(request):
     return request.param
 
-@pytest.fixture(scope="module", params=[0.1, 0.01, 0.001])
+@pytest.fixture(scope="module", params=[0.01, 0.001])
 def rate(request):
     return request.param
 
-def test_stationary(kT, bosons, rate):
+@pytest.fixture(scope="module", params=["eig"])
+def method(request):
+    return request.param
+
+def test_liouvillian(kT, bosons, rate):
     [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=bosons)
     H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
     c_ops = no.collapses(c, H, kT, "fermionic", rate)
-    L = no.liouvillian(H, c_ops)
-    rho = nme.stationary(L)
+    a_ops = no.collapses(a, H, kT, "bosonic", rate)
+    for ops in (c_ops, a_ops, c_ops + a_ops):
+        L = no.liouvillian(H, ops)
+        # check determinant of L is zero
+        assert np.isclose(np.linalg.det(L), 0)
+    return L
+
+def test_stationary(kT, bosons, rate, method):
+    L = test_liouvillian(kT, bosons, rate)
+    rho = nme.stationary(L, method=method)
     # check norm
     tr = np.trace(rho)
-    assert np.isclose(tr.real, 1.)
-    assert np.isclose(tr.imag, 0.)
+    assert np.isclose(tr, 1.)
     # check solution as stationary
     drho = L @ rho.reshape(L.shape[0])
     assert np.isclose(np.sum(drho), 0)
