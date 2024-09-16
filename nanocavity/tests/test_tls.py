@@ -3,6 +3,8 @@ import numpy as np
 import nanocavity.master_equation as nme
 import nanocavity.tls as tls
 import nanocavity.operators as no
+import nanocavity.jaynes_cumming_analytics as jc
+
 
 #system parameters
 Eg = 0.4
@@ -11,7 +13,7 @@ hw_ph = 1
 g_ph = 0.5
 U = 1
 
-H_parameters = Eg, Delta, hw_ph, g_ph
+H_parameters = Eg, Delta, hw_ph, g_ph, U
 
 #bath parameters
 Gamma_L, Gamma_R = 1e-3, 2e-3
@@ -100,6 +102,15 @@ def test_correlation_AB():
             assert np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
 
 
+def test_spectrum_analytics():
+    kT= 1e-2
+    H_parameters = Eg, Delta, hw_ph, g_ph, U, True
+    wlist = np.linspace(0., 1.8, 103)
+    Inc = tls.spectrum('nanocavity', H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist)
+    Ianalytics_iva = jc.spectrum(H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist, iva=True)
+    Ianalytics_sec = jc.spectrum(H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist, iva=False)
+    assert np.allclose(Inc, Ianalytics_iva, atol=7)
+    assert np.allclose(Inc, Ianalytics_sec, atol=7)
 
 def test_spectrum():
     wlist = np.linspace(0., 1.8, 103)
