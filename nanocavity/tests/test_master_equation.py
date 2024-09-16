@@ -4,6 +4,7 @@ import nanocavity.operators as no
 from scipy.linalg import eig
 import secondquant as sq
 import pytest
+import nanocavity.distributions as ndist
 
 A = 0.4
 B = 0.9
@@ -90,3 +91,29 @@ def test_stationary_solve(row, scale):
     # check solution as stationary
     drho = L @ rho.reshape(L.shape[0])
     assert np.isclose(np.sum(drho), 0)
+
+
+def test_stationary_single_cavity_mode():
+    #parameters
+    hw_ph = 1
+    kappa = 0.1
+    kT = 1e-2
+    n = np.arange(10)
+
+    a, Nb = sq.composite(boson_modes=1, max_bosons=max(n))
+    
+    H = hw_ph * Nb
+    #numerics
+    c_ops = no.collapses(a, H, kT, 'bosonic', kappa)
+    L = no.liouvillian(H, c_ops)
+    P = nme.stationary(L).diagonal()
+
+    #analytics
+    Gup = kappa * ndist.bose_einstein(hw_ph, kT)
+    Gdw = kappa * (1 + ndist.bose_einstein(hw_ph, kT))
+    x = Gup / Gdw
+    gamma = (1 - x) / (1 - x ** (max(n) + 1))
+    Pn = gamma * x ** n
+    assert np.allclose(P, Pn)
+
+
