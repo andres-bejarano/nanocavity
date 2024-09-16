@@ -1,6 +1,9 @@
 import numpy as np
 import nanocavity.master_equation as nme
+import nanocavity.operators as no
 from scipy.linalg import eig
+import secondquant as sq
+import pytest
 
 A = 0.4
 B = 0.9
@@ -31,3 +34,30 @@ def test_eig_norm():
     norm = np.einsum("ai,ai->i", vl.conj(), vr) 
     
     assert np.allclose(norm.all(), 1)
+
+
+@pytest.fixture(scope="module", params=[0.01, 0.1, 1.0])
+def kT(request):
+    return request.param
+
+@pytest.fixture(scope="module", params=[1, 2, 5])
+def bosons(request):
+    return request.param
+
+@pytest.fixture(scope="module", params=[0.1, 0.01, 0.001])
+def rate(request):
+    return request.param
+
+def test_stationary(kT, bosons, rate):
+    [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=bosons)
+    H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
+    c_ops = no.collapses(c, H, kT, "fermionic", rate)
+    L = no.liouvillian(H, c_ops)
+    rho = nme.stationary(L)
+    # check norm
+    tr = np.trace(rho)
+    assert np.isclose(tr.real, 1.)
+    assert np.isclose(tr.imag, 0.)
+    # check solution as stationary
+    drho = L @ rho.reshape(L.shape[0])
+    assert np.isclose(np.sum(drho), 0)
