@@ -10,12 +10,37 @@ def eig_norm(L):
     vr *= norm
     return El, vl, vr
 
-def stationary(L):
-    E, V = np.linalg.eig(L)
-    # find the zero-eigenvalue mode index
-    idx0 = np.argmin(np.abs(E))
-    d = int(E.size ** .5)
-    return V[:, idx0].reshape(d, d) / V[:, idx0].reshape(d, d).trace()
+def stationary(L, method="eig", row=0, scale=1):
+    """ Solves for the steady state of the QME
+
+    Parameters
+    ----------
+
+    method : {"eig", "solve"}
+        whether to use np.linalg.eig or np.linalg.solve
+    row : int, optional
+        sets the row which gets overwritten
+    scale : float, optional
+        scale factor for the diagonal entries in the modified Liouvillian
+
+    Returns
+    -------
+    density matrix (2D array)
+    """
+    d = int(np.sqrt(L.shape[0]))
+    if method == "eig":
+        E, V = np.linalg.eig(L)
+        # find the zero-eigenvalue mode index
+        idx0 = np.argmin(np.abs(E))
+        rho = V[:, idx0] / V[:, idx0].reshape(d, d).trace()
+    elif method == "solve":
+        L0 = L.copy()
+        b = scale * np.eye(d).reshape(d**2)
+        # find corresponding superindex row
+        sl = row * (d + 1)
+        L0[sl] = b
+        rho = np.linalg.solve(L0, b)
+    return rho.reshape(d, d)
 
 def current(J, L):
     #w/v left/right eigenvectors
