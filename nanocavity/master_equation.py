@@ -65,7 +65,14 @@ def current(J, L):
     return vl[:, index].conj() @ J @ vr[:, index]
 
 
+def _toarray(x):
+    if np.isscalar(x):
+        x = np.array([x])
+    return x
+
 def correlation_AB(L, A, B, tlist, cutoff=1e-12):
+    tlist = _toarray(tlist)
+
     if isinstance(A, Operator):
         A = A.toarray()
 
@@ -93,6 +100,8 @@ def correlation_AB(L, A, B, tlist, cutoff=1e-12):
 
 
 def spectrum(L, a, wlist, data=False, cutoff=1e-12):
+    wlist = _toarray(wlist)
+
     if isinstance(a, Operator):
         a = a.toarray()
 
@@ -126,8 +135,8 @@ def spectrum(L, a, wlist, data=False, cutoff=1e-12):
 
 
 def g2(L, J, tlist, cutoff=1e-12):
-    if not isinstance(tlist, np.ndarray):
-        tlist = np.array(tlist)
+    tlist = _toarray(tlist)
+
     if isinstance(J, Operator):
         J = J.toarray()
 
