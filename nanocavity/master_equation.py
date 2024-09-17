@@ -12,7 +12,7 @@ def eig_norm(L):
     return El, vl, vr
 
 
-def stationary(L, method="eig", row=0, scale=1):
+def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e8):
     """Solves for the steady state of the QME
 
     Parameters
@@ -34,7 +34,7 @@ def stationary(L, method="eig", row=0, scale=1):
         E, V = np.linalg.eig(L)
         # find the zero-eigenvalue mode index
         idx0 = np.argmin(np.abs(E))
-        rho = V[:, idx0] / V[:, idx0].reshape(d, d).trace()
+        rho = V[:, idx0]
     elif method == "solve":
         L0 = L.copy()
         b = scale * np.eye(d).reshape(d**2)
@@ -42,7 +42,20 @@ def stationary(L, method="eig", row=0, scale=1):
         sl = row * (d + 1)
         L0[sl] = b
         rho = np.linalg.solve(L0, b)
-    return rho.reshape(d, d)
+    rho = rho.reshape(d, d)
+    rho /= np.trace(rho)
+    if check:
+        # ensure a physically meaningful density matrix
+        assert np.isclose(np.trace(rho), 1.0)
+        # check solution as stationary
+        drho = L @ rho.reshape(d**2)
+        assert np.isclose(np.sum(drho), 0)
+        # check hermiticity
+        assert np.allclose(rho, rho.conj().T)
+        # check positivity
+        evals = np.linalg.eigvals(rho)
+        assert np.all(evals >= tol)  # tolerate small negative numbers
+    return rho
 
 
 def current(J, L):

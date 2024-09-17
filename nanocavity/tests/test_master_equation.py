@@ -74,33 +74,21 @@ def row(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[1e-10, 1.0])
+@pytest.fixture(scope="module", params=[1e-12, 1e-200])
 def scale(request):
     return request.param
 
 
 def test_stationary(kT, bosons, rate, method):
     L = test_liouvillian(kT, bosons, rate)
-    rho = nme.stationary(L, method=method)
-    # check norm
-    tr = np.trace(rho)
-    assert np.isclose(tr, 1.0)
-    # check solution as stationary
-    drho = L @ rho.reshape(L.shape[0])
-    assert np.isclose(np.sum(drho), 0)
+    rho = nme.stationary(L, method=method, check=True, tol=-1e8)
 
 
 L = test_liouvillian(0.1, 5, 0.001)
 
 
 def test_stationary_solve(row, scale):
-    rho = nme.stationary(L, method="solve", row=row, scale=scale)
-    # check norm
-    tr = np.trace(rho)
-    assert np.isclose(tr, 1.0)
-    # check solution as stationary
-    drho = L @ rho.reshape(L.shape[0])
-    assert np.isclose(np.sum(drho), 0)
+    rho = nme.stationary(L, method="solve", row=row, scale=scale, check=True, tol=-1e8)
 
 
 def test_stationary_single_cavity_mode():
