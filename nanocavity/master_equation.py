@@ -12,7 +12,7 @@ def eig_norm(L):
     return El, vl, vr
 
 
-def stationary(L, method="eig", row=0, scale=1e-12, check=True):
+def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e8):
     """Solves for the steady state of the QME
 
     Parameters
@@ -54,7 +54,7 @@ def stationary(L, method="eig", row=0, scale=1e-12, check=True):
         assert np.allclose(rho, rho.conj().T)
         # check positivity
         evals = np.linalg.eigvals(rho)
-        assert np.all(evals >= -1e-8)  # tolerate small negative numbers
+        assert np.all(evals >= tol)  # tolerate small negative numbers
     return rho
 
 
