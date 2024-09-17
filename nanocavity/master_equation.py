@@ -34,7 +34,7 @@ def stationary(L, method="eig", row=0, scale=1):
         E, V = np.linalg.eig(L)
         # find the zero-eigenvalue mode index
         idx0 = np.argmin(np.abs(E))
-        rho = V[:, idx0] / V[:, idx0].reshape(d, d).trace()
+        rho = V[:, idx0]
     elif method == "solve":
         L0 = L.copy()
         b = scale * np.eye(d).reshape(d**2)
@@ -42,7 +42,9 @@ def stationary(L, method="eig", row=0, scale=1):
         sl = row * (d + 1)
         L0[sl] = b
         rho = np.linalg.solve(L0, b)
-    return rho.reshape(d, d)
+    rho = rho.reshape(d, d)
+    rho /= np.trace(rho)
+    return rho
 
 
 def current(J, L):
