@@ -2,6 +2,7 @@ import numpy as np
 import nanocavity.distributions as ndist
 from qutip import sprepost, spre, spost, lindblad_dissipator
 
+
 def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
     """
     This script describes the collapse operator defined below. We will have an operator A_op of the system that interacts with a given bath, which is in thermal equilibrium and will be characterized by the Fermi-Dirac or Bose-Einstein function depending on its nature.
@@ -45,18 +46,18 @@ def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
     cp, cm : List of Qobj
         Two list of operators for adding or removing particles.
     """
-    #We can place this line outside of this function, but for now, we can accept this overhead since it makes the code easier to read and does not impose a significant cost, as we call the collapse function at most twice.
+    # We can place this line outside of this function, but for now, we can accept this overhead since it makes the code easier to read and does not impose a significant cost, as we call the collapse function at most twice.
     E, V = H.eigenstates()
     dim = E.shape[0]
     E_fi = E.reshape(dim, 1) - E.reshape(1, dim)
-    if bath == 'bosonic':
-        # This rate is for photon absorption, thus the final state must be 
+    if bath == "bosonic":
+        # This rate is for photon absorption, thus the final state must be
         # higher in energy than the initial one
         nb_fi_p = np.where(E_fi > 0, ndist.bose_einstein(E_fi, kT), 0)
-        # This rate is for photon emission, thus the final state must be 
+        # This rate is for photon emission, thus the final state must be
         # lower in energy than the initial one
         nb_fi_m = np.where(E_fi < 0, 1 + ndist.bose_einstein(-E_fi, kT), 0)
-    elif bath == 'fermionic':
+    elif bath == "fermionic":
         fd_fi_p = ndist.fermi_dirac(E_fi, kT, mu)
         fd_fi_m = 1 - ndist.fermi_dirac(-E_fi, kT, mu)
 
@@ -66,15 +67,16 @@ def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
             Mfi = A_op.matrix_element(V[f], V[i])
             if abs(Mfi) > cutoff:
                 P = Mfi * (V[f] * V[i].dag())
-                if bath=='bosonic':
+                if bath == "bosonic":
                     cp.append(np.sqrt(rate * nb_fi_p.T[f, i]) * P.dag())
                     cm.append(np.sqrt(rate * nb_fi_m[f, i]) * P)
-                elif bath=='fermionic':
+                elif bath == "fermionic":
                     cp.append(np.sqrt(rate * fd_fi_p.T[f, i]) * P.dag())
                     cm.append(np.sqrt(rate * fd_fi_m[f, i]) * P)
     if total:
         return cp + cm
     return cp, cm
+
 
 def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
     """
@@ -127,28 +129,30 @@ def lead_cavity_lead_collapses(A_op, H, VL, VR, kT, m):
     c = []
     for i, Ei in enumerate(E):
         for j, Ej in enumerate(E):
-            #As the distribution functions is the same for both dissipator
-            #we can write at the same time both collapses.
-            #Each time that we create o remove a photon
-            #we have no zero value for Mij and then we create the collapse.
+            # As the distribution functions is the same for both dissipator
+            # we can write at the same time both collapses.
+            # Each time that we create o remove a photon
+            # we have no zero value for Mij and then we create the collapse.
             Mij = (A_op + A_op.dag()).matrix_element(V[i], V[j]) ** 2
             if Mij != 0:
                 Eji = Ej - Ei
                 VLR = VL - VR
 
-                F1 = ndist.Fermi_cb(VLR+Eji, kT)
-                F2 = ndist.Fermi_cb(-VLR+Eji, kT)
+                F1 = ndist.Fermi_cb(VLR + Eji, kT)
+                F2 = ndist.Fermi_cb(-VLR + Eji, kT)
                 coef = np.sqrt(m * (F1 + F2) * Mij)
 
-                P = (V[i] * V[j].dag())
+                P = V[i] * V[j].dag()
                 c.append(coef * P)
     return c
+
 
 def jump(c_ops, chi=0):
     J = 0
     for c in c_ops:
-                J += sprepost(c, c.dag()) * np.exp(1j * chi)
+        J += sprepost(c, c.dag()) * np.exp(1j * chi)
     return J
+
 
 def dissipator(c_ops, chi=0, lindblad=False):
     D = 0
@@ -156,13 +160,17 @@ def dissipator(c_ops, chi=0, lindblad=False):
         if lindblad:
             D += lindblad_dissipator(c, c)
         else:
-            cdc =  c.dag() * c
-            D += sprepost(c, c.dag()) * np.exp(1j * chi) - 0.5 * spre(cdc) - 0.5 * spost(cdc)
+            cdc = c.dag() * c
+            D += (
+                sprepost(c, c.dag()) * np.exp(1j * chi)
+                - 0.5 * spre(cdc)
+                - 0.5 * spost(cdc)
+            )
     return D
 
+
 def liouvillian(H, c_ops):
-    #incoherent_evolution
+    # incoherent_evolution
     L = 1j * (spre(H) - spost(H))
     L += dissipator(c_ops)
     return L
-
