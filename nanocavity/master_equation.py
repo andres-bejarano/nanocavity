@@ -67,8 +67,8 @@ def current(J, L):
 
 def _toarray(x):
     if np.isscalar(x):
-        x = np.array([x])
-    return x
+        x = [x]
+    return np.array(x)
 
 def correlation_AB(L, A, B, tlist, cutoff=1e-12):
     tlist = _toarray(tlist)
