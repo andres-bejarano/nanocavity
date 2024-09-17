@@ -2,8 +2,9 @@ import numpy as np
 import nanocavity.distributions as ndist
 import numpy.linalg as la
 
+
 def matrix_elements(A, v, g):
-    r""" Construction of an operator in given basis.
+    r"""Construction of an operator in given basis.
 
     Parameters
     ----------
@@ -23,11 +24,12 @@ def matrix_elements(A, v, g):
     for i in range(len(A)):
         M.append(A[i].inner(v))
     M = np.array(M)
-    MGM = np.einsum('iab,ij,jab->ab', M.conj(), g, M)
+    MGM = np.einsum("iab,ij,jab->ab", M.conj(), g, M)
     return MGM
 
+
 def fermi_matrix(E, kT, mu=0):
-    r""" Construction of numpy array whose matrix elements are fermi functions evaluated for each energy differences and chemical potential.
+    r"""Construction of numpy array whose matrix elements are fermi functions evaluated for each energy differences and chemical potential.
     Parameters
     ----------
     E: all possible energy values,
@@ -42,11 +44,12 @@ def fermi_matrix(E, kT, mu=0):
 
     if not isinstance(mu, np.ndarray):
         mu = np.array(mu)
-    
+
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
-    mu = mu.reshape(-1, 1, 1) 
+    mu = mu.reshape(-1, 1, 1)
     f = ndist.fermi_dirac(DE, kT, mu)
     return f
+
 
 def bose_matrix(E, kT):
     if not isinstance(E, np.ndarray):
@@ -56,29 +59,30 @@ def bose_matrix(E, kT):
     np.fill_diagonal(nb, 0)
     return nb
 
-def transition_rate(E, v, A, g, kT, mu=0, bath='fermionic'):
+
+def transition_rate(E, v, A, g, kT, mu=0, bath="fermionic"):
     """
-        Calculates the transition rates between many-body states to be
-        used in rate equtions. Returns a 3d numpy array with axis 0
-        corresponding to the chemical potential and axis 1 and 2
-        to the eigenstates.
+    Calculates the transition rates between many-body states to be
+    used in rate equtions. Returns a 3d numpy array with axis 0
+    corresponding to the chemical potential and axis 1 and 2
+    to the eigenstates.
 
-        Parameters
-        ----------
-        E: system eigenvalues
-        v: system eigenvectors
-        A: list of all annihilation operators which interact with the
-            considered bath
-        g: coupling to the each level considered in A
-        kT: temperature
-        mu: chemical potential of the lead (only relevant for fermionic baths)
-        bath: considering a fermionic or bosonic bath
+    Parameters
+    ----------
+    E: system eigenvalues
+    v: system eigenvectors
+    A: list of all annihilation operators which interact with the
+        considered bath
+    g: coupling to the each level considered in A
+    kT: temperature
+    mu: chemical potential of the lead (only relevant for fermionic baths)
+    bath: considering a fermionic or bosonic bath
 
-        Returns
-        ---------
-        rates_p: transition rate matrix for adding particles to the central system
-        rates_m: transition rate matrix for removing particles to
-                    the central system
+    Returns
+    ---------
+    rates_p: transition rate matrix for adding particles to the central system
+    rates_m: transition rate matrix for removing particles to
+                the central system
     """
     if not isinstance(mu, np.ndarray):
         mu = np.array(mu)
@@ -96,7 +100,7 @@ def transition_rate(E, v, A, g, kT, mu=0, bath='fermionic'):
     DElistp = DE[a2, b2].copy()
     DElistm = DE[a, b].copy()
 
-    if bath == 'fermionic':
+    if bath == "fermionic":
         f_mat_p = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
         f_mat_m = np.zeros((mu.shape[0], M.shape[0], M.shape[1]))
         f_list_p = ndist.fermi_dirac(DElistp, kT, mu)
@@ -108,19 +112,18 @@ def transition_rate(E, v, A, g, kT, mu=0, bath='fermionic'):
         G_m = f_mat_m * M
         return G_p, G_m
 
-    elif bath == 'bosonic':
+    elif bath == "bosonic":
         n_mat_p = np.zeros((M.shape[0], M.shape[1]))
         n_mat_m = np.zeros((M.shape[0], M.shape[1]))
-        n_list_p = np.where(DElistp > 0,
-                            ndist.bose_einstein(DElistp, kT), 0)
-        n_list_m = np.where(DElistm < 0,
-                            1 + ndist.bose_einstein(-DElistm, kT), 0)
+        n_list_p = np.where(DElistp > 0, ndist.bose_einstein(DElistp, kT), 0)
+        n_list_m = np.where(DElistm < 0, 1 + ndist.bose_einstein(-DElistm, kT), 0)
 
         n_mat_p[mask.T] = n_list_p
         n_mat_m[mask] = n_list_m
         K_p = n_mat_p * M.T
         K_m = n_mat_m * M
         return K_p, K_m
+
 
 def bath_system_bath_rate(E, v, A, m, VL, VR, kT):
     if not isinstance(E, np.ndarray):
@@ -133,8 +136,8 @@ def bath_system_bath_rate(E, v, A, m, VL, VR, kT):
     M = matrix_elements(A, v, m)
     DE = abs(E.reshape(1, 1, -1, 1) - E.reshape(1, 1, 1, -1))
     V = abs(VL.reshape(-1, 1, 1, 1) - VR.reshape(1, -1, 1, 1))
-    Fp = ndist.Fermi_cb(V-DE, kT) + ndist.Fermi_cb(-V-DE, kT)
-    Fm = ndist.Fermi_cb(V+DE, kT) + ndist.Fermi_cb(-V+DE, kT)
+    Fp = ndist.Fermi_cb(V - DE, kT) + ndist.Fermi_cb(-V - DE, kT)
+    Fm = ndist.Fermi_cb(V + DE, kT) + ndist.Fermi_cb(-V + DE, kT)
     Mp = Fp * M.conj().T
     Mm = Fm * M
     return Mp, Mm
@@ -163,10 +166,10 @@ def populations(Gamma):
     idx = np.arange(Gamma.shape[-1])
     Gamma[..., idx, idx] = -column_sum[..., idx]
 
-    Gamma[..., k-1, :] = 1
+    Gamma[..., k - 1, :] = 1
     b_dims = Gamma.shape[0:-1]
     b = np.zeros(b_dims)
-    b[..., k-1] = 1
+    b[..., k - 1] = 1
 
     P = la.solve(Gamma, b[..., None])[..., 0]
     return P
@@ -195,20 +198,20 @@ def electro_current(Gd, P, electrode=0):
         current flowing through the specified electrode
         shape: V_0 x V_1 x ... x V_n
     """
-    if electrode == 'left':
+    if electrode == "left":
         electrode = 0
-    elif electrode == 'right':
+    elif electrode == "right":
         electrode = 1
     axes = np.arange(P.ndim)
     axes[0], axes[electrode] = electrode, 0
     P = np.transpose(P, axes=axes)
-    I = np.einsum('ijk,i...k->i...', Gd, P)
+    I = np.einsum("ijk,i...k->i...", Gd, P)
     I = np.transpose(I, axes=axes[:-1])
     return I
 
 
 def photo_current2(Kd, P):
-    """ Function calculating the emitted photons of a nanocavity
+    """Function calculating the emitted photons of a nanocavity
 
     Parameters
     --------
@@ -222,21 +225,22 @@ def photo_current2(Kd, P):
     ---------
     I_ph: emitted photons
     """
-    return np.einsum('ab, ...b->...', Kd, P)
+    return np.einsum("ab, ...b->...", Kd, P)
+
 
 def photo_current(Kp, Km, P):
     r"""
-    photo-current calculated 
+    photo-current calculated
     Parameters
     ----------
     Kp: nxn numpy array where n is the dimension of hilbert space. It Is the outcoming transition rate
     Km: nxn numpy array where n is the dimension of hilbert space. It is the incoming transition rate
     P: mxqxn numpy array where m,q is the dimension of the left,right hand side chemical potential and n the dimension of hilbert space. P is the population
-    Return 
+    Return
     ----------
     I: mxq numpy array.
     """
-    return np.einsum('ab,ijb->ij', Km - Kp, P)
+    return np.einsum("ab,ijb->ij", Km - Kp, P)
 
 
 def spectrum(Km, Kp, Gp, Gm, P, E, omega):
@@ -291,5 +295,5 @@ def spectrum(Km, Kp, Gp, Gm, P, E, omega):
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
 
-    Lm = ndist.lorentzian(-DE - omega, w=Wm+Wp)
-    return np.einsum('iab,...b->i...', Km*Lm, P)
+    Lm = ndist.lorentzian(-DE - omega, w=Wm + Wp)
+    return np.einsum("iab,...b->i...", Km * Lm, P)
