@@ -92,7 +92,6 @@ def test_stationary_solve(row, scale):
     drho = L @ rho.reshape(L.shape[0])
     assert np.isclose(np.sum(drho), 0)
 
-
 def test_stationary_single_cavity_mode():
     #parameters
     hw_ph = 1
@@ -110,7 +109,8 @@ def test_stationary_single_cavity_mode():
     Pn = nme.stationary(L).diagonal()
 
     # photons coming out
-    In = nme.current(no.jump(cm), L)
+    In = nme.current(no.jump(cm) - no.jump(cp), L)
+    n_average = nme.current(no.jump(cm), L)
 
     #analytics
     Gup = kappa * ndist.bose_einstein(hw_ph, kT)
@@ -120,9 +120,9 @@ def test_stationary_single_cavity_mode():
     Pa = gamma * x ** n
     
     #tr(Jrho) = tr(a rho a^\dagger) = <n>
-    Ia = kappa * ndist.bose_einstein(hw_ph, kT)
+    n_average_a = kappa * ndist.bose_einstein(hw_ph, kT)
     
-    assert np.allclose(Pa, Pn)
-    assert np.allclose(Ia, In)
-
+    assert np.allclose(Pn, Pa)
+    assert np.allclose(In, 0)
+    assert np.allclose(n_average, n_average_a)
 
