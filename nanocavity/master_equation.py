@@ -99,7 +99,7 @@ def correlation_AB(L, A, B, tlist, cutoff=1e-12):
     return S
 
 
-def spectrum(L, a, wlist, data=False, cutoff=1e-12):
+def spectrum(L, a, wlist, cutoff=1e-12, verbose=True):
     wlist = _toarray(wlist)
 
     if isinstance(a, Operator):
@@ -117,15 +117,15 @@ def spectrum(L, a, wlist, data=False, cutoff=1e-12):
 
     I = np.zeros(len(wlist), dtype=np.complex128)
 
-    if data:
+    if verbose:
         print(
             f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}"
         )
-    for k in range(0, len(El)):
+    for k in range(len(El)):
         Ak = w0 @ Ad @ vr[:, k]
         Bk = vl[:, k].conj() @ A @ rho_st
         if abs(Ak) > cutoff:
-            if data:
+            if verbose:
                 print(
                     f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}"
                 )
