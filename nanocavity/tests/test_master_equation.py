@@ -136,7 +136,9 @@ def test_spectrum():
     L = no.liouvillian(H, c_ops + a_ops)
     wlist = np.arange(1, 10)
     I = nme.spectrum(L, a, wlist, verbose=False)
-    I2, W, E = nme.spectrum(L, a, wlist, verbose=False, ret_data=True)
+    I2, Mk, E = nme.spectrum(L, a, wlist, verbose=False, ret_data=True)
     assert np.allclose(I, I2)
+    assert np.all(Mk >= -1e-30)  # tolerate tiny negative values?
+    assert np.all(Mk[1:] <= Mk[:-1])
     I3 = nme.spectrum(L, a, wlist, cutoff=10)
     assert np.allclose(I3, 0)

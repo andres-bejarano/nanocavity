@@ -116,7 +116,7 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
     El, vl, vr = eig_norm(L)
 
     Mk = np.zeros_like(El)
-    I = np.zeros(len(wlist), dtype=np.complex128)
+    I = np.zeros(len(wlist), dtype=np.float64)
 
     for k in range(len(El)):
         Ak = w0 @ Ad @ vr[:, k]
@@ -124,10 +124,10 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
         Mk[k] = Ak * Bk
         if abs(Ak) > cutoff:
             Dist = ndist.lorentzian(wlist - El[k].imag, -2 * El[k].real)
-            I += Mk[k] * Dist
+            I += Mk[k].real * Dist
     if verbose:
-        # print up to 10 leading contributions according to Mk-magnitude
-        idx = np.argsort(-np.abs(Mk))[:10]
+        # print up to 10 leading contributions according to magnitude of Re(Mk)
+        idx = np.argsort(-Mk.real)[:10]
         print(f"\n{'k':>4} {'abs-weight':>12} {'position':>12} {'fhwm':>12}")
         for k in idx:
             if El[k].imag > 0:
@@ -135,8 +135,9 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
                 print(f"{k:4} {np.abs(Mk[k]):12.6f} {El[k].imag:12.6f} {-2 * El[k].real:12.6f}")
     if ret_data:
         # spectrum, weights, eigenvalues
-        return I.real, Mk, El
-    return I.real
+        idx = np.argsort(-Mk.real)
+        return I, Mk.real[idx], El[idx]
+    return I
 
 
 def g2(L, J, tlist, cutoff=1e-12):
