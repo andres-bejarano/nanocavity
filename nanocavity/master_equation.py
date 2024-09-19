@@ -115,22 +115,24 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True):
     rho_st = stationary(L).reshape(dim**2)
     El, vl, vr = eig_norm(L)
 
+    Mk = np.zeros_like(El)
     I = np.zeros(len(wlist), dtype=np.complex128)
 
-    if verbose:
-        print(
-            f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}"
-        )
     for k in range(len(El)):
         Ak = w0 @ Ad @ vr[:, k]
         Bk = vl[:, k].conj() @ A @ rho_st
+        Mk[k] = Ak * Bk
         if abs(Ak) > cutoff:
-            if verbose:
-                print(
-                    f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}"
-                )
             Dist = ndist.lorentzian(wlist - El[k].imag, -2 * El[k].real)
-            I += Ak * Bk * Dist
+            I += Mk[k] * Dist
+    if verbose:
+        # print up to 10 leading contributions according to Mk-magnitude
+        idx = np.argsort(-np.abs(Mk))[:10]
+        print(f"\n{'k':>4} {'abs-weight':>12} {'position':>12} {'fhwm':>12}")
+        for k in idx:
+            if El[k].imag > 0:
+                # only print for positive energies
+                print(f"{k:4} {np.abs(Mk[k]):12.6f} {El[k].imag:12.6f} {-2 * El[k].real:12.6f}")
     return I.real
 
 
