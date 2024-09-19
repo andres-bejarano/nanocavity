@@ -91,13 +91,10 @@ def correlation_AB(L, A, B, tlist, cutoff=1e-12):
     El, vl, vr = eig_norm(L)
 
     # correlation function S is generally complex
-    M = np.zeros(len(El), dtype=np.complex128)
+    M = (w0 @ A @ vr) * (vl.conj().T @ B @ rho_st)
     S = np.zeros(len(tlist), dtype=np.complex128)
 
     for k in range(len(El)):
-        Ak = w0 @ A @ vr[:, k]
-        Bk = vl[:, k].conj() @ B @ rho_st
-        M[k] = Ak * Bk
         if abs(M[k]) > cutoff:
             S += M[k] * np.exp(El[k] * tlist)
     return S
@@ -119,14 +116,12 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
     rho_st = stationary(L).reshape(dim**2)
     El, vl, vr = eig_norm(L)
 
-    # spectrum is a real quantity
-    M = np.zeros(len(El), dtype=np.float64)
+    M = (w0 @ Ad @ vr) * (vl.conj().T @ A @ rho_st)
+    # spectrum is a real quantity, so we can skip the imaginary part
+    M = M.real
     I = np.zeros(len(wlist), dtype=np.float64)
 
     for k in range(len(El)):
-        Ak = w0 @ Ad @ vr[:, k]
-        Bk = vl[:, k].conj() @ A @ rho_st
-        M[k] = np.real(Ak * Bk)
         if M[k] > cutoff:
             I += M[k] * ndist.lorentzian(wlist - El[k].imag, -2 * El[k].real)
     if verbose:
@@ -143,6 +138,7 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
         # spectrum, weights, eigenvalues
         idx = np.argsort(-M)
         return I, M[idx], El[idx]
+
     return I
 
 
