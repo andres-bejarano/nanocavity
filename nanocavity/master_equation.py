@@ -99,7 +99,7 @@ def correlation_AB(L, A, B, tlist, cutoff=1e-12):
     return S
 
 
-def spectrum(L, a, wlist, cutoff=1e-12, verbose=True):
+def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
     wlist = _toarray(wlist)
 
     if isinstance(a, Operator):
@@ -133,6 +133,9 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True):
             if El[k].imag > 0:
                 # only print for positive energies
                 print(f"{k:4} {np.abs(Mk[k]):12.6f} {El[k].imag:12.6f} {-2 * El[k].real:12.6f}")
+    if ret_data:
+        # spectrum, weights, eigenvalues
+        return I.real, Mk, El
     return I.real
 
 

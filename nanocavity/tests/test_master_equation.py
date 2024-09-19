@@ -124,3 +124,19 @@ def test_stationary_single_cavity_mode():
     assert np.allclose(Pn, Pa)
     assert np.allclose(In, 0)
     assert np.allclose(n_average, n_average_a)
+
+
+def test_spectrum():
+    [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=3)
+    H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
+    kT = 0.1
+    rate = 1e-3
+    c_ops = no.collapses(c, H, kT, "fermionic", rate)
+    a_ops = no.collapses(a, H, kT, "bosonic", rate)
+    L = no.liouvillian(H, c_ops + a_ops)
+    wlist = np.arange(1, 10)
+    I = nme.spectrum(L, a, wlist, verbose=False)
+    I2, W, E = nme.spectrum(L, a, wlist, verbose=False, ret_data=True)
+    assert np.allclose(I, I2)
+    I3 = nme.spectrum(L, a, wlist, cutoff=10)
+    assert np.allclose(I3, 0)
