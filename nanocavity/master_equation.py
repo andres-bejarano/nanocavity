@@ -85,7 +85,7 @@ def correlation_AB(L, A, B, tlist, cutoff=1e-12):
     A = np.kron(A, Id)
     B = np.kron(B, Id)
 
-    w0 = np.eye(dim).reshape(1, dim**2)
+    w0 = np.eye(dim).reshape(dim**2)
     rho_st = stationary(L).reshape(dim**2)
     El, vl, vr = eig_norm(L)
 
@@ -99,7 +99,7 @@ def correlation_AB(L, A, B, tlist, cutoff=1e-12):
     return S
 
 
-def spectrum(L, a, wlist, data=False, cutoff=1e-12):
+def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
     wlist = _toarray(wlist)
 
     if isinstance(a, Operator):
@@ -111,27 +111,33 @@ def spectrum(L, a, wlist, data=False, cutoff=1e-12):
     Ad = np.kron(a.conj().T, Id)
     A = np.kron(a, Id)
 
-    w0 = np.eye(dim).reshape(1, dim**2)
+    w0 = np.eye(dim).reshape(dim**2)
     rho_st = stationary(L).reshape(dim**2)
     El, vl, vr = eig_norm(L)
 
-    I = np.zeros(len(wlist), dtype=np.complex128)
+    Mk = np.zeros_like(El)
+    I = np.zeros(len(wlist), dtype=np.float64)
 
-    if data:
-        print(
-            f"{'k':4s} {'Ak.abs':12s} {'Bk.abs':12s} {'Mk.abs':12s} {'El[k].real':12s} {'El[k].imag':12s}"
-        )
-    for k in range(0, len(El)):
+    for k in range(len(El)):
         Ak = w0 @ Ad @ vr[:, k]
         Bk = vl[:, k].conj() @ A @ rho_st
+        Mk[k] = Ak * Bk
         if abs(Ak) > cutoff:
-            if data:
-                print(
-                    f"{k:4} {np.abs(Ak):12.6f} {np.abs(Bk):12.6f} {np.abs(Ak * Bk):12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}"
-                )
             Dist = ndist.lorentzian(wlist - El[k].imag, -2 * El[k].real)
-            I += Ak * Bk * Dist
-    return I.real
+            I += Mk[k].real * Dist
+    if verbose:
+        # print up to 10 leading contributions according to magnitude of Re(Mk)
+        idx = np.argsort(-Mk.real)[:10]
+        print(f"\n{'k':>4} {'abs-weight':>12} {'position':>12} {'fhwm':>12}")
+        for k in idx:
+            if El[k].imag > 0:
+                # only print for positive energies
+                print(f"{k:4} {np.abs(Mk[k]):12.6f} {El[k].imag:12.6f} {-2 * El[k].real:12.6f}")
+    if ret_data:
+        # spectrum, weights, eigenvalues
+        idx = np.argsort(-Mk.real)
+        return I, Mk.real[idx], El[idx]
+    return I
 
 
 def g2(L, J, tlist, cutoff=1e-12):

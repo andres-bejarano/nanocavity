@@ -463,7 +463,6 @@ def spectrum(
     kT,
     wlist,
     iva=False,
-    data=False,
     full=True,
 ):
     H, [dg, de, a] = Hamiltonian(package, *H_parameters)
@@ -474,7 +473,7 @@ def spectrum(
                 "nanocavity", H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva
             )
             L = no.liouvillian(H, list(c_ops))
-            I = kappa * nme.spectrum(L, a, wlist, data=data)
+            I = kappa * nme.spectrum(L, a, wlist)
         else:
             E, V = H.eigh()
             # transtion rates, populations and spectrum

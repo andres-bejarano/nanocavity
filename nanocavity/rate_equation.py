@@ -295,5 +295,5 @@ def spectrum(Km, Kp, Gp, Gm, P, E, omega):
     DE = E.reshape(1, -1, 1) - E.reshape(1, 1, -1)
     omega = omega.reshape(-1, 1, 1)
 
-    Lm = ndist.lorentzian(-DE - omega, w=Wm + Wp)
+    Lm = ndist.lorentzian(-DE - omega, fwhm=Wm + Wp)
     return np.einsum("iab,...b->i...", Km * Lm, P)
