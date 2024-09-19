@@ -57,10 +57,10 @@ def bath_dist(E, kT, rate, bath, mu=0, eV=0):
 
 
 # lorentzian
-def lorentzian(E, w, epsilon=0):
-    denominator = w**2 / 4.0 + E**2
+def lorentzian(E, fwhm, epsilon=0):
+    denominator = fwhm**2 / 4.0 + E**2
     denominator = np.where(denominator < epsilon, epsilon, denominator)
-    return w / (2.0 * np.pi) / denominator
+    return fwhm / (2.0 * np.pi) / denominator
 
 
 # fininte-band
