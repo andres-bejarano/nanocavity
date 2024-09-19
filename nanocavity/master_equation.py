@@ -150,17 +150,18 @@ def g2(L, J, tlist, cutoff=1e-12):
 
     dim = J.shape[0]
 
-    w0 = np.eye(int(np.sqrt(dim))).reshape(1, dim)
+    w0 = np.eye(int(np.sqrt(dim))).reshape(dim)
     rho_st = stationary(L).reshape(dim)
     El, vl, vr = eig_norm(L)
 
     G1 = w0 @ J @ rho_st
+    M = (w0 @ J @ vr) * (vl.conj().T @ J @ rho_st)
     G2 = np.zeros(len(tlist), dtype=np.complex128)
 
     for k in range(0, len(El)):
-        Ak = w0 @ J @ vr[:, k]
-        Bk = vl[:, k].conj() @ J @ rho_st
-        if abs(Ak) > cutoff:
-            G2 += Ak * Bk * np.exp(El[k] * tlist)
+        if abs(M[k]) > cutoff:
+            G2 += M[k] * np.exp(El[k] * tlist)
+
     g2 = G2 / G1**2
+
     return g2.real
