@@ -85,7 +85,7 @@ def correlation_AB(L, A, B, tlist, cutoff=1e-12):
     A = np.kron(A, Id)
     B = np.kron(B, Id)
 
-    w0 = np.eye(dim).reshape(1, dim**2)
+    w0 = np.eye(dim).reshape(dim**2)
     rho_st = stationary(L).reshape(dim**2)
     El, vl, vr = eig_norm(L)
 
@@ -111,7 +111,7 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True):
     Ad = np.kron(a.conj().T, Id)
     A = np.kron(a, Id)
 
-    w0 = np.eye(dim).reshape(1, dim**2)
+    w0 = np.eye(dim).reshape(dim**2)
     rho_st = stationary(L).reshape(dim**2)
     El, vl, vr = eig_norm(L)
 
