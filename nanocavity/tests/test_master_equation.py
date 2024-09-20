@@ -139,7 +139,7 @@ def test_spectrum():
     I2, Mk, E = nme.spectrum(L, a, wlist, verbose=False, ret_data=True)
     assert np.allclose(I, I2)
     assert np.all(Mk >= -1e-30)  # tolerate tiny negative values?
-    assert np.all(Mk[1:] <= Mk[:-1])
+    assert np.all(Mk[1:] <= Mk[:-1])  # entries sorted descending?
     I3 = nme.spectrum(L, a, wlist, cutoff=10)
     assert np.allclose(I3, 0)
 
@@ -155,3 +155,6 @@ def test_g2():
     assert np.isclose(g2[0], 2)  # g2(0) = 2 in thermal equilibrium
     assert np.isclose(g2[-1], 1)  # g2(infty) = 1, uncorrelated
     assert np.all(g2[:-1] > g2[1:])  # decreasing function of delay
+    g2b, Mk, E = nme.g2(L, J, tlist, ret_data=True)
+    assert np.all(Mk >= -1e-30)  # tolerate tiny negative values?
+    assert np.all(Mk[1:] <= Mk[:-1])  # entries sorted descending?

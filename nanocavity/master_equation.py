@@ -142,7 +142,7 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
     return I
 
 
-def g2(L, J, tlist, cutoff=1e-12):
+def g2(L, J, tlist, cutoff=1e-12, ret_data=False):
     tlist = _toarray(tlist)
 
     if isinstance(J, Operator):
@@ -162,6 +162,11 @@ def g2(L, J, tlist, cutoff=1e-12):
         if abs(M[k]) > cutoff:
             G2 += M[k] * np.exp(El[k] * tlist)
 
-    g2 = G2 / G1**2
+    g2 = (G2 / G1**2).real
 
-    return g2.real
+    if ret_data:
+        # g2, weights, eigenvalues
+        idx = np.argsort(-M)
+        return g2, M[idx], El[idx]
+
+    return g2
