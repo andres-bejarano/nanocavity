@@ -147,8 +147,7 @@ def test_spectrum():
 def test_g2():
     # just a single harmonic oscillator, H = a.d * a, coupled to bath
     a, H = sq.composite(fermion_modes=0, boson_modes=1, max_bosons=6)
-    kT = 0.1
-    ap, am = no.collapses(a, H, kT, "bosonic", 0.1, total=False)
+    ap, am = no.collapses(a, H, 0.1, "bosonic", 0.1, total=False)
     L = no.liouvillian(H, ap + am)
     J = no.jump(am)
     tlist = np.arange(200)
