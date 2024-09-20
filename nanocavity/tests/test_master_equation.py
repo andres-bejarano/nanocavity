@@ -143,17 +143,15 @@ def test_spectrum():
     I3 = nme.spectrum(L, a, wlist, cutoff=10)
     assert np.allclose(I3, 0)
 
+
 def test_g2():
-    [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=3)
-    H = Nb + 0.001 * Nf * (a.d + a)
-    kT = 0.1
-    rate = 1e-3
-    cL = no.collapses(c, H, kT, "fermionic", rate, mu=0)
-    ap, am = no.collapses(a, H, kT, "bosonic", 0.1, total=False)
-    L = no.liouvillian(H, cL + ap + am)
+    # just a single harmonic oscillator, H = a.d * a, coupled to bath
+    a, H = sq.composite(fermion_modes=0, boson_modes=1, max_bosons=6)
+    ap, am = no.collapses(a, H, 0.1, "bosonic", 0.1, total=False)
+    L = no.liouvillian(H, ap + am)
     J = no.jump(am)
     tlist = np.arange(200)
     g2 = nme.g2(L, J, tlist)
     assert np.isclose(g2[0], 2)  # g2(0) = 2 in thermal equilibrium
-    assert np.isclose(g2[-1], 1)
-    assert np.all(g2[:-1] > g2[1:])  # decreasing function
+    assert np.isclose(g2[-1], 1)  # g2(infty) = 1, uncorrelated
+    assert np.all(g2[:-1] > g2[1:])  # decreasing function of delay
