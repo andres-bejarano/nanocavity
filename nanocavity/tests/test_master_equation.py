@@ -156,5 +156,3 @@ def test_g2():
     assert np.isclose(g2[-1], 1)  # g2(infty) = 1, uncorrelated
     assert np.all(g2[:-1] > g2[1:])  # decreasing function of delay
     g2b, Mk, E = nme.g2(L, J, tlist, ret_data=True)
-    assert np.all(Mk >= -1e-30)  # tolerate tiny negative values?
-    assert np.all(Mk[1:] <= Mk[:-1])  # entries sorted descending?

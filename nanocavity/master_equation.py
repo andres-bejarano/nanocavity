@@ -156,17 +156,17 @@ def g2(L, J, tlist, cutoff=1e-12, ret_data=False):
 
     G1 = w0 @ J @ rho_st
     M = (w0 @ J @ vr) * (vl.conj().T @ J @ rho_st)
-    G2 = np.zeros(len(tlist), dtype=np.complex128)
+    M /= G1**2
+
+    g2 = np.zeros(len(tlist), dtype=np.complex128)
 
     for k in range(0, len(El)):
         if abs(M[k]) > cutoff:
-            G2 += M[k] * np.exp(El[k] * tlist)
-
-    g2 = (G2 / G1**2).real
+            g2 += M[k] * np.exp(El[k] * tlist)
 
     if ret_data:
         # g2, weights, eigenvalues
-        idx = np.argsort(-M)
-        return g2, M[idx], El[idx]
+        idx = np.argsort(-np.abs(M))
+        return g2.real, M[idx], El[idx]
 
-    return g2
+    return g2.real
