@@ -124,16 +124,18 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
     for k in range(len(El)):
         if M[k] > cutoff:
             I += M[k] * ndist.lorentzian(wlist - El[k].imag, -2 * El[k].real)
+
     if verbose:
         # print up to 10 leading contributions according to magnitude of M[k]
         idx = np.argsort(-M)[:10]
-        print(f"\n{'k':>4} {'abs-weight':>12} {'position':>12} {'fhwm':>12}")
+        print(f"\nSPECTRUM:\n{'k':>4} {'abs-weight':>12} {'position':>12} {'fhwm':>12}")
         for k in idx:
             if El[k].imag > 0:
                 # only print for positive energies
                 print(
                     f"{k:4} {np.abs(M[k]):12.6f} {El[k].imag:12.6f} {-2 * El[k].real:12.6f}"
                 )
+
     if ret_data:
         # spectrum, weights, eigenvalues
         idx = np.argsort(-M)
@@ -142,7 +144,7 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
     return I
 
 
-def g2(L, J, tlist, cutoff=1e-12, ret_data=False):
+def g2(L, J, tlist, cutoff=1e-12, verbose=True, ret_data=False):
     tlist = _toarray(tlist)
 
     if isinstance(J, Operator):
@@ -163,6 +165,17 @@ def g2(L, J, tlist, cutoff=1e-12, ret_data=False):
     for k in range(0, len(El)):
         if abs(M[k]) > cutoff:
             g2 += M[k] * np.exp(El[k] * tlist)
+
+    if verbose:
+        # print up to 10 leading contributions according to magnitude of M[k]
+        idx = np.argsort(-np.abs(M))[:10]
+        print(
+            f"\ng2 CORRELATION FUNCTION:\n{'k':>4} {'Re(Mk)':>12} {'Im(Mk)':>12} {'Re(Ek)':>12} {'Im(Ek)':>12}"
+        )
+        for k in idx:
+            print(
+                f"{k:4} {M[k].real:12.6f} {M[k].imag:12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}"
+            )
 
     if ret_data:
         # g2, weights, eigenvalues
