@@ -176,10 +176,7 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
         alone=False,
     )
 
-    if iva:
-        H = H0
-    else:
-        H = H0 + Hint
+    H = H0 + Hint
     # density matrix
     L = no.liouvillian(H, list(c_ops))
     rho = nme.stationary(L)
