@@ -163,7 +163,7 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
     # We need the bare energies (without coupling)
     # H_parameters = Eg, Delta, hw_ph, g_ph, U, True
     # system hamiltonian
-    _, H, c_ops = tls.collapses(
+    _, H0, Hint, c_ops = tls.collapses(
         "nanocavity",
         H_parameters,
         VL,
@@ -176,6 +176,10 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
         alone=False,
     )
 
+    if iva:
+        H = H0
+    else:
+        H = H0 + Hint
     # density matrix
     L = no.liouvillian(H, list(c_ops))
     rho = nme.stationary(L)
