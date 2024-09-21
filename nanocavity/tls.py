@@ -393,10 +393,7 @@ def rho_st(
     full=True,
 ):
     H0, Hint, [dg, de, a] = Hamiltonian(package, *H_parameters)
-    if iva:
-        H = H0
-    else:
-        H = H0 + Hint
+    H = H0 + Hint
     if package == "nanocavity":
         if full:
             c_ops = collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
@@ -423,10 +420,7 @@ def rho_st(
 
 def correlation(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
     H0, Hint, [_, _, a] = Hamiltonian(package, *H_parameters)
-    if iva:
-        H = H0
-    else:
-        H = H0 + Hint
+    H = H0 + Hint
     if package == "nanocavity":
         c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         L = no.liouvillian(H, list(c_ops))
@@ -470,10 +464,7 @@ def spectrum(
     full=True,
 ):
     H0, Hint, [dg, de, a] = Hamiltonian(package, *H_parameters)
-    if iva:
-        H = H0
-    else:
-        H = H0 + Hint
+    H = H0 + Hint
     if package == "nanocavity":
         if full:
             c_ops = collapses(
@@ -500,10 +491,7 @@ def spectrum(
 
 def g2(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
     H0, Hint, [dg, de, a] = Hamiltonian(package, *H_parameters)
-    if iva:
-        H = H0
-    else:
-        H = H0 + Hint
+    H = H0 + Hint
     if package == "nanocavity":
         c_ops = collapses(
             "nanocavity", H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva
