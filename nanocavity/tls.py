@@ -18,11 +18,10 @@ def Hnc(Eg, delta, omegac, coupling, u=0, rwa=False, max_bosons=1, ret_nop=False
         Hint = coupling * (a.d * dg.d * de + a * de.d * dg)
     else:
         Hint = coupling * (a + a.d) * (dg.d * de + de.d * dg)
-    H = H0 + Hint
     L = [dg, de, a]
     if ret_nop:
-        return H, L, [Nfg, Nfe, Nb]
-    return H, L
+        return H0, Hint, L, [Nfg, Nfe, Nb]
+    return H0, Hint, L
 
 
 def Hqt(Eg, delta, omegac, coupling, u=0, rwa=False, max_bosons=1):
@@ -45,9 +44,8 @@ def Hqt(Eg, delta, omegac, coupling, u=0, rwa=False, max_bosons=1):
         Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
     else:
         Hint = coupling * (a + a.dag()) * (dg.dag() * de + de.dag() * dg)
-    H = H0 + Hint
     L = [dg, de, a]
-    return H, L
+    return H0, Hint, L
 
 
 def Hnc_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
@@ -286,12 +284,13 @@ def collapses_qt_vi(H, ops, VL, VR, kappa, gL, gR, kT):
 
 def collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False):
 
-    H, [dg, de, a] = Hamiltonian("nanocavity", *H_parameters)
+    H0, Hint, [dg, de, a] = Hamiltonian("nanocavity", *H_parameters)
 
     if iva:
-        coupling = H_parameters[3]
-        Hint = coupling * (a.d * dg.d * de + a * de.d * dg)
-        H -= Hint
+        H = H0
+    else:
+        H = H0 + Hint
+
     # left electrode
     c_gL = no.collapses(dg, H, kT, "fermionic", gL, mu=VL)
     c_eL = no.collapses(de, H, kT, "fermionic", gL, mu=VL)
@@ -309,21 +308,20 @@ def collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False)
 
     if alone:
         return c_ops
-    if iva:
-        return [dg, de, a], H + Hint, c_ops
-    return [dg, de, a], H, c_ops
+    return [dg, de, a], H0, Hint, c_ops
 
 
 def collapses_qt(
     H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, alone=True, iva=False
 ):
 
-    H, [dg, de, a] = Hamiltonian("qutip", *H_parameters)
+    H0, Hint, [dg, de, a] = Hamiltonian("qutip", *H_parameters)
 
     if iva:
-        coupling = H_parameters[3]
-        Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
-        H -= Hint
+        H = H0
+    else:
+        H = H0 + Hint
+
     # left electrode
     c_gL = qo.collapses(dg, H, kT, "fermionic", gL, mu=VL)
     c_eL = qo.collapses(de, H, kT, "fermionic", gL, mu=VL)
@@ -345,9 +343,7 @@ def collapses_qt(
 
     if alone:
         return c_ops
-    if iva:
-        return [dg, de, a], H + Hint, c_ops
-    return [dg, de, a], H, c_ops
+    return [dg, de, a], H0, Hint, c_ops
 
 
 def collapses(
@@ -396,7 +392,8 @@ def rho_st(
     iva=False,
     full=True,
 ):
-    H, [dg, de, a] = Hamiltonian(package, *H_parameters)
+    H0, Hint, [dg, de, a] = Hamiltonian(package, *H_parameters)
+    H = H0 + Hint
     if package == "nanocavity":
         if full:
             c_ops = collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
@@ -422,7 +419,8 @@ def rho_st(
 
 
 def correlation(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
-    H, [_, _, a] = Hamiltonian(package, *H_parameters)
+    H0, Hint, [_, _, a] = Hamiltonian(package, *H_parameters)
+    H = H0 + Hint
     if package == "nanocavity":
         c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
         L = no.liouvillian(H, list(c_ops))
@@ -465,8 +463,8 @@ def spectrum(
     iva=False,
     full=True,
 ):
-    H, [dg, de, a] = Hamiltonian(package, *H_parameters)
-
+    H0, Hint, [dg, de, a] = Hamiltonian(package, *H_parameters)
+    H = H0 + Hint
     if package == "nanocavity":
         if full:
             c_ops = collapses(
@@ -492,7 +490,8 @@ def spectrum(
 
 
 def g2(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
-    H, [dg, de, a] = Hamiltonian(package, *H_parameters)
+    H0, Hint, [dg, de, a] = Hamiltonian(package, *H_parameters)
+    H = H0 + Hint
     if package == "nanocavity":
         c_ops = collapses(
             "nanocavity", H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva

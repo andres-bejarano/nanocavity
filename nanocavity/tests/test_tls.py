@@ -62,9 +62,9 @@ def test_populations():
     VL, VR = 10, -10
 
     H_parameters = Eg, Delta, hw_ph, g_ph, U
-    H, [dg, de, a] = tls.Hamiltonian("nanocavity", *H_parameters)
+    H0, Hint, [dg, de, a] = tls.Hamiltonian("nanocavity", *H_parameters)
+    H = H0 + Hint
     rho = tls.rho_st("nanocavity", H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT)
-
     # rho is written in the basis without interaction
     E, V = H.eigh()
     Vinv = np.linalg.inv(V)
@@ -81,7 +81,8 @@ def test_stationary():
     for VL, VR in [[3, -3], [2, 0], [-1, 2]]:
         for g_ph in [0.005, 0.05, 0.5]:
             H_parameters = Eg, Delta, hw_ph, g_ph, U
-            H, [Dg, De, A] = tls.Hamiltonian("nanocavity", *H_parameters)
+            H0, Hint, [Dg, De, A] = tls.Hamiltonian("nanocavity", *H_parameters)
+            H = H0 + Hint
             Pme = tls.rho_st(
                 "nanocavity", H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT
             )
@@ -93,10 +94,16 @@ def test_correlation_AB():
     tlist = np.linspace(0.0, 200, 101)
     for g_ph in [0.005, 0.05, 0.5]:
         H_parameters = Eg, Delta, hw_ph, g_ph, U
-        Hnc, [_, _, A] = tls.Hamiltonian("nanocavity", *H_parameters)
-        Hqt, [_, _, a] = tls.Hamiltonian("qutip", *H_parameters)
+        Hnc0, Hnc1, [_, _, A] = tls.Hamiltonian("nanocavity", *H_parameters)
+        Hqt0, Hqt1, [_, _, a] = tls.Hamiltonian("qutip", *H_parameters)
         VL, VR = 3, -3
         for iva in (False, True):
+            if iva:
+                Hnc = Hnc0
+                Hqt = Hqt0
+            else:
+                Hnc = Hnc0 + Hnc1
+                Hqt = Hqt0 + Hqt1
             c_nc = tls.collapses(
                 "nanocavity", H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva
             )

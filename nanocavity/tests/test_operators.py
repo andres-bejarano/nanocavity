@@ -25,9 +25,10 @@ def test_Htls_nc_QuTiP():
     for rwa in (True, False):
         for max_bosons in (1, 2):
             H_parameters = Eg, delta, omegac, coupling, rwa, max_bosons
-            Hnc, [Dg, De, A] = tls.Hamiltonian("nanocavity", *H_parameters)
-            Hqt, [dg, de, a] = tls.Hamiltonian("qutip", *H_parameters)
-
+            Hnc0, Hnc1, [Dg, De, A] = tls.Hamiltonian("nanocavity", *H_parameters)
+            Hqt0, Hqt1, [dg, de, a] = tls.Hamiltonian("qutip", *H_parameters)
+            Hnc = Hnc0 + Hnc1
+            Hqt = Hqt0 + Hqt1
             Enc, Vnc = Hnc.eigh()
             Eqt, Vqt = Hqt.eigenstates()
 
@@ -101,8 +102,10 @@ def test_dissipators():
 def test_liovillian():
     for coupling in [0.005, 0.05, 0.5]:
         H_parameters = Eg, delta, omegac, coupling
-        Hqt, _ = tls.Hamiltonian("qutip", *H_parameters)
-        Hnc, _ = tls.Hamiltonian("nanocavity", *H_parameters)
+        Hqt0, Hqt1, _ = tls.Hamiltonian("qutip", *H_parameters)
+        Hnc0, Hnc1, _ = tls.Hamiltonian("nanocavity", *H_parameters)
+        Hqt = Hqt0 + Hqt1
+        Hnc = Hnc0 + Hnc1
         for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
             c_ops_qt = list(
                 tls.collapses("qutip", H_parameters, VL, VR, kappa, gL, gR, kT)
