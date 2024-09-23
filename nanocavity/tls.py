@@ -462,6 +462,7 @@ def spectrum(
     wlist,
     iva=False,
     full=True,
+    **kwargs
 ):
     H0, Hint, [dg, de, a] = Hamiltonian(package, *H_parameters)
     H = H0 + Hint
@@ -471,7 +472,12 @@ def spectrum(
                 "nanocavity", H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva
             )
             L = no.liouvillian(H, list(c_ops))
-            I = kappa * nme.spectrum(L, a, wlist)
+            I = nme.spectrum(L, a, wlist, **kwargs)
+            try:
+                return I * kappa
+            except:
+                # ret_dat=True flag given, return also Mk and Ek
+                return I[0] * kappa, I[1], I[2]
         else:
             E, V = H.eigh()
             # transtion rates, populations and spectrum
@@ -482,11 +488,10 @@ def spectrum(
             GL = (GpL + GmL)[:, None]  # VL, VR
             GR = (GpR + GmR)[None, :]
             P = nre.populations(K[np.newaxis, np.newaxis] + GL + GR)
-            I = nre.power_spectrum(Kp, Km, P, E, wlist)
+            return nre.power_spectrum(Kp, Km, P, E, wlist, **kwargs)
     if package == "qutip":
         c_ops = collapses("qutip", H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        I = kappa / (2 * np.pi) * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
-    return I
+        return kappa / (2 * np.pi) * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
 
 
 def g2(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
