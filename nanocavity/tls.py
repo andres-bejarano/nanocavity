@@ -397,7 +397,7 @@ def rho_st(
     if package == "nanocavity":
         if full:
             c_ops = collapses_nc(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-            L = no.liouvillian(H, list(c_ops))
+            L = no.liouvillian(H, c_ops)
             rho = nme.stationary(L)
         else:
             E, V = H.eigh()
@@ -414,7 +414,7 @@ def rho_st(
         c_ops = collapses_qt(
             H_parameters, VL, VR, kappa, gL, gR, kT, m, lead2lead, alone=True, iva=iva
         )
-        rho = qt.steadystate(H, list(c_ops)).full()
+        rho = qt.steadystate(H, c_ops).full()
     return rho
 
 
@@ -423,14 +423,14 @@ def correlation(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=Fal
     H = H0 + Hint
     if package == "nanocavity":
         c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        L = no.liouvillian(H, list(c_ops))
+        L = no.liouvillian(H, c_ops)
         S = nme.correlation_AB(L, a.d, a, tlist)
 
     elif package == "qutip":
         c_ops = qo.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        rho_st = qt.steadystate(H, list(c_ops))
+        rho_st = qt.steadystate(H, c_ops)
         S = qt.correlation_2op_1t(
-            H=H, state0=rho_st, taulist=tlist, c_ops=list(c_ops), a_op=a.dag(), b_op=a
+            H=H, state0=rho_st, taulist=tlist, c_ops=c_ops, a_op=a.dag(), b_op=a
         )
     return S
 
@@ -443,7 +443,7 @@ def spectrum_vi(package, H, op_list, VL, VR, kappa, gL, gR, kT, wlist, Hint=0):
     elif package == "qutip" or package == "qt":
         c_ops = collapses_qt_vi(H, op_list, VL, VR, kappa, gL, gR, kT)
         a = op_list[2]
-        I = kappa / (2 * np.pi) * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
+        I = kappa / (2 * np.pi) * qt.spectrum(H, wlist, c_ops, a.dag(), a)
     else:
         print("Either calculate the spectrum with nanocavity or qutip")
         return 0
@@ -471,7 +471,7 @@ def spectrum(
             c_ops = collapses(
                 "nanocavity", H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva
             )
-            L = no.liouvillian(H, list(c_ops))
+            L = no.liouvillian(H, c_ops)
             I = nme.spectrum(L, a, wlist, **kwargs)
             try:
                 return I * kappa
@@ -491,7 +491,7 @@ def spectrum(
             return nre.power_spectrum(Kp, Km, P, E, wlist, **kwargs)
     if package == "qutip":
         c_ops = collapses("qutip", H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        return kappa / (2 * np.pi) * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
+        return kappa / (2 * np.pi) * qt.spectrum(H, wlist, c_ops, a.dag(), a)
 
 
 def g2(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
@@ -501,14 +501,14 @@ def g2(package, H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
         c_ops = collapses(
             "nanocavity", H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva
         )
-        L = no.liouvillian(H, list(c_ops))
+        L = no.liouvillian(H, c_ops)
         _, cm = no.collapses(a, H, kT, bath="bosonic", rate=kappa, total=False)
         J = no.jump(cm)
         return nme.g2(L, J, tlist)
 
     elif package == "qutip":
         c_ops = collapses("qutip", H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        rho_st = qt.steadystate(H, list(c_ops))
+        rho_st = qt.steadystate(H, c_ops)
         g2qt, _ = qt.coherence_function_g2(
             H, state0=rho_st, taulist=tlist, c_ops=c_ops, a_op=a, solver="me"
         )
