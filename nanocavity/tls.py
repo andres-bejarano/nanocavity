@@ -33,8 +33,6 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1, ret_nop=Fa
     
     Returns:
     ------
-    H: secondquant operator
-        Total Hamiltonian
     H0: secondquant operator
         Hamiltonian w/o interaciton between TLS and photons/vibrons
     Hint: secondquant operator
@@ -192,8 +190,7 @@ def collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, alone=True, iva
     alone: Logic
         If false, it returns two lists with collapses for particle aggregation and elimination processes  
     iva: Logic
-        Write the dissipator to the base without interaction 
-
+        If True write the dissipator in the basis without interaction. Defaults to False.
     Returns:
     -----
     c_ops: list
@@ -257,7 +254,7 @@ def rho_st(
     kT: float
         Temperature
     iva: Logic
-        Write the dissipator to the base without interaction 
+        If True write the dissipator in the basis without interaction. Defaults to False. 
     method: str
         By default 'msolve 'it uses full master equation approach master_equation.py, if it is 'rsolve' then it will use rate_quation.py
     
@@ -288,7 +285,7 @@ def rho_st(
 
 def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     """
-    Function to calculate the firs order correlation function of two operators. <A(t)B(0)>.
+    Function to calculate the first order correlation function of two operators. <A(t)B(0)>.
     The calculation is carried out by performing quantum regression theorem. 
 
     Parameters:
@@ -310,8 +307,7 @@ def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=Fa
     tlist: ndarray
         Discretization in time domain 
      iva: Logic
-        Write the dissipator to the base without interaction 
-    Returns:
+        If True write the dissipator in the basis without interaction. Defaults to False.    Returns:
     -----
     correlation: 2D array
         The correlation between two operators in time 
@@ -345,8 +341,7 @@ def spectrum_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, Hint=0):
     tlist: ndarray
         Discretization in time domain 
      iva: Logic
-        Write the dissipator to the base without interaction 
-    Returns:
+        If True write the dissipator in the basis without interaction. Defaults to False.    Returns:
     -----
     correlation: 2D array
         The correlation between two operators in time 
@@ -391,8 +386,7 @@ def spectrum(
     wlist: ndarray
         The discretization of frequencies
     iva: Logic
-        Write the dissipator to the base without interaction 
-    method: str
+        If True write the dissipator in the basis without interaction. Defaults to False.    method: str
         By default 'msolve 'it uses full master equation approach master_equation.py, if it is 'rsolve' then it will use rate_quation.py
     Returns:
     -----
@@ -445,8 +439,7 @@ def g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     tlist: ndarray
         The discretization of time
     iva: Logic
-        Write the dissipator in the base without interaction 
-    
+        If True write the dissipator in the basis without interaction. Defaults to False.    
     Returns
     -----
     g2: 2D array

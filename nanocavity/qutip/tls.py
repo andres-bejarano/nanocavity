@@ -209,8 +209,7 @@ def collapses(
         alone: Logic
             If false, it returns two lists with collapses for particle aggregation and elimination processes  
         iva: Logic
-            Write the dissipator to the base without interaction 
-
+            If True write the dissipator in the basis without interaction. Defaults to False.
     Returns:
         -----
         c_ops: list
@@ -270,8 +269,7 @@ def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=Fa
     tlist: ndarray
         Discretization in time domain 
      iva: Logic
-        Write the dissipator to the base without interaction 
-    Returns:
+        If True write the dissipator in the basis without interaction. Defaults to False.    Returns:
     -----
     correlation: 2D array
         The correlation between two operators in time 
@@ -326,8 +324,7 @@ def spectrum(
     tlist: ndarray
         Discretization in time domain 
      iva: Logic
-        Write the dissipator to the base without interaction 
-    Returns:
+        If True write the dissipator in the basis without interaction. Defaults to False.    Returns:
     -----
      spectrum: 2D array
         Emission spectrum
@@ -360,8 +357,7 @@ def g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     tlist: ndarray
         The discretization of time
     iva: Logic
-        Write the dissipator in the base without interaction 
-    
+        If True write the dissipator in the basis without interaction. Defaults to False.    
     Returns
     -----
     g2: tuple
