@@ -168,8 +168,6 @@ def rho_st(
     gL,
     gR,
     kT,
-    m=0,
-    lead2lead=False,
     iva=False,
     method='msolve'):
     H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
@@ -196,10 +194,10 @@ def correlation(H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
     
-    c_ops = no.collapses(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-    L = no.liouvillian(H, list(c_ops))
-    S = nme.correlation_AB(L, a.d, a, tlist)
-    return S
+    c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+    L = no.liouvillian(H, c_ops)
+    return nme.correlation_AB(L, a.d, a, tlist)
+
 
 def spectrum_vi(H, op_list, VL, VR, kappa, gL, gR, kT, wlist, Hint=0):
     c_ops = collapses_vi(H - Hint, op_list, VL, VR, kappa, gL, gR, kT)
@@ -219,13 +217,18 @@ def spectrum(
     wlist,
     iva=False,
     method='msolve',
-):
+    **kwargs):
     H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
     if method == 'msolve':
         c_ops = collapses(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
-        L = no.liouvillian(H, list(c_ops))
-        I = kappa * nme.spectrum(L, a, wlist)
+        L = no.liouvillian(H, c_ops)
+        I = nme.spectrum(L, a, wlist, **kwargs)
+        try:
+            return I * kappa
+        except:
+            # ret_dat=True flag given, return also Mk and Ek
+            return I[0] * kappa, I[1], I[2]
     elif method == 'rsolve':
         E, V = H.eigh()
         # transtion rates, populations and spectrum
@@ -236,19 +239,17 @@ def spectrum(
         GL = (GpL + GmL)[:, None]  # VL, VR
         GR = (GpR + GmR)[None, :]
         P = nre.populations(K[np.newaxis, np.newaxis] + GL + GR)
-        I = nre.power_spectrum(Kp, Km, P, E, wlist)
-    return I
+        return nre.power_spectrum(Kp, Km, P, E, wlist, **kwargs)
+
 
 
 def g2(H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
-    
+
     c_ops = collapses(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva
         )
-    L = no.liouvillian(H, list(c_ops))
+    L = no.liouvillian(H, c_ops)
     _, cm = no.collapses(a, H, kT, bath="bosonic", rate=kappa, total=False)
     J = no.jump(cm)
     return nme.g2(L, J, tlist)
-
-# %%
