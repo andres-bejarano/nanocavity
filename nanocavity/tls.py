@@ -1,4 +1,3 @@
-#%%
 import numpy as np
 import nanocavity.operators as no
 import nanocavity.rate_equation as nre
@@ -198,14 +197,12 @@ def correlation(H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
     L = no.liouvillian(H, c_ops)
     return nme.correlation_AB(L, a.d, a, tlist)
 
-
 def spectrum_vi(H, op_list, VL, VR, kappa, gL, gR, kT, wlist, Hint=0):
     c_ops = collapses_vi(H - Hint, op_list, VL, VR, kappa, gL, gR, kT)
     L = no.liouvillian(H, c_ops)
     I = kappa * nme.spectrum(L, op_list[2], wlist)
     return I
-
-
+  
 def spectrum(
     H_parameters,
     VL,
@@ -240,8 +237,7 @@ def spectrum(
         GR = (GpR + GmR)[None, :]
         P = nre.populations(K[np.newaxis, np.newaxis] + GL + GR)
         return nre.power_spectrum(Kp, Km, P, E, wlist, **kwargs)
-
-
+      
 
 def g2(H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
