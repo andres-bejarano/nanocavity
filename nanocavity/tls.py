@@ -6,6 +6,44 @@ import secondquant as sq
 
 
 def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1, ret_nop=False):
+    """
+    Function calculating the Hamiltonian describing a TLS to a
+    cavity.
+    Utilizes secondquant operators
+
+    Parameters:
+    -------
+    Eg: Float
+        Ground state Energy
+    Delta: Float
+        Splitting between ground and excited state
+    hw_ph: Float
+        energy of the cavity (photon) mdoe
+    g_ph: Float
+        coupling strength to the cavity
+    g_vi: Float
+        Coupling to the phonon mode
+    U: Float
+        Coulomb repulsion
+    max_bosons: list of 2 ints
+        List specifying the maximum numbers of bosons considered in the
+        cavity and the vibronic mode
+    rwa: logical
+        Switch if rotating wave should be applied or not. Defaults to false
+
+    Returns:
+    ------
+    H: secondquant operator
+        Total Hamiltonian
+    H0: secondquant operator
+        Hamiltonian w/o interaciton between TLS and photons/vibrons
+    Hint: secondquant operator
+        Interaction Hamiltonian
+    anni_list: list
+        List containing the annihilation operators
+    num_list: list
+        List containing the number operators
+    """
     [dg, de, a], [Nfg, Nfe, Nb] = sq.composite(
         fermion_modes=2, boson_modes=1, max_bosons=max_bosons
     )
@@ -16,10 +54,11 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1, ret_nop=Fa
         Hint = g_ph * (a.d * dg.d * de + a * de.d * dg)
     else:
         Hint = g_ph * (a + a.d) * (dg.d * de + de.d * dg)
-    L = [dg, de, a]
+    anni_list = [dg, de, a]
     if ret_nop:
-        return H0, Hint, L, [Nfg, Nfe, Nb]
-    return H0, Hint, L
+        num_list = [Nfg, Nfe, Nb]
+        return H0, Hint, anni_list, num_list
+    return H0, Hint, anni_list
 
 def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     """
@@ -131,6 +170,35 @@ def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     return c_ops
 
 def collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, alone=True, iva=False):
+    """
+    Function to calculate the collapse operators with secondquant operators
+
+    Parameters:
+    -----
+    H_parameters: Tuple 
+        System parameters
+    VL: float
+        bias at the left lead
+    VR: float
+        bias at the right lead
+    kappa: float
+        Cavity damping
+    Gamma_L: float
+        coupling of the left lead to the central system
+    Gamma_R: float
+        coupling of the right lead to the central system
+    kT: float
+        Temperature
+    alone: Logic
+        If false, it returns two lists with collapses for particle aggregation and elimination processes  
+    iva: Logic
+        Write the dissipator to the base without interaction 
+
+    Returns:
+    -----
+    c_ops: list
+        List containing the collapse operators
+    """
 
     H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
 
@@ -169,6 +237,35 @@ def rho_st(
     kT,
     iva=False,
     method='msolve'):
+    """
+    Function that calculates the density matrix in the steady state following the Born-Markov master equation.
+
+    Parameters:
+    -----
+    H_parameters: Tuple 
+        System parameters
+    VL: float
+        bias at the left lead
+    VR: float
+        bias at the right lead
+    kappa: float
+        Cavity damping
+    Gamma_L: float
+        coupling of the left lead to the central system
+    Gamma_R: float
+        coupling of the right lead to the central system
+    kT: float
+        Temperature
+    iva: Logic
+        Write the dissipator to the base without interaction 
+    method: str
+        By default 'msolve 'it uses full master equation approach master_equation.py, if it is 'rsolve' then it will use rate_quation.py
+    
+    Returns:
+    -----
+    rho_st: 2D array
+        Density matrix in the stationary regime
+    """
     H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
     if method == "msolve":
@@ -190,6 +287,36 @@ def rho_st(
 
 
 def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
+    """
+    Function to calculate the firs order correlation function of two operators. <A(t)B(0)>.
+    The calculation is carried out by performing quantum regression theorem. 
+
+    Parameters:
+    -----
+    H_parameters: Tuple 
+        System parameters
+    VL: float
+        bias at the left lead
+    VR: float
+        bias at the right lead
+    kappa: float
+        Cavity damping
+    Gamma_L: float
+        coupling of the left lead to the central system
+    Gamma_R: float
+        coupling of the right lead to the central system
+    kT: float
+        Temperature
+    tlist: ndarray
+        Discretization in time domain 
+     iva: Logic
+        Write the dissipator to the base without interaction 
+    Returns:
+    -----
+    correlation: 2D array
+        The correlation between two operators in time 
+    """
+     
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
     
@@ -198,6 +325,36 @@ def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=Fa
     return nme.correlation_AB(L, a.d, a, tlist)
 
 def spectrum_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, Hint=0):
+    """
+    Function to calculate the firs order correlation function of two operators. <A(t)B(0)>.
+    The calculation is carried out by performing quantum regression theorem. 
+
+    Parameters:
+    -----
+    H_parameters: Tuple 
+        System parameters
+    VL: float
+        bias at the left lead
+    VR: float
+        bias at the right lead
+    kappa: float
+        Cavity damping
+    Gamma_L: float
+        coupling of the left lead to the central system
+    Gamma_R: float
+        coupling of the right lead to the central system
+    kT: float
+        Temperature
+    tlist: ndarray
+        Discretization in time domain 
+     iva: Logic
+        Write the dissipator to the base without interaction 
+    Returns:
+    -----
+    correlation: 2D array
+        The correlation between two operators in time 
+    """
+
     c_ops = collapses_vi(H - Hint, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT)
     L = no.liouvillian(H, c_ops)
     I = kappa * nme.spectrum(L, op_list[2], wlist)
@@ -215,6 +372,36 @@ def spectrum(
     iva=False,
     method='msolve',
     **kwargs):
+    """
+    This function calculates the emission spectrum, based on the application of the quantum regression theorem on the first-order correlation of
+    the operators that couple to the photon bath. The Fourier transform is applied to this first-order correlation function, resulting in a sum 
+    of Lorentzians, which is implemented in the code below.
+    -----
+    H_parameters: Tuple 
+        System parameters
+    VL: float
+        bias at the left lead
+    VR: float
+        bias at the right lead
+    kappa: float
+        Cavity damping
+    Gamma_L: float
+        coupling of the left lead to the central system
+    Gamma_R: float
+        coupling of the right lead to the central system
+    kT: float
+        Temperature
+    wlist: ndarray
+        The discretization of frequencies
+    iva: Logic
+        Write the dissipator to the base without interaction 
+    method: str
+        By default 'msolve 'it uses full master equation approach master_equation.py, if it is 'rsolve' then it will use rate_quation.py
+    Returns:
+    -----
+    spectrum: 2D array
+        Emission spectrum
+    """
     H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
     if method == 'msolve':
@@ -240,6 +427,34 @@ def spectrum(
       
 
 def g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
+    """
+    This function calculates the second order corrrlation function, 
+    based on the application of the quantum regression theorem 
+    -----
+    H_parameters: Tuple 
+        System parameters
+    VL: float
+        bias at the left lead
+    VR: float
+        bias at the right lead
+    kappa: float
+        Cavity damping
+    Gamma_L: float
+        coupling of the left lead to the central system
+    Gamma_R: float
+        coupling of the right lead to the central system
+    kT: float
+        Temperature
+    tlist: ndarray
+        The discretization of time
+    iva: Logic
+        Write the dissipator in the base without interaction 
+    
+    Returns
+    -----
+    g2: 2D array
+        second order correlation function in time
+    """
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
 
