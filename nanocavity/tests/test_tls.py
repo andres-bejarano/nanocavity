@@ -2,6 +2,7 @@ import qutip as qt
 import numpy as np
 import nanocavity.master_equation as nme
 import nanocavity.tls as tls
+import nanocavity.qutip.tls as qtls
 import nanocavity.operators as no
 import nanocavity.jaynes_cumming_analytics as jc
 
@@ -62,9 +63,9 @@ def test_populations():
     VL, VR = 10, -10
 
     H_parameters = Eg, Delta, hw_ph, g_ph, U
-    H0, Hint, [dg, de, a] = tls.Hamiltonian("nanocavity", *H_parameters)
+    H0, Hint, [dg, de, a] = tls.Hamiltonian(*H_parameters)
     H = H0 + Hint
-    rho = tls.rho_st("nanocavity", H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT)
+    rho = tls.rho_st(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT)
     # rho is written in the basis without interaction
     E, V = H.eigh()
     Vinv = np.linalg.inv(V)
@@ -81,12 +82,16 @@ def test_stationary():
     for VL, VR in [[3, -3], [2, 0], [-1, 2]]:
         for g_ph in [0.005, 0.05, 0.5]:
             H_parameters = Eg, Delta, hw_ph, g_ph, U
-            H0, Hint, [Dg, De, A] = tls.Hamiltonian("nanocavity", *H_parameters)
+            H0, Hint, [Dg, De, A] = tls.Hamiltonian(*H_parameters)
             H = H0 + Hint
             Pme = tls.rho_st(
-                "nanocavity", H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT
+                    H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT
             )
-            Pqt = tls.rho_st("qutip", H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT)
+            
+            H0, Hint, [dg, de, a] = qtls.Hamiltonian(*H_parameters)
+            c_ops = qtls.collapses(
+            H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT)
+            Pqt = qt.steadystate(H0 + Hint, c_ops).full()
             assert np.allclose(Pme, Pqt)
 
 
@@ -94,8 +99,8 @@ def test_correlation_AB():
     tlist = np.linspace(0.0, 200, 101)
     for g_ph in [0.005, 0.05, 0.5]:
         H_parameters = Eg, Delta, hw_ph, g_ph, U
-        Hnc0, Hnc1, [_, _, A] = tls.Hamiltonian("nanocavity", *H_parameters)
-        Hqt0, Hqt1, [_, _, a] = tls.Hamiltonian("qutip", *H_parameters)
+        Hnc0, Hnc1, [_, _, A] = tls.Hamiltonian(*H_parameters)
+        Hqt0, Hqt1, [_, _, a] = qtls.Hamiltonian(*H_parameters)
         VL, VR = 3, -3
         for iva in (False, True):
             if iva:
@@ -104,15 +109,14 @@ def test_correlation_AB():
             else:
                 Hnc = Hnc0 + Hnc1
                 Hqt = Hqt0 + Hqt1
-            c_nc = tls.collapses(
-                "nanocavity", H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva
+            c_nc = tls.collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva
             )
             L = no.liouvillian(Hnc, list(c_nc))
             Snc = nme.correlation_AB(L, A.d, A, tlist)
 
-            c_qt = tls.collapses(
-                "qutip", H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva
+            c_qt = qtls.collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva
             )
+            
             rho_st = qt.steadystate(Hqt, list(c_qt))
             Sqt = qt.correlation_2op_1t(
                 H=Hqt,
@@ -130,8 +134,7 @@ def test_spectrum_analytics():
     kT = 1e-2
     H_parameters = Eg, Delta, hw_ph, g_ph, U, True
     wlist = np.linspace(0.0, 1.8, 103)
-    Inc = tls.spectrum(
-        "nanocavity", H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist
+    Inc = tls.spectrum(H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist
     )
     Ianalytics_iva = jc.spectrum(
         H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist, iva=True
@@ -145,10 +148,9 @@ def test_spectrum_analytics():
 
 def test_spectrum():
     wlist = np.linspace(0.0, 1.8, 103)
-    Inc = tls.spectrum(
-        "nanocavity", H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist
+    Inc = tls.spectrum(H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist
     )
-    Iqt = tls.spectrum("qutip", H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist)
+    Iqt = qtls.spectrum(H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist)
     assert np.allclose(Inc, Iqt)
 
 
@@ -185,7 +187,7 @@ def test_g2():
     H_parameters = Eg, Delta, hw_ph, g_ph, U
     tlist = np.linspace(0.0, 300, 10)
     g2nc = tls.g2(
-        "nanocavity", H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist
+            H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist
     )
-    g2qt = tls.g2("qutip", H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist)
+    g2qt = qtls.g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist)
     assert np.allclose(g2nc, g2qt, atol=1e-1)
