@@ -326,9 +326,6 @@ def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=Fa
 
 def spectrum_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, Hint=0):
     """
-    Function to calculate the firs order correlation function of two operators. <A(t)B(0)>.
-    The calculation is carried out by performing quantum regression theorem. 
-
     Parameters:
     -----
     H_parameters: Tuple 

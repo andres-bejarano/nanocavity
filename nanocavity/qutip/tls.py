@@ -4,6 +4,42 @@ import qutip as qt
 
 
 def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1):
+    """
+    Function calculating the Hamiltonian describing a TLS to a cavity
+    and a vibronic environment.
+    Utilizes qutip operators
+
+    Parameters:
+        -------
+        Eg: Float
+            Ground state Energy
+        Delta: Float
+            Splitting between ground and excited state
+        hw_ph: Float
+            energy of the cavity (photon) mdoe
+        g_ph: Float
+            coupling strength to the cavity
+        hw_vi: Float
+            Energy of the vibronic (phonon mode)
+        U: Float
+            Coulomb repulsion
+        max_bosons: list of 2 ints
+            List specifying the maximum numbers of bosons considered in the
+            cavity and the vibronic mode
+
+
+    Returns:
+        ------
+        H: qutip operator
+            Total Hamiltonian
+        H0: qutip operator
+            Hamiltonian w/o interaciton between TLS and photons/vibrons
+        Hint: qutip operator
+            Interaction Hamiltonian
+        anni_list: list
+            List containing the annihilation operators
+    """
+
     N = max_bosons + 1
     dg = qt.tensor(qt.fdestroy(2, 0), qt.qeye(N))
     de = qt.tensor(qt.fdestroy(2, 1), qt.qeye(N))
@@ -23,8 +59,8 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1):
         Hint = g_ph * (a.dag() * dg.dag() * de + a * de.dag() * dg)
     else:
         Hint = g_ph * (a + a.dag()) * (dg.dag() * de + de.dag() * dg)
-    L = [dg, de, a]
-    return H0, Hint, L
+    anni_list = [dg, de, a]
+    return H0, Hint, anni_list
 
 
 def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
@@ -96,7 +132,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
 
 def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     """
-    Function to calculate the collapse operators with secondquant operators
+    Function to calculate the collapse operators with qutip operators
 
     Parameters:
         -----
@@ -143,7 +179,43 @@ def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
 
 def collapses(
     H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, m=0, lead2lead=False, alone=True, iva=False):
+    
+    """
+    Function to calculate the collapse operators with qutip  operators
 
+    Parameters:
+        -----
+        H: qutip operator
+            Hamiltonian
+        ops: list with 3 entries
+            List containing the annihilation operators for the ground and
+            excited state, as well as the phononic one
+        VL: float
+            bias at the left lead
+        VR: float
+            bias at the right lead
+        kappa: float
+            Cavity damping
+        Gamma_L: float
+            coupling of the left lead to the central system
+        Gamma_R: float
+            coupling of the right lead to the central system
+        kT: float
+            Temperature
+        m: float
+            coupling between electron tunneling as cavity mode
+        lead2lead: logic
+            Dissipator for a electron tunnleing interacting with the cavity mode
+        alone: Logic
+            If false, it returns two lists with collapses for particle aggregation and elimination processes  
+        iva: Logic
+            Write the dissipator to the base without interaction 
+
+    Returns:
+        -----
+        c_ops: list
+            List containing the collapse operators
+    """
     H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
 
     if iva:
@@ -175,7 +247,35 @@ def collapses(
     return [dg, de, a], H0, Hint, c_ops
 
 def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
-    
+    """
+    Function to calculate the firs order correlation function of two operators. <A(t)B(0)>.
+    The calculation is carried out with the qutip functions based on quantum regression theorem
+
+    Parameters:
+    -----
+    H_parameters: Tuple 
+        System parameters
+    VL: float
+        bias at the left lead
+    VR: float
+        bias at the right lead
+    kappa: float
+        Cavity damping
+    Gamma_L: float
+        coupling of the left lead to the central system
+    Gamma_R: float
+        coupling of the right lead to the central system
+    kT: float
+        Temperature
+    tlist: ndarray
+        Discretization in time domain 
+     iva: Logic
+        Write the dissipator to the base without interaction 
+    Returns:
+    -----
+    correlation: 2D array
+        The correlation between two operators in time 
+    """
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
 
@@ -203,6 +303,35 @@ def spectrum(
     wlist,
     iva=False,
 ):
+    """
+    Function to calculate the emission spectrum based in qutip scripts. The calculation is carried out 
+    by performing the quantum regression theorem in the first order correlation function, then the numerical
+    fourier transform is performed. 
+    Parameters:
+    -----
+    H_parameters: Tuple 
+        System parameters
+    VL: float
+        bias at the left lead
+    VR: float
+        bias at the right lead
+    kappa: float
+        Cavity damping
+    Gamma_L: float
+        coupling of the left lead to the central system
+    Gamma_R: float
+        coupling of the right lead to the central system
+    kT: float
+        Temperature
+    tlist: ndarray
+        Discretization in time domain 
+     iva: Logic
+        Write the dissipator to the base without interaction 
+    Returns:
+    -----
+     spectrum: 2D array
+        Emission spectrum
+    """
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
     c_ops = collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
@@ -210,7 +339,34 @@ def spectrum(
     return I
 
 def g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
+    """
+    This function calculates the second order corrrlation function, 
+    based on the application of the quantum regression theorem with qutip scripts.
+    -----
+    H_parameters: Tuple 
+        System parameters
+    VL: float
+        bias at the left lead
+    VR: float
+        bias at the right lead
+    kappa: float
+        Cavity damping
+    Gamma_L: float
+        coupling of the left lead to the central system
+    Gamma_R: float
+        coupling of the right lead to the central system
+    kT: float
+        Temperature
+    tlist: ndarray
+        The discretization of time
+    iva: Logic
+        Write the dissipator in the base without interaction 
     
+    Returns
+    -----
+    g2: tuple
+        second order correlation function in time
+    """
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
     c_ops = collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
