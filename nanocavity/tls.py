@@ -160,7 +160,7 @@ def collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, alone=True, iva
 
 
 def rho_st(
-        H_parameters,
+    H_parameters,
     VL,
     VR,
     kappa,
