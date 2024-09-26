@@ -60,7 +60,7 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1, ret_nop=Fa
 
 def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     """
-    Function calculating the Hamiltonian describing a TLS to a
+    Function calculating the Hamiltonian describing a TLS coupled to a
     cavity and a vibronic environment.
     Utilizes secondquant operators
 

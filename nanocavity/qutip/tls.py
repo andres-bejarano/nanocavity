@@ -5,7 +5,7 @@ import qutip as qt
 
 def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1):
     """
-    Function calculating the Hamiltonian describing a TLS to a cavity
+    Function calculating the Hamiltonian describing a TLS coupled to a cavity
     and a vibronic environment.
     Utilizes qutip operators
 
@@ -65,7 +65,7 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1):
 
 def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     """
-    Function calculating the Hamiltonian describing a TLS to a cavity
+    Function calculating the Hamiltonian describing a TLS coupled to a cavity
     and a vibronic environment.
     Utilizes qutip operators
 
