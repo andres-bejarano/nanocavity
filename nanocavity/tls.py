@@ -7,8 +7,7 @@ import secondquant as sq
 
 def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1, ret_nop=False):
     """
-    Function calculating the Hamiltonian describing a TLS to a
-    cavity.
+    Function calculating the Hamiltonian describing a TLS coupled to a cavity.
     Utilizes secondquant operators
 
     Parameters:
@@ -18,19 +17,20 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1, ret_nop=Fa
     Delta: Float
         Splitting between ground and excited state
     hw_ph: Float
-        energy of the cavity (photon) mdoe
+        energy of the cavity (photon) mode
     g_ph: Float
         coupling strength to the cavity
     g_vi: Float
         Coupling to the phonon mode
     U: Float
         Coulomb repulsion
-    max_bosons: list of 2 ints
-        List specifying the maximum numbers of bosons considered in the
-        cavity and the vibronic mode
+    max_bosons: int
+            total number of photons
     rwa: logical
         Switch if rotating wave should be applied or not. Defaults to false
-
+    ret_nop: logical
+            Switch if number operators should be returned. Defaults to False.
+    
     Returns:
     ------
     H: secondquant operator
