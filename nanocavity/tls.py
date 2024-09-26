@@ -5,17 +5,17 @@ import nanocavity.master_equation as nme
 import secondquant as sq
 
 
-def Hamiltonian(Eg, delta, omegac, coupling, u=0, rwa=False, max_bosons=1, ret_nop=False):
+def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1, ret_nop=False):
     [dg, de, a], [Nfg, Nfe, Nb] = sq.composite(
         fermion_modes=2, boson_modes=1, max_bosons=max_bosons
     )
-    He = Eg * Nfg + (Eg + delta) * Nfe + u * dg.d * de.d * de * dg
-    Hp = omegac * Nb
+    He = Eg * Nfg + (Eg + Delta) * Nfe + U * dg.d * de.d * de * dg
+    Hp = hw_ph * Nb
     H0 = He + Hp
     if rwa:
-        Hint = coupling * (a.d * dg.d * de + a * de.d * dg)
+        Hint = g_ph * (a.d * dg.d * de + a * de.d * dg)
     else:
-        Hint = coupling * (a + a.d) * (dg.d * de + de.d * dg)
+        Hint = g_ph * (a + a.d) * (dg.d * de + de.d * dg)
     L = [dg, de, a]
     if ret_nop:
         return H0, Hint, L, [Nfg, Nfe, Nb]
@@ -81,7 +81,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     num_list = [ng, ne, n_ph, n_vi]
     return H, H0, Hint, anni_list, num_list
 
-def collapses_vi(H, ops, VL, VR, kappa, gL, gR, kT):
+def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     """
     Function to calculate the collapse operators with secondquant operators
 
@@ -98,9 +98,9 @@ def collapses_vi(H, ops, VL, VR, kappa, gL, gR, kT):
         bias at the right lead
     kappa: float
         Cavity damping
-    gL: float
+    Gamma_L: float
         coupling of the left lead to the central system
-    gR: float
+    Gamma_R: float
         coupling of the right lead to the central system
     kT: float
         Temperature
@@ -115,13 +115,13 @@ def collapses_vi(H, ops, VL, VR, kappa, gL, gR, kT):
     a_ph = ops[2]
 
     # left electrode
-    c_gL = no.collapses(dg, H, kT, bath="fermionic", rate=gL, mu=VL)
-    c_eL = no.collapses(de, H, kT, bath="fermionic", rate=gL, mu=VL)
+    c_gL = no.collapses(dg, H, kT, bath="fermionic", rate=Gamma_L, mu=VL)
+    c_eL = no.collapses(de, H, kT, bath="fermionic", rate=Gamma_L, mu=VL)
     CL = c_gL + c_eL
 
     # left electrode
-    c_gR = no.collapses(dg, H, kT, bath="fermionic", rate=gR, mu=VR)
-    c_eR = no.collapses(de, H, kT, bath="fermionic", rate=gR, mu=VR)
+    c_gR = no.collapses(dg, H, kT, bath="fermionic", rate=Gamma_R, mu=VR)
+    c_eR = no.collapses(de, H, kT, bath="fermionic", rate=Gamma_R, mu=VR)
     CR = c_gR + c_eR
 
     # cavity mode
@@ -130,7 +130,7 @@ def collapses_vi(H, ops, VL, VR, kappa, gL, gR, kT):
     c_ops = CL + CR + CA
     return c_ops
 
-def collapses(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False):
+def collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, alone=True, iva=False):
 
     H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
 
@@ -140,13 +140,13 @@ def collapses(H_parameters, VL, VR, kappa, gL, gR, kT, alone=True, iva=False):
         H = H0 + Hint
 
     # left electrode
-    c_gL = no.collapses(dg, H, kT, "fermionic", gL, mu=VL)
-    c_eL = no.collapses(de, H, kT, "fermionic", gL, mu=VL)
+    c_gL = no.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL)
+    c_eL = no.collapses(de, H, kT, "fermionic", Gamma_L, mu=VL)
     CL = c_gL + c_eL
 
     # right electrode
-    c_gR = no.collapses(dg, H, kT, "fermionic", gR, mu=VR)
-    c_eR = no.collapses(de, H, kT, "fermionic", gR, mu=VR)
+    c_gR = no.collapses(dg, H, kT, "fermionic", Gamma_R, mu=VR)
+    c_eR = no.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR)
     CR = c_gR + c_eR
 
     # cavity mode
@@ -164,15 +164,15 @@ def rho_st(
     VL,
     VR,
     kappa,
-    gL,
-    gR,
+    Gamma_L,
+    Gamma_R,
     kT,
     iva=False,
     method='msolve'):
     H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
     if method == "msolve":
-        c_ops = collapses(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+        c_ops = collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
         L = no.liouvillian(H, list(c_ops))
         rho = nme.stationary(L)
     elif method == 'rsolve':
@@ -180,8 +180,8 @@ def rho_st(
         # transtion rates, populations and spectrum
         Kp, Km = nre.transition_rate(E, V, a, kappa, kT, bath="bosonic")
         K = Kp + Km
-        GpL, GmL = nre.transition_rate(E, V, [dg, de], gL * np.eye(2), VL, kT)
-        GpR, GmR = nre.transition_rate(E, V, [dg, de], gR * np.eye(2), VR, kT)
+        GpL, GmL = nre.transition_rate(E, V, [dg, de], Gamma_L * np.eye(2), VL, kT)
+        GpR, GmR = nre.transition_rate(E, V, [dg, de], Gamma_R * np.eye(2), VR, kT)
         GL = (GpL + GmL)[:, None]  # VL, VR
         GR = (GpR + GmR)[None, :]
         Gamma = K[np.newaxis, np.newaxis] + GL + GR
@@ -189,16 +189,16 @@ def rho_st(
     return rho
 
 
-def correlation(H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
+def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
     
-    c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+    c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
     L = no.liouvillian(H, c_ops)
     return nme.correlation_AB(L, a.d, a, tlist)
 
-def spectrum_vi(H, op_list, VL, VR, kappa, gL, gR, kT, wlist, Hint=0):
-    c_ops = collapses_vi(H - Hint, op_list, VL, VR, kappa, gL, gR, kT)
+def spectrum_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, Hint=0):
+    c_ops = collapses_vi(H - Hint, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT)
     L = no.liouvillian(H, c_ops)
     I = kappa * nme.spectrum(L, op_list[2], wlist)
     return I
@@ -208,8 +208,8 @@ def spectrum(
     VL,
     VR,
     kappa,
-    gL,
-    gR,
+    Gamma_L,
+    Gamma_R,
     kT,
     wlist,
     iva=False,
@@ -218,7 +218,7 @@ def spectrum(
     H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
     if method == 'msolve':
-        c_ops = collapses(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+        c_ops = collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
         L = no.liouvillian(H, c_ops)
         I = nme.spectrum(L, a, wlist, **kwargs)
         try:
@@ -231,19 +231,19 @@ def spectrum(
         # transtion rates, populations and spectrum
         Kp, Km = nre.transition_rate(E, V, a, kappa, kT, bath="bosonic")
         K = Kp + Km
-        GpL, GmL = nre.transition_rate(E, V, [dg, de], gL * np.eye(2), VL, kT)
-        GpR, GmR = nre.transition_rate(E, V, [dg, de], gR * np.eye(2), VR, kT)
+        GpL, GmL = nre.transition_rate(E, V, [dg, de], Gamma_L * np.eye(2), VL, kT)
+        GpR, GmR = nre.transition_rate(E, V, [dg, de], Gamma_R * np.eye(2), VR, kT)
         GL = (GpL + GmL)[:, None]  # VL, VR
         GR = (GpR + GmR)[None, :]
         P = nre.populations(K[np.newaxis, np.newaxis] + GL + GR)
         return nre.power_spectrum(Kp, Km, P, E, wlist, **kwargs)
       
 
-def g2(H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
+def g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
 
-    c_ops = collapses(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva
+    c_ops = collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva
         )
     L = no.liouvillian(H, c_ops)
     _, cm = no.collapses(a, H, kT, bath="bosonic", rate=kappa, total=False)

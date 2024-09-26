@@ -3,7 +3,7 @@ import nanocavity.qutip.operators as qo
 import qutip as qt
 
 
-def Hamiltonian(Eg, delta, omegac, coupling, u=0, rwa=False, max_bosons=1):
+def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1):
     N = max_bosons + 1
     dg = qt.tensor(qt.fdestroy(2, 0), qt.qeye(N))
     de = qt.tensor(qt.fdestroy(2, 1), qt.qeye(N))
@@ -14,15 +14,15 @@ def Hamiltonian(Eg, delta, omegac, coupling, u=0, rwa=False, max_bosons=1):
 
     He = (
         Eg * dg.dag() * dg
-        + (Eg + delta) * de.dag() * de
-        + u * dg.dag() * de.dag() * de * dg
+        + (Eg + Delta) * de.dag() * de
+        + U * dg.dag() * de.dag() * de * dg
     )
-    Hp = omegac * a.dag() * a
+    Hp = hw_ph * a.dag() * a
     H0 = He + Hp
     if rwa:
-        Hint = coupling * (a.dag() * dg.dag() * de + a * de.dag() * dg)
+        Hint = g_ph * (a.dag() * dg.dag() * de + a * de.dag() * dg)
     else:
-        Hint = coupling * (a + a.dag()) * (dg.dag() * de + de.dag() * dg)
+        Hint = g_ph * (a + a.dag()) * (dg.dag() * de + de.dag() * dg)
     L = [dg, de, a]
     return H0, Hint, L
 
@@ -94,7 +94,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     anni_list = [dg, de, a_ph, a_vi]
     return H, H0, H_int, anni_list
 
-def collapses_vi(H, ops, VL, VR, kappa, gL, gR, kT):
+def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     """
     Function to calculate the collapse operators with secondquant operators
 
@@ -111,9 +111,9 @@ def collapses_vi(H, ops, VL, VR, kappa, gL, gR, kT):
             bias at the right lead
         kappa: float
             Cavity damping
-        gL: float
+        Gamma_L: float
             coupling of the left lead to the central system
-        gR: float
+        Gamma_R: float
             coupling of the right lead to the central system
         kT: float
             Temperature
@@ -127,12 +127,12 @@ def collapses_vi(H, ops, VL, VR, kappa, gL, gR, kT):
     de = ops[1]
     a_ph = ops[2]
 
-    c_gL = qo.collapses(dg, H, kT, bath="fermionic", rate=gL, mu=VL)
-    c_eL = qo.collapses(de, H, kT, bath="fermionic", rate=gL, mu=VL)
+    c_gL = qo.collapses(dg, H, kT, bath="fermionic", rate=Gamma_L, mu=VL)
+    c_eL = qo.collapses(de, H, kT, bath="fermionic", rate=Gamma_L, mu=VL)
     CL = c_gL + c_eL
 
-    c_gR = qo.collapses(dg, H, kT, bath="fermionic", rate=gR, mu=VR)
-    c_eR = qo.collapses(de, H, kT, bath="fermionic", rate=gR, mu=VR)
+    c_gR = qo.collapses(dg, H, kT, bath="fermionic", rate=Gamma_R, mu=VR)
+    c_eR = qo.collapses(de, H, kT, bath="fermionic", rate=Gamma_R, mu=VR)
     CR = c_gR + c_eR
 
     CA = qo.collapses(a_ph, H, kT, bath="bosonic", rate=kappa)
@@ -142,7 +142,7 @@ def collapses_vi(H, ops, VL, VR, kappa, gL, gR, kT):
 
 
 def collapses(
-    H_parameters, VL, VR, kappa, gL, gR, kT, m=0, lead2lead=False, alone=True, iva=False):
+    H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, m=0, lead2lead=False, alone=True, iva=False):
 
     H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
 
@@ -152,13 +152,13 @@ def collapses(
         H = H0 + Hint
 
     # left electrode
-    c_gL = qo.collapses(dg, H, kT, "fermionic", gL, mu=VL)
-    c_eL = qo.collapses(de, H, kT, "fermionic", gL, mu=VL)
+    c_gL = qo.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL)
+    c_eL = qo.collapses(de, H, kT, "fermionic", Gamma_L, mu=VL)
     CL = c_gL + c_eL
 
     # right electrode
-    c_gR = qo.collapses(dg, H, kT, "fermionic", gR, mu=VR)
-    c_eR = qo.collapses(de, H, kT, "fermionic", gR, mu=VR)
+    c_gR = qo.collapses(dg, H, kT, "fermionic", Gamma_R, mu=VR)
+    c_eR = qo.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR)
     CR = c_gR + c_eR
 
     # cavity mode
@@ -174,19 +174,19 @@ def collapses(
         return c_ops
     return [dg, de, a], H0, Hint, c_ops
 
-def correlation(H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
+def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
 
-    c_ops = qo.collapses(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+    c_ops = qo.collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
     rho_st = qt.steadystate(H, list(c_ops))
     S = qt.correlation_2op_1t(
             H=H, state0=rho_st, taulist=tlist, c_ops=list(c_ops), a_op=a.dag(), b_op=a)
     return S
 
-def spectrum_vi(H, op_list, VL, VR, kappa, gL, gR, kT, wlist, Hint=0):
-    c_ops = collapses_vi(H, op_list, VL, VR, kappa, gL, gR, kT)
+def spectrum_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, Hint=0):
+    c_ops = collapses_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT)
     a = op_list[2]
     I = kappa / (2 * np.pi) * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
     return I
@@ -197,23 +197,23 @@ def spectrum(
     VL,
     VR,
     kappa,
-    gL,
-    gR,
+    Gamma_L,
+    Gamma_R,
     kT,
     wlist,
     iva=False,
 ):
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
-    c_ops = collapses(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+    c_ops = collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
     I = kappa / (2 * np.pi) * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
     return I
 
-def g2(H_parameters, VL, VR, kappa, gL, gR, kT, tlist, iva=False):
+def g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
-    c_ops = collapses(H_parameters, VL, VR, kappa, gL, gR, kT, iva=iva)
+    c_ops = collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
     rho_st = qt.steadystate(H, list(c_ops))
     g2qt, _ = qt.coherence_function_g2(
     H, state0=rho_st, taulist=tlist, c_ops=c_ops, a_op=a, solver="me")
