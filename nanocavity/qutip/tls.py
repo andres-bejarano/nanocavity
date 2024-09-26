@@ -247,7 +247,7 @@ def collapses(
 
 def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     """
-    Function to calculate the firs order correlation function of two operators. <A(t)B(0)>.
+    Function to calculate the first order correlation function of two operators. <A(t)B(0)>.
     The calculation is carried out with the qutip functions based on quantum regression theorem
 
     Parameters:
@@ -337,7 +337,7 @@ def spectrum(
 
 def g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     """
-    This function calculates the second order corrrlation function, 
+    This function calculates the second order correlation function, 
     based on the application of the quantum regression theorem with qutip scripts.
     -----
     H_parameters: Tuple 

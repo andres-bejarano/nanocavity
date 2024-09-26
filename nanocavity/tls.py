@@ -324,8 +324,8 @@ def spectrum_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, Hint=0):
     """
     Parameters:
     -----
-    H_parameters: Tuple 
-        System parameters
+    H: secondquant operator
+        The Hamiltonian of the system
     VL: float
         bias at the left lead
     VR: float
@@ -419,7 +419,7 @@ def spectrum(
 
 def g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     """
-    This function calculates the second order corrrlation function, 
+    This function calculates the second order correlation function, 
     based on the application of the quantum regression theorem 
     -----
     H_parameters: Tuple 
