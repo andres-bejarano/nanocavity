@@ -164,7 +164,6 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
     # H_parameters = Eg, Delta, hw_ph, g_ph, U, True
     # system hamiltonian
     _, H0, Hint, c_ops = tls.collapses(
-        "nanocavity",
         H_parameters,
         VL,
         VR,
