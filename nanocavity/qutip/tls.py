@@ -16,7 +16,7 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1):
         Delta: Float
             Splitting between ground and excited state
         hw_ph: Float
-            energy of the cavity (photon) mdoe
+            energy of the cavity (photon) mode
         g_ph: Float
             coupling strength to the cavity
         hw_vi: Float
@@ -76,7 +76,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
         Delta: Float
             Splitting between ground and excited state
         hw_ph: Float
-            energy of the cavity (photon) mdoe
+            energy of the cavity (photon) mode
         g_ph: Float
             coupling strength to the cavity
         hw_vi: Float
