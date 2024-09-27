@@ -235,6 +235,6 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
         CA = c_ap + c_am
         return CL + CR + CA
     else:
-        PLus = [c_gpL, c_epL, c_gpR, c_epR, c_ap]
+        Plus = [c_gpL, c_epL, c_gpR, c_epR, c_ap]
         Minus = [c_gmL, c_emL, c_gmR, c_emR, c_am]
-        return PLus, Minus
+        return Plus, Minus
