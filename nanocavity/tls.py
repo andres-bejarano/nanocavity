@@ -173,9 +173,11 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
 
     Parameters:
     -----
-    H_parameters: Tuple 
-        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
-        Defined in nanocavity.tls.Hamiltonian()
+    H: secondquant operator
+        Hamiltonian
+    ops: list with 3 entries
+        List containing the annihilation operators for the ground,
+        excited and cavity modes
     VL: float
         bias at the left lead
     VR: float
