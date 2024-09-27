@@ -25,7 +25,7 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1):
             Switch if rotating wave should be applied or not. Defaults to false
         max_bosons: int
             total number of photons
-    
+
     Returns:
         ------
         H: qutip operator
@@ -128,6 +128,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     anni_list = [dg, de, a_ph, a_vi]
     return H, H0, H_int, anni_list
 
+
 def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     """
     Function to calculate the collapse operators with qutip operators
@@ -175,9 +176,7 @@ def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     return c_ops
 
 
-def collapses(
-        H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
-    
+def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     """
     Function to calculate the collapse operators with qutip  operators
 
@@ -205,23 +204,22 @@ def collapses(
         lead2lead: logic
             Dissipator for a electron tunnleing interacting with the cavity mode
         total: Logic
-            By default True, returns a list with all the collapses, 
+            By default True, returns a list with all the collapses,
             if False it returns the collapses for creation (Plus) and elimination of particles (Minus).
     Returns:
         -----
         c_ops: List
-            containing all collapses. If total True returns 2 lists. First all collapses for creation an excitation 
+            containing all collapses. If total True returns 2 lists. First all collapses for creation an excitation
         PLus: List
-            In case total=True returns [c_gpL, c_epL, c_gpR, c_epR,  c_ap] list of collapses for creation of electrons/photons, each element is a list 
+            In case total=True returns [c_gpL, c_epL, c_gpR, c_epR,  c_ap] list of collapses for creation of electrons/photons, each element is a list
         Minus: List
             In case total=True returns [c_gmL, c_emL, c_gmR, c_emR,  c_am] list of collapses for creation of electrons/photons, each element is a list
     """
 
     [dg, de, a] = ops
 
-
     # left electrode
-    c_gpL, c_gmL  = nqo.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL, total=False)
+    c_gpL, c_gmL = nqo.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL, total=False)
     c_epL, c_emL = nqo.collapses(de, H, kT, "fermionic", Gamma_L, mu=VL, total=False)
 
     # right electrode
@@ -237,6 +235,6 @@ def collapses(
         CA = c_ap + c_am
         return CL + CR + CA
     else:
-        PLus = [c_gpL, c_epL, c_gpR, c_epR,  c_ap]
+        PLus = [c_gpL, c_epL, c_gpR, c_epR, c_ap]
         Minus = [c_gmL, c_emL, c_gmR, c_emR, c_am]
         return PLus, Minus

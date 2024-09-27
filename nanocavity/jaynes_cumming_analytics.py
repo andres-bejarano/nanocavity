@@ -163,21 +163,13 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
     # We need the bare energies (without coupling)
     # H_parameters = Eg, Delta, hw_ph, g_ph, U, True
     # system hamiltonian
-    H0, Hint, ops = tls.Hamiltonian(*H_parameters) 
+    H0, Hint, ops = tls.Hamiltonian(*H_parameters)
 
     if iva:
         H = H0
     else:
         H = H0 + Hint
-    c_ops = tls.collapses(
-        Hint, 
-        ops,
-        VL,
-        VR,
-        kappa,
-        Gamma_L,
-        Gamma_R,
-        kT)
+    c_ops = tls.collapses(Hint, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT)
 
     # density matrix
     L = no.liouvillian(H0 + Hint, list(c_ops))

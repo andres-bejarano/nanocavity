@@ -49,11 +49,17 @@ def test_Htls_nc_QuTiP():
                 rank = np.linalg.matrix_rank(M)
                 assert rank == 1
 
-            assert np.allclose(dg_nc.T @ dg_nc + dg_nc @ dg_nc.T, np.eye(dg_nc.shape[0]))
+            assert np.allclose(
+                dg_nc.T @ dg_nc + dg_nc @ dg_nc.T, np.eye(dg_nc.shape[0])
+            )
             assert np.allclose(dg_nc.T @ de_nc + de_nc @ dg_nc.T, 0)
             assert np.allclose(de_nc.T @ dg_nc + dg_nc @ de_nc.T, 0)
-            assert np.allclose(de_nc.T @ de_nc + de_nc @ de_nc.T, np.eye(de_nc.shape[0]))
-            assert np.allclose(a_nc.T @ a_nc - a_nc @ a_nc.T, a_nc.T @ a_nc - a_nc @ a_nc.T)
+            assert np.allclose(
+                de_nc.T @ de_nc + de_nc @ de_nc.T, np.eye(de_nc.shape[0])
+            )
+            assert np.allclose(
+                a_nc.T @ a_nc - a_nc @ a_nc.T, a_nc.T @ a_nc - a_nc @ a_nc.T
+            )
 
             assert np.allclose(dg_nc, dg_qt)
             assert np.allclose(de_nc, de_qt)
@@ -67,9 +73,13 @@ def test_collapses():
         Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
         Hnc = Hnc0 + Hnc1
         Hqt = Hqt0 + Hqt1
-        for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:    
-            Cqt = nqtls.collapses(Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT)
-            Cnc = ntls.collapses(Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+        for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
+            Cqt = nqtls.collapses(
+                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            )
+            Cnc = ntls.collapses(
+                Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            )
 
             for i in range(len(Cnc)):
                 assert np.allclose(Cnc[i], Cqt[i].full())
@@ -82,8 +92,12 @@ def test_jump_operator():
     Hnc = Hnc0 + Hnc1
     Hqt = Hqt0 + Hqt1
     for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
-        c_qt = nqtls.collapses(Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT)
-        c_nc = ntls.collapses(Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+        c_qt = nqtls.collapses(
+            Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        )
+        c_nc = ntls.collapses(
+            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        )
 
         Jqt = nqo.jump(c_qt)
         Jnc = no.jump(c_nc)
@@ -100,9 +114,13 @@ def test_dissipators():
             Hnc = Hnc0 + Hnc1
             Hqt = Hqt0 + Hqt1
             c_ops_qt = list(
-                    nqtls.collapses(Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+                nqtls.collapses(
+                    Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+                )
             )
-            c_ops_nc = ntls.collapses(Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+            c_ops_nc = ntls.collapses(
+                Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            )
 
             Dnc = no.dissipator(c_ops_nc)
             Dqo = nqo.dissipator(c_ops_qt)
@@ -120,10 +138,14 @@ def test_liovillian():
         Hnc = Hnc0 + Hnc1
         for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
             c_ops_qt = list(
-                nqtls.collapses(Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+                nqtls.collapses(
+                    Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+                )
             )
             Lqt = nqo.liouvillian(Hqt, c_ops_qt)
 
-            c_ops_nc = ntls.collapses(Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+            c_ops_nc = ntls.collapses(
+                Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            )
             Lnc = no.liouvillian(Hnc, c_ops_nc)
             assert np.allclose(Lnc, Lqt.full())

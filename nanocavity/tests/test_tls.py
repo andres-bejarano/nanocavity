@@ -90,9 +90,11 @@ def test_stationary():
             c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT)
             L = no.liouvillian(H, c_ops)
             Pme = nme.stationary(L)
-            
+
             H0, Hint, [dg, de, a] = nqtls.Hamiltonian(*H_parameters)
-            c_ops = nqtls.collapses(H0+Hint, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+            c_ops = nqtls.collapses(
+                H0 + Hint, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            )
             Pqt = qt.steadystate(H0 + Hint, c_ops).full()
             assert np.allclose(Pme, Pqt)
 
@@ -111,12 +113,16 @@ def test_correlation_AB():
             else:
                 Hnc = Hnc0 + Hnc1
                 Hqt = Hqt0 + Hqt1
-            c_nc = ntls.collapses(Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+            c_nc = ntls.collapses(
+                Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            )
             L = no.liouvillian(Hnc0 + Hnc1, c_nc)
             Snc = nme.correlation_AB(L, a_nc.d, a_nc, tlist)
 
-            c_qt = nqtls.collapses(Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT)
-            
+            c_qt = nqtls.collapses(
+                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            )
+
             rho_st = qt.steadystate(Hqt0 + Hqt1, list(c_qt))
             Sqt = qt.correlation_2op_1t(
                 H=Hqt0 + Hqt1,
@@ -124,7 +130,8 @@ def test_correlation_AB():
                 taulist=tlist,
                 c_ops=list(c_qt),
                 a_op=a_qt.dag(),
-                b_op=a_qt)
+                b_op=a_qt,
+            )
             assert np.allclose(Snc.real, Sqt.real, atol=1e-5)
             assert np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
 
@@ -151,13 +158,13 @@ def test_spectrum_analytics():
 def test_spectrum_g2():
     wlist = np.linspace(0.0, 1.8, 13)
     tlist = np.linspace(0.0, 300, 10)
-    
+
     VL, VR = 10, -10
 
-    #g2 only matches at this values
+    # g2 only matches at this values
     g_ph = 0.005
     Delta = 0.99
-    
+
     H_parameters = Eg, Delta, hw_ph, g_ph, U
     Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
     Hnc = Hnc0 + Hnc1
@@ -165,11 +172,11 @@ def test_spectrum_g2():
     Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
     Hqt = Hqt0 + Hqt1
 
-
-
-    c_nc_p, c_nc_m = ntls.collapses(Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, total=False)
-    [c_gpL,  c_epL, c_gpR, c_epR,  c_ap] = c_nc_p 
-    [c_gmL,  c_emL, c_gmR, c_emR, c_am] = c_nc_m
+    c_nc_p, c_nc_m = ntls.collapses(
+        Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, total=False
+    )
+    [c_gpL, c_epL, c_gpR, c_epR, c_ap] = c_nc_p
+    [c_gmL, c_emL, c_gmR, c_emR, c_am] = c_nc_m
     c_nc = c_gpL + c_epL + c_gpR + c_epR + c_ap + c_gmL + c_emL + c_gmR + c_emR + c_am
     L = no.liouvillian(Hnc, c_nc)
     Inc = kappa * nme.spectrum(L, a_nc, wlist)
@@ -177,11 +184,15 @@ def test_spectrum_g2():
     J = no.jump(c_am)
     g2nc = nme.g2(L, J, tlist)
 
-    c_qt = nqtls.collapses(Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+    c_qt = nqtls.collapses(
+        Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+    )
     Iqt = kappa / (2 * np.pi) * qt.spectrum(Hqt, wlist, c_qt, a_qt.dag(), a_qt)
     rho_st = qt.steadystate(Hqt, list(c_qt))
-    g2qt, _ = qt.coherence_function_g2(Hqt, state0=rho_st, taulist=tlist, c_ops=c_qt, a_op=a_qt, solver="me")
-    
+    g2qt, _ = qt.coherence_function_g2(
+        Hqt, state0=rho_st, taulist=tlist, c_ops=c_qt, a_op=a_qt, solver="me"
+    )
+
     assert np.allclose(Inc, Iqt)
     assert np.allclose(g2nc, g2qt, atol=1e-1)
 

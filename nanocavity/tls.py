@@ -30,7 +30,7 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1, ret_nop=Fa
         Switch if rotating wave should be applied or not. Defaults to false
     ret_nop: logical
             Switch if number operators should be returned. Defaults to False.
-    
+
     Returns:
     ------
     H0: secondquant operator
@@ -57,6 +57,7 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1, ret_nop=Fa
         num_ops = [Nfg, Nfe, Nb]
         return H0, Hint, anni_ops, num_ops
     return H0, Hint, anni_ops
+
 
 def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     """
@@ -118,6 +119,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     num_ops = [ng, ne, n_ph, n_vi]
     return H, H0, Hint, anni_ops, num_ops
 
+
 def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     """
     Function to calculate the collapse operators with secondquant operators
@@ -167,6 +169,7 @@ def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     c_ops = CL + CR + CA
     return c_ops
 
+
 def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     """
     Function to calculate the collapse operators with secondquant operators
@@ -191,21 +194,20 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     kT: float
         Temperature
     total: Logic
-        By default True, returns a list with all the collapses, 
+        By default True, returns a list with all the collapses,
         if False it returns the collapses for creation (Plus) and elimination of particles (Minus).
 
     Returns:
     -----
     c_ops: List
-        containing all collapses. If total True returns 2 lists. First all collapses for creation an excitation 
+        containing all collapses. If total True returns 2 lists. First all collapses for creation an excitation
     PLus: List
-        In case total=True returns [c_gpL, c_epL, c_gpR, c_epR,  c_ap] list of collapses for creation of electrons/photons, each element is a list 
+        In case total=True returns [c_gpL, c_epL, c_gpR, c_epR,  c_ap] list of collapses for creation of electrons/photons, each element is a list
     Minus: List
         In case total=True returns [c_gmL, c_emL, c_gmR, c_emR,  c_am] list of collapses for creation of electrons/photons, each element is a list
     """
 
     [dg, de, a] = ops
-
 
     # left electrode
     c_gpL, c_gmL = no.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL, total=False)
@@ -216,8 +218,7 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     c_epR, c_emR = no.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR, total=False)
 
     # cavity mode
-    c_ap, c_am= no.collapses(a, H, kT, "bosonic", kappa, total=False)
-
+    c_ap, c_am = no.collapses(a, H, kT, "bosonic", kappa, total=False)
 
     if total:
         CL = c_gpL + c_epL + c_gmL + c_emL
@@ -225,21 +226,12 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
         CA = c_ap + c_am
         return CL + CR + CA
     else:
-        PLus = [c_gpL, c_epL, c_gpR, c_epR,  c_ap]
+        PLus = [c_gpL, c_epL, c_gpR, c_epR, c_ap]
         Minus = [c_gmL, c_emL, c_gmR, c_emR, c_am]
         return PLus, Minus
 
 
-def rate_matrix(H, 
-    ops, 
-    VL,
-    VR,
-    kappa,
-    Gamma_L,
-    Gamma_R,
-    kT,
-    total=True):
-
+def rate_matrix(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     """
     Function that calculates the density matrix in the steady state following the Born-Markov master equation.
     Function to calculate the collapse operators with secondquant operators
@@ -273,7 +265,7 @@ def rate_matrix(H,
             Can either have a dimension for every lead or a fixed relation
             between biases in each lead.
             Shape: V_0 x V_1 x ... V_n x H.shape[0] x H.shape[1]
-    """     
+    """
     E, V = H.eigh()
     [dg, de, a] = ops
 
