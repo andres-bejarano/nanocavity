@@ -1,5 +1,5 @@
 import numpy as np
-import nanocavity.qutip.operators as qo
+import nanocavity.qutip.operators as nqo
 import qutip as qt
 
 
@@ -163,15 +163,15 @@ def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     de = ops[1]
     a_ph = ops[2]
 
-    c_gL = qo.collapses(dg, H, kT, bath="fermionic", rate=Gamma_L, mu=VL)
-    c_eL = qo.collapses(de, H, kT, bath="fermionic", rate=Gamma_L, mu=VL)
+    c_gL = nqo.collapses(dg, H, kT, bath="fermionic", rate=Gamma_L, mu=VL)
+    c_eL = nqo.collapses(de, H, kT, bath="fermionic", rate=Gamma_L, mu=VL)
     CL = c_gL + c_eL
 
-    c_gR = qo.collapses(dg, H, kT, bath="fermionic", rate=Gamma_R, mu=VR)
-    c_eR = qo.collapses(de, H, kT, bath="fermionic", rate=Gamma_R, mu=VR)
+    c_gR = nqo.collapses(dg, H, kT, bath="fermionic", rate=Gamma_R, mu=VR)
+    c_eR = nqo.collapses(de, H, kT, bath="fermionic", rate=Gamma_R, mu=VR)
     CR = c_gR + c_eR
 
-    CA = qo.collapses(a_ph, H, kT, bath="bosonic", rate=kappa)
+    CA = nqo.collapses(a_ph, H, kT, bath="bosonic", rate=kappa)
 
     c_ops = CL + CR + CA
     return c_ops
@@ -223,20 +223,20 @@ def collapses(
         H = H0 + Hint
 
     # left electrode
-    c_gL = qo.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL)
-    c_eL = qo.collapses(de, H, kT, "fermionic", Gamma_L, mu=VL)
+    c_gL = nqo.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL)
+    c_eL = nqo.collapses(de, H, kT, "fermionic", Gamma_L, mu=VL)
     CL = c_gL + c_eL
 
     # right electrode
-    c_gR = qo.collapses(dg, H, kT, "fermionic", Gamma_R, mu=VR)
-    c_eR = qo.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR)
+    c_gR = nqo.collapses(dg, H, kT, "fermionic", Gamma_R, mu=VR)
+    c_eR = nqo.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR)
     CR = c_gR + c_eR
 
     # cavity mode
-    CA = qo.collapses(a, H, kT, "bosonic", kappa)
+    CA = nqo.collapses(a, H, kT, "bosonic", kappa)
 
     if lead2lead:
-        c_lead = qo.lead_cavity_lead_collapses(a, H, VL, VR, kT, m)
+        c_lead = nqo.lead_cavity_lead_collapses(a, H, VL, VR, kT, m)
         c_ops = CL + CR + CA + c_lead
     else:
         c_ops = CL + CR + CA
@@ -277,7 +277,7 @@ def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=Fa
     H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
 
-    c_ops = qo.collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
+    c_ops = nqo.collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
     rho_st = qt.steadystate(H, list(c_ops))
     S = qt.correlation_2op_1t(
             H=H, state0=rho_st, taulist=tlist, c_ops=list(c_ops), a_op=a.dag(), b_op=a)

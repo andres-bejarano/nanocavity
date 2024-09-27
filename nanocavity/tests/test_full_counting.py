@@ -1,7 +1,6 @@
 import numpy as np
 import nanocavity.full_counting as nfcs
 import nanocavity.rate_equation as nre
-import nanocavity.operators as no
 import nanocavity.tls as tls
 
 
