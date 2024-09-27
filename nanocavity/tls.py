@@ -167,14 +167,15 @@ def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     c_ops = CL + CR + CA
     return c_ops
 
-def collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, alone=True, iva=False):
+def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, alone=True):
     """
     Function to calculate the collapse operators with secondquant operators
 
     Parameters:
     -----
     H_parameters: Tuple 
-        System parameters
+        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
+        Defined in nanocavity.tls.Hamiltonian()
     VL: float
         bias at the left lead
     VR: float
@@ -189,20 +190,14 @@ def collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, alone=True, iva
         Temperature
     alone: Logic
         If false, it returns two lists with collapses for particle aggregation and elimination processes  
-    iva: Logic
-        If True write the dissipator in the basis without interaction. Defaults to False.
     Returns:
     -----
     c_ops: list
         List containing the collapse operators
     """
 
-    H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
+    [dg, de, a] = ops
 
-    if iva:
-        H = H0
-    else:
-        H = H0 + Hint
 
     # left electrode
     c_gL = no.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL)
@@ -221,7 +216,7 @@ def collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, alone=True, iva
 
     if alone:
         return c_ops
-    return [dg, de, a], H0, Hint, c_ops
+    return [dg, de, a], c_ops
 
 
 def rho_st(
@@ -240,7 +235,8 @@ def rho_st(
     Parameters:
     -----
     H_parameters: Tuple 
-        System parameters
+        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
+        Defined in nanocavity.tls.Hamiltonian()
     VL: float
         bias at the left lead
     VR: float
@@ -266,8 +262,12 @@ def rho_st(
     H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
     H = H0 + Hint
     if method == "msolve":
-        c_ops = collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
-        L = no.liouvillian(H, list(c_ops))
+        if iva:
+            H = H0
+        else:
+            H = H0 + Hint
+        c_ops = collapses(H, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
+        L = no.liouvillian(H0+Hint, list(c_ops))
         rho = nme.stationary(L)
     elif method == 'rsolve':
         E, V = H.eigh()
@@ -283,7 +283,7 @@ def rho_st(
     return rho
 
 
-def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
+def correlation(H, A, B, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     """
     Function to calculate the first order correlation function of two operators. <A(t)B(0)>.
     The calculation is carried out by performing quantum regression theorem. 
@@ -291,7 +291,8 @@ def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=Fa
     Parameters:
     -----
     H_parameters: Tuple 
-        System parameters
+        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
+        Defined in nanocavity.tls.Hamiltonian()
     VL: float
         bias at the left lead
     VR: float
@@ -370,7 +371,8 @@ def spectrum(
     of Lorentzians, which is implemented in the code below.
     -----
     H_parameters: Tuple 
-        System parameters
+        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
+        Defined in nanocavity.tls.Hamiltonian()
     VL: float
         bias at the left lead
     VR: float
@@ -423,7 +425,8 @@ def g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     based on the application of the quantum regression theorem 
     -----
     H_parameters: Tuple 
-        System parameters
+        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
+        Defined in nanocavity.tls.Hamiltonian()
     VL: float
         bias at the left lead
     VR: float

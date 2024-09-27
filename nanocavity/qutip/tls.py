@@ -253,7 +253,8 @@ def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=Fa
     Parameters:
     -----
     H_parameters: Tuple 
-        System parameters
+        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
+        Defined in nanocavity.qutip.tls.Hamiltonian()
     VL: float
         bias at the left lead
     VR: float
@@ -308,7 +309,8 @@ def spectrum(
     Parameters:
     -----
     H_parameters: Tuple 
-        System parameters
+        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
+        Defined in nanocavity.qutip.tls.Hamiltonian()
     VL: float
         bias at the left lead
     VR: float
@@ -341,7 +343,8 @@ def g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
     based on the application of the quantum regression theorem with qutip scripts.
     -----
     H_parameters: Tuple 
-        System parameters
+        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
+        Defined in nanocavity.qutip.tls.Hamiltonian()
     VL: float
         bias at the left lead
     VR: float
