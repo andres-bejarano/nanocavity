@@ -150,6 +150,10 @@ def test_spectrum():
     I3 = nme.spectrum(L, a, wlist, cutoff=10)
     assert np.allclose(I3, 0)
 
+    rho_st = nme.stationary(L, method="solve")
+    I4 = nme.spectrum(L, a, wlist, rho_st=rho_st)
+    assert np.allclose(I, I4)
+
 
 def test_g2():
     # just a single harmonic oscillator, H = a.d * a, coupled to bath
@@ -162,4 +166,10 @@ def test_g2():
     assert np.isclose(g2[0], 2)  # g2(0) = 2 in thermal equilibrium
     assert np.isclose(g2[-1], 1)  # g2(infty) = 1, uncorrelated
     assert np.all(g2[:-1] > g2[1:])  # decreasing function of delay
+
     g2b, Mk, E = nme.g2(L, J, tlist, ret_data=True)
+    assert np.allclose(g2, g2b)
+
+    rho_st = nme.stationary(L)
+    g2c = nme.g2(L, J, tlist, rho_st=rho_st)
+    assert np.allclose(g2, g2c)
