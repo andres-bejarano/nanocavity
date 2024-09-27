@@ -71,7 +71,7 @@ def _toarray(x):
     return np.array(x)
 
 
-def correlation_AB(L, A, B, tlist, cutoff=1e-12):
+def correlation_AB(L, A, B, tlist, cutoff=1e-12, rho_st=None):
     tlist = _toarray(tlist)
 
     if isinstance(A, Operator):
@@ -87,7 +87,10 @@ def correlation_AB(L, A, B, tlist, cutoff=1e-12):
     B = np.kron(B, Id)
 
     w0 = np.eye(dim).reshape(dim**2)
-    rho_st = stationary(L).reshape(dim**2)
+    if rho_st is None:
+        # we will rely on the default method for obtaining rho_st
+        rho_st = stationary(L)
+    rho_st = rho_st.reshape(dim**2)
     El, vl, vr = eig_norm(L)
 
     # correlation function S is generally complex
@@ -100,7 +103,7 @@ def correlation_AB(L, A, B, tlist, cutoff=1e-12):
     return S
 
 
-def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
+def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
     wlist = _toarray(wlist)
 
     if isinstance(a, Operator):
@@ -113,7 +116,10 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
     A = np.kron(a, Id)
 
     w0 = np.eye(dim).reshape(dim**2)
-    rho_st = stationary(L).reshape(dim**2)
+    if rho_st is None:
+        # we will rely on the default method for obtaining rho_st
+        rho_st = stationary(L)
+    rho_st = rho_st.reshape(dim**2)
     El, vl, vr = eig_norm(L)
 
     M = (w0 @ Ad @ vr) * (vl.conj().T @ A @ rho_st)
@@ -144,7 +150,7 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False):
     return I
 
 
-def g2(L, J, tlist, cutoff=1e-12, verbose=True, ret_data=False):
+def g2(L, J, tlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
     tlist = _toarray(tlist)
 
     if isinstance(J, Operator):
@@ -153,7 +159,10 @@ def g2(L, J, tlist, cutoff=1e-12, verbose=True, ret_data=False):
     dim = J.shape[0]
 
     w0 = np.eye(int(np.sqrt(dim))).reshape(dim)
-    rho_st = stationary(L).reshape(dim)
+    if rho_st is None:
+        # we will rely on the default method for obtaining rho_st
+        rho_st = stationary(L)
+    rho_st = rho_st.reshape(dim)
     El, vl, vr = eig_norm(L)
 
     G1 = w0 @ J @ rho_st
