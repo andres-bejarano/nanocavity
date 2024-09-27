@@ -191,8 +191,8 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     kT: float
         Temperature
     total: Logic
-        By default False, returns a list with all the collapses, 
-        if True it returns the collapses for creation (Plus) and elimination of particles (Minus).
+        By default True, returns a list with all the collapses, 
+        if False it returns the collapses for creation (Plus) and elimination of particles (Minus).
 
     Returns:
     -----
@@ -242,12 +242,15 @@ def rate_matrix(H,
 
     """
     Function that calculates the density matrix in the steady state following the Born-Markov master equation.
+    Function to calculate the collapse operators with secondquant operators
 
     Parameters:
     -----
-    H_parameters: Tuple 
-        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
-        Defined in nanocavity.tls.Hamiltonian()
+    H: secondquant operator
+        Hamiltonian
+    ops: list with 3 entries
+        List containing the annihilation operators for the ground,
+        excited and cavity modes
     VL: float
         bias at the left lead
     VR: float
@@ -260,15 +263,16 @@ def rate_matrix(H,
         coupling of the right lead to the central system
     kT: float
         Temperature
-    iva: Logic
-        If True write the dissipator in the basis without interaction. Defaults to False. 
-    method: str
-        By default 'msolve 'it uses full master equation approach master_equation.py, if it is 'rsolve' then it will use rate_quation.py
-    
+    total: Logic
+        By default True, returns the total transition rate matrix
+        if False returns a list with each transition rate
     Returns:
     -----
-    rho_st: 2D array
-        Density matrix in the stationary regime
+        Gamma: ndarray
+            Sum of individual transition rate matrices per lead
+            Can either have a dimension for every lead or a fixed relation
+            between biases in each lead.
+            Shape: V_0 x V_1 x ... V_n x H.shape[0] x H.shape[1]
     """     
     E, V = H.eigh()
     [dg, de, a] = ops
