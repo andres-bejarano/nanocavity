@@ -178,7 +178,7 @@ def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
 
 
 def collapses(
-    H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, m=0, lead2lead=False, alone=True, iva=False):
+        H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     
     """
     Function to calculate the collapse operators with qutip  operators
@@ -205,7 +205,8 @@ def collapses(
         lead2lead: logic
             Dissipator for a electron tunnleing interacting with the cavity mode
         alone: Logic
-            If false, it returns two lists with collapses for particle aggregation and elimination processes  
+            By default False returns a list with all the collapses, 
+            if True it returns the collapses, hamiltonian and the system Operators
         iva: Logic
             If True write the dissipator in the basis without interaction. Defaults to False.
     Returns:
@@ -213,162 +214,34 @@ def collapses(
         c_ops: list
             List containing the collapse operators
     """
-    H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
 
-    if iva:
-        H = H0
-    else:
-        H = H0 + Hint
+    [dg, de, a] = ops
+
 
     # left electrode
-    c_gL = nqo.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL)
-    c_eL = nqo.collapses(de, H, kT, "fermionic", Gamma_L, mu=VL)
-    CL = c_gL + c_eL
+    c_gpL, c_gmL  = nqo.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL, total=False)
+    c_epL, c_emL = nqo.collapses(de, H, kT, "fermionic", Gamma_L, mu=VL, total=False)
 
     # right electrode
-    c_gR = nqo.collapses(dg, H, kT, "fermionic", Gamma_R, mu=VR)
-    c_eR = nqo.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR)
-    CR = c_gR + c_eR
+    c_gpR, c_gmR = nqo.collapses(dg, H, kT, "fermionic", Gamma_R, mu=VR, total=False)
+    c_epR, c_emR = nqo.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR, total=False)
 
     # cavity mode
-    CA = nqo.collapses(a, H, kT, "bosonic", kappa)
+    c_ap, c_am = nqo.collapses(a, H, kT, "bosonic", kappa, total=False)
 
-    if lead2lead:
-        c_lead = nqo.lead_cavity_lead_collapses(a, H, VL, VR, kT, m)
-        c_ops = CL + CR + CA + c_lead
+    if total:
+        CL = c_gpL + c_epL + c_gmL + c_emL
+        CR = c_gpR + c_epR + c_gmR + c_emR
+        CA = c_ap + c_am
+        return CL + CR + CA
     else:
-        c_ops = CL + CR + CA
+        PLus = [c_gpL, c_epL, c_gpR, c_epR,  c_ap]
+        Minus = [c_gmL, c_emL, c_gmR, c_emR, c_am]
+        return PLus, Minus
 
-    if alone:
-        return c_ops
-    return [dg, de, a], H0, Hint, c_ops
-
-def correlation(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
-    """
-    Function to calculate the first order correlation function of two operators. <A(t)B(0)>.
-    The calculation is carried out with the qutip functions based on quantum regression theorem
-
-    Parameters:
-    -----
-    H_parameters: Tuple 
-        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
-        Defined in nanocavity.qutip.tls.Hamiltonian()
-    VL: float
-        bias at the left lead
-    VR: float
-        bias at the right lead
-    kappa: float
-        Cavity damping
-    Gamma_L: float
-        coupling of the left lead to the central system
-    Gamma_R: float
-        coupling of the right lead to the central system
-    kT: float
-        Temperature
-    tlist: ndarray
-        Discretization in time domain 
-     iva: Logic
-        If True write the dissipator in the basis without interaction. Defaults to False.    Returns:
-    -----
-    correlation: 2D array
-        The correlation between two operators in time 
-    """
-    H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
-    H = H0 + Hint
-
-    c_ops = nqo.collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
-    rho_st = qt.steadystate(H, list(c_ops))
-    S = qt.correlation_2op_1t(
-            H=H, state0=rho_st, taulist=tlist, c_ops=list(c_ops), a_op=a.dag(), b_op=a)
-    return S
 
 def spectrum_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, Hint=0):
     c_ops = collapses_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT)
     a = op_list[2]
     I = kappa / (2 * np.pi) * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
     return I
-
-
-def spectrum(
-    H_parameters,
-    VL,
-    VR,
-    kappa,
-    Gamma_L,
-    Gamma_R,
-    kT,
-    wlist,
-    iva=False,
-):
-    """
-    Function to calculate the emission spectrum based in qutip scripts. The calculation is carried out 
-    by performing the quantum regression theorem in the first order correlation function, then the numerical
-    fourier transform is performed. 
-    Parameters:
-    -----
-    H_parameters: Tuple 
-        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
-        Defined in nanocavity.qutip.tls.Hamiltonian()
-    VL: float
-        bias at the left lead
-    VR: float
-        bias at the right lead
-    kappa: float
-        Cavity damping
-    Gamma_L: float
-        coupling of the left lead to the central system
-    Gamma_R: float
-        coupling of the right lead to the central system
-    kT: float
-        Temperature
-    tlist: ndarray
-        Discretization in time domain 
-     iva: Logic
-        If True write the dissipator in the basis without interaction. Defaults to False.    Returns:
-    -----
-     spectrum: 2D array
-        Emission spectrum
-    """
-    H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
-    H = H0 + Hint
-    c_ops = collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
-    I = kappa / (2 * np.pi) * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
-    return I
-
-def g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
-    """
-    This function calculates the second order correlation function, 
-    based on the application of the quantum regression theorem with qutip scripts.
-    -----
-    H_parameters: Tuple 
-        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
-        Defined in nanocavity.qutip.tls.Hamiltonian()
-    VL: float
-        bias at the left lead
-    VR: float
-        bias at the right lead
-    kappa: float
-        Cavity damping
-    Gamma_L: float
-        coupling of the left lead to the central system
-    Gamma_R: float
-        coupling of the right lead to the central system
-    kT: float
-        Temperature
-    tlist: ndarray
-        The discretization of time
-    iva: Logic
-        If True write the dissipator in the basis without interaction. Defaults to False.    
-    Returns
-    -----
-    g2: tuple
-        second order correlation function in time
-    """
-    H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
-    H = H0 + Hint
-    c_ops = collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
-    rho_st = qt.steadystate(H, list(c_ops))
-    g2qt, _ = qt.coherence_function_g2(
-    H, state0=rho_st, taulist=tlist, c_ops=c_ops, a_op=a, solver="me")
-    return g2qt
-

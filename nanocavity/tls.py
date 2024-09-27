@@ -167,7 +167,7 @@ def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     c_ops = CL + CR + CA
     return c_ops
 
-def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, alone=True):
+def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     """
     Function to calculate the collapse operators with secondquant operators
 
@@ -200,35 +200,38 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, alone=True):
 
 
     # left electrode
-    c_gL = no.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL)
-    c_eL = no.collapses(de, H, kT, "fermionic", Gamma_L, mu=VL)
-    CL = c_gL + c_eL
+    c_gpL, c_gmL = no.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL, total=False)
+    c_epL, c_emL = no.collapses(de, H, kT, "fermionic", Gamma_L, mu=VL, total=False)
 
     # right electrode
-    c_gR = no.collapses(dg, H, kT, "fermionic", Gamma_R, mu=VR)
-    c_eR = no.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR)
-    CR = c_gR + c_eR
+    c_gpR, c_gmR = no.collapses(dg, H, kT, "fermionic", Gamma_R, mu=VR, total=False)
+    c_epR, c_emR = no.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR, total=False)
 
     # cavity mode
-    CA = no.collapses(a, H, kT, "bosonic", kappa)
-
-    c_ops = CL + CR + CA
-
-    if alone:
-        return c_ops
-    return [dg, de, a], c_ops
+    c_ap, c_am= no.collapses(a, H, kT, "bosonic", kappa, total=False)
 
 
-def rho_st(
-    H_parameters,
+    if total:
+        CL = c_gpL + c_epL + c_gmL + c_emL
+        CR = c_gpR + c_epR + c_gmR + c_emR
+        CA = c_ap + c_am
+        return CL + CR + CA
+    else:
+        PLus = [c_gpL, c_epL, c_gpR, c_epR,  c_ap]
+        Minus = [c_gmL, c_emL, c_gmR, c_emR, c_am]
+        return PLus, Minus
+
+
+def rate_matrix(H, 
+    ops, 
     VL,
     VR,
     kappa,
     Gamma_L,
     Gamma_R,
     kT,
-    iva=False,
-    method='msolve'):
+    total=True):
+
     """
     Function that calculates the density matrix in the steady state following the Born-Markov master equation.
 
@@ -258,68 +261,25 @@ def rho_st(
     -----
     rho_st: 2D array
         Density matrix in the stationary regime
-    """
-    H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
-    H = H0 + Hint
-    if method == "msolve":
-        if iva:
-            H = H0
-        else:
-            H = H0 + Hint
-        c_ops = collapses(H, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
-        L = no.liouvillian(H0+Hint, list(c_ops))
-        rho = nme.stationary(L)
-    elif method == 'rsolve':
-        E, V = H.eigh()
-        # transtion rates, populations and spectrum
-        Kp, Km = nre.transition_rate(E, V, a, kappa, kT, bath="bosonic")
+    """     
+    E, V = H.eigh()
+    [dg, de, a] = ops
+
+    # transtion rates, populations and spectrum
+    Kp, Km = nre.transition_rate(E, V, a, kappa, kT, bath="bosonic")
+    K = Kp + Km
+    GpL, GmL = nre.transition_rate(E, V, [dg, de], Gamma_L * np.eye(2), VL, kT)
+    GpR, GmR = nre.transition_rate(E, V, [dg, de], Gamma_R * np.eye(2), VR, kT)
+    if total:
         K = Kp + Km
-        GpL, GmL = nre.transition_rate(E, V, [dg, de], Gamma_L * np.eye(2), VL, kT)
-        GpR, GmR = nre.transition_rate(E, V, [dg, de], Gamma_R * np.eye(2), VR, kT)
         GL = (GpL + GmL)[:, None]  # VL, VR
         GR = (GpR + GmR)[None, :]
-        Gamma = K[np.newaxis, np.newaxis] + GL + GR
-        rho = nre.populations(Gamma)
-    return rho
+        return K[np.newaxis, np.newaxis] + GL + GR
+    else:
+        Plus = [GpL, GpR, Kp]
+        Minus = [GmL, GmR, Km]
+        return Plus, Minus
 
-
-def correlation(H, A, B, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
-    """
-    Function to calculate the first order correlation function of two operators. <A(t)B(0)>.
-    The calculation is carried out by performing quantum regression theorem. 
-
-    Parameters:
-    -----
-    H_parameters: Tuple 
-        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
-        Defined in nanocavity.tls.Hamiltonian()
-    VL: float
-        bias at the left lead
-    VR: float
-        bias at the right lead
-    kappa: float
-        Cavity damping
-    Gamma_L: float
-        coupling of the left lead to the central system
-    Gamma_R: float
-        coupling of the right lead to the central system
-    kT: float
-        Temperature
-    tlist: ndarray
-        Discretization in time domain 
-     iva: Logic
-        If True write the dissipator in the basis without interaction. Defaults to False.    Returns:
-    -----
-    correlation: 2D array
-        The correlation between two operators in time 
-    """
-     
-    H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
-    H = H0 + Hint
-    
-    c_ops = no.collapses_tls(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
-    L = no.liouvillian(H, c_ops)
-    return nme.correlation_AB(L, a.d, a, tlist)
 
 def spectrum_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, Hint=0):
     """
@@ -353,107 +313,3 @@ def spectrum_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, Hint=0):
     I = kappa * nme.spectrum(L, op_list[2], wlist)
     return I
   
-def spectrum(
-    H_parameters,
-    VL,
-    VR,
-    kappa,
-    Gamma_L,
-    Gamma_R,
-    kT,
-    wlist,
-    iva=False,
-    method='msolve',
-    **kwargs):
-    """
-    This function calculates the emission spectrum, based on the application of the quantum regression theorem on the first-order correlation of
-    the operators that couple to the photon bath. The Fourier transform is applied to this first-order correlation function, resulting in a sum 
-    of Lorentzians, which is implemented in the code below.
-    -----
-    H_parameters: Tuple 
-        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
-        Defined in nanocavity.tls.Hamiltonian()
-    VL: float
-        bias at the left lead
-    VR: float
-        bias at the right lead
-    kappa: float
-        Cavity damping
-    Gamma_L: float
-        coupling of the left lead to the central system
-    Gamma_R: float
-        coupling of the right lead to the central system
-    kT: float
-        Temperature
-    wlist: ndarray
-        The discretization of frequencies
-    iva: Logic
-        If True write the dissipator in the basis without interaction. Defaults to False.    method: str
-        By default 'msolve 'it uses full master equation approach master_equation.py, if it is 'rsolve' then it will use rate_quation.py
-    Returns:
-    -----
-    spectrum: 2D array
-        Emission spectrum
-    """
-    H0, Hint, [dg, de, a] = Hamiltonian(*H_parameters)
-    H = H0 + Hint
-    if method == 'msolve':
-        c_ops = collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva)
-        L = no.liouvillian(H, c_ops)
-        I = nme.spectrum(L, a, wlist, **kwargs)
-        try:
-            return I * kappa
-        except:
-            # ret_dat=True flag given, return also Mk and Ek
-            return I[0] * kappa, I[1], I[2]
-    elif method == 'rsolve':
-        E, V = H.eigh()
-        # transtion rates, populations and spectrum
-        Kp, Km = nre.transition_rate(E, V, a, kappa, kT, bath="bosonic")
-        K = Kp + Km
-        GpL, GmL = nre.transition_rate(E, V, [dg, de], Gamma_L * np.eye(2), VL, kT)
-        GpR, GmR = nre.transition_rate(E, V, [dg, de], Gamma_R * np.eye(2), VR, kT)
-        GL = (GpL + GmL)[:, None]  # VL, VR
-        GR = (GpR + GmR)[None, :]
-        P = nre.populations(K[np.newaxis, np.newaxis] + GL + GR)
-        return nre.power_spectrum(Kp, Km, P, E, wlist, **kwargs)
-      
-
-def g2(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, tlist, iva=False):
-    """
-    This function calculates the second order correlation function, 
-    based on the application of the quantum regression theorem 
-    -----
-    H_parameters: Tuple 
-        System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
-        Defined in nanocavity.tls.Hamiltonian()
-    VL: float
-        bias at the left lead
-    VR: float
-        bias at the right lead
-    kappa: float
-        Cavity damping
-    Gamma_L: float
-        coupling of the left lead to the central system
-    Gamma_R: float
-        coupling of the right lead to the central system
-    kT: float
-        Temperature
-    tlist: ndarray
-        The discretization of time
-    iva: Logic
-        If True write the dissipator in the basis without interaction. Defaults to False.    
-    Returns
-    -----
-    g2: 2D array
-        second order correlation function in time
-    """
-    H0, Hint, [_, _, a] = Hamiltonian(*H_parameters)
-    H = H0 + Hint
-
-    c_ops = collapses(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=iva
-        )
-    L = no.liouvillian(H, c_ops)
-    _, cm = no.collapses(a, H, kT, bath="bosonic", rate=kappa, total=False)
-    J = no.jump(cm)
-    return nme.g2(L, J, tlist)
