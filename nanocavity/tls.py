@@ -117,57 +117,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     H = H0 + Hint
     anni_ops = [dg, de, a_ph, a_vi]
     num_ops = [ng, ne, n_ph, n_vi]
-    return H, H0, Hint, anni_ops, num_ops
-
-
-def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
-    """
-    Function to calculate the collapse operators with secondquant operators
-
-    Parameters:
-    -----
-    H: secondquant operator
-        Hamiltonian
-    ops: list with 3 entries
-        List containing the annihilation operators for the ground and
-        excited state, as well as the phononic one
-    VL: float
-        bias at the left lead
-    VR: float
-        bias at the right lead
-    kappa: float
-        Cavity damping
-    Gamma_L: float
-        coupling of the left lead to the central system
-    Gamma_R: float
-        coupling of the right lead to the central system
-    kT: float
-        Temperature
-
-    Returns:
-    -----
-    c_ops: list
-        List containing the collapse operators
-    """
-    dg = ops[0]
-    de = ops[1]
-    a_ph = ops[2]
-
-    # left electrode
-    c_gL = no.collapses(dg, H, kT, bath="fermionic", rate=Gamma_L, mu=VL)
-    c_eL = no.collapses(de, H, kT, bath="fermionic", rate=Gamma_L, mu=VL)
-    CL = c_gL + c_eL
-
-    # left electrode
-    c_gR = no.collapses(dg, H, kT, bath="fermionic", rate=Gamma_R, mu=VR)
-    c_eR = no.collapses(de, H, kT, bath="fermionic", rate=Gamma_R, mu=VR)
-    CR = c_gR + c_eR
-
-    # cavity mode
-    CA = no.collapses(a_ph, H, kT, bath="bosonic", rate=kappa)
-
-    c_ops = CL + CR + CA
-    return c_ops
+    return H, H0, Hint, anni_ops, num_op
 
 
 def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
