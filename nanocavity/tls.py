@@ -37,9 +37,9 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1, ret_nop=Fa
         Hamiltonian w/o interaciton between TLS and photons/vibrons
     Hint: secondquant operator
         Interaction Hamiltonian
-    anni_list: list
+    anni_ops: list
         List containing the annihilation operators
-    num_list: list
+    num_ops: list
         List containing the number operators
     """
     [dg, de, a], [Nfg, Nfe, Nb] = sq.composite(
@@ -52,11 +52,11 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1, ret_nop=Fa
         Hint = g_ph * (a.d * dg.d * de + a * de.d * dg)
     else:
         Hint = g_ph * (a + a.d) * (dg.d * de + de.d * dg)
-    anni_list = [dg, de, a]
+    anni_ops = [dg, de, a]
     if ret_nop:
-        num_list = [Nfg, Nfe, Nb]
-        return H0, Hint, anni_list, num_list
-    return H0, Hint, anni_list
+        num_ops = [Nfg, Nfe, Nb]
+        return H0, Hint, anni_ops, num_ops
+    return H0, Hint, anni_ops
 
 def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     """
@@ -94,9 +94,9 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
         Hamiltonian w/o interaciton between TLS and photons/vibrons
     Hint: secondquant operator
         Interaction Hamiltonian
-    anni_list: list
+    anni_ops: list
         List containing the annihilation operators
-    num_list: list
+    num_ops: list
         List containing the number operators
     """
     [dg, de, a_ph, a_vi], [ng, ne, n_ph, n_vi] = sq.composite(
@@ -114,9 +114,9 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     Hint = H_m_vi + H_m_ph
 
     H = H0 + Hint
-    anni_list = [dg, de, a_ph, a_vi]
-    num_list = [ng, ne, n_ph, n_vi]
-    return H, H0, Hint, anni_list, num_list
+    anni_ops = [dg, de, a_ph, a_vi]
+    num_ops = [ng, ne, n_ph, n_vi]
+    return H, H0, Hint, anni_ops, num_ops
 
 def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
     """
@@ -291,37 +291,3 @@ def rate_matrix(H,
         Plus = [GpL, GpR, Kp]
         Minus = [GmL, GmR, Km]
         return Plus, Minus
-
-
-def spectrum_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, Hint=0):
-    """
-    Parameters:
-    -----
-    H: secondquant operator
-        The Hamiltonian of the system
-    VL: float
-        bias at the left lead
-    VR: float
-        bias at the right lead
-    kappa: float
-        Cavity damping
-    Gamma_L: float
-        coupling of the left lead to the central system
-    Gamma_R: float
-        coupling of the right lead to the central system
-    kT: float
-        Temperature
-    tlist: ndarray
-        Discretization in time domain 
-     iva: Logic
-        If True write the dissipator in the basis without interaction. Defaults to False.    Returns:
-    -----
-    correlation: 2D array
-        The correlation between two operators in time 
-    """
-
-    c_ops = collapses_vi(H - Hint, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT)
-    L = no.liouvillian(H, c_ops)
-    I = kappa * nme.spectrum(L, op_list[2], wlist)
-    return I
-  

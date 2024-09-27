@@ -19,15 +19,13 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1):
             energy of the cavity (photon) mode
         g_ph: Float
             coupling strength to the cavity
-        hw_vi: Float
-            Energy of the vibronic (phonon mode)
         U: Float
             Coulomb repulsion
-        max_bosons: list of 2 ints
-            List specifying the maximum numbers of bosons considered in the
-            cavity and the vibronic mode
-
-
+        rwa: logical
+            Switch if rotating wave should be applied or not. Defaults to false
+        max_bosons: int
+            total number of photons
+    
     Returns:
         ------
         H: qutip operator
@@ -36,7 +34,7 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1):
             Hamiltonian w/o interaciton between TLS and photons/vibrons
         Hint: qutip operator
             Interaction Hamiltonian
-        anni_list: list
+        anni_ops: list
             List containing the annihilation operators
     """
 
@@ -59,8 +57,8 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1):
         Hint = g_ph * (a.dag() * dg.dag() * de + a * de.dag() * dg)
     else:
         Hint = g_ph * (a + a.dag()) * (dg.dag() * de + de.dag() * dg)
-    anni_list = [dg, de, a]
-    return H0, Hint, anni_list
+    anni_ops = [dg, de, a]
+    return H0, Hint, anni_ops
 
 
 def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
@@ -242,10 +240,3 @@ def collapses(
         PLus = [c_gpL, c_epL, c_gpR, c_epR,  c_ap]
         Minus = [c_gmL, c_emL, c_gmR, c_emR, c_am]
         return PLus, Minus
-
-
-def spectrum_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, Hint=0):
-    c_ops = collapses_vi(H, op_list, VL, VR, kappa, Gamma_L, Gamma_R, kT)
-    a = op_list[2]
-    I = kappa / (2 * np.pi) * qt.spectrum(H, wlist, list(c_ops), a.dag(), a)
-    return I
