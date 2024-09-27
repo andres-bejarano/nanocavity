@@ -1,20 +1,21 @@
 import numpy as np
 import nanocavity.operators as no
-import nanocavity.qutip.operators as qo
+import nanocavity.qutip.operators as nqo
 import nanocavity.rate_equation as nre
-import nanocavity.tls as tls
+import nanocavity.tls as ntls
+import nanocavity.qutip.tls as nqtls
 
 
 Eg = 0.4
-delta = 0.9
-omegac = 1
-coupling = 0.3
+Delta = 0.9
+hw_ph = 1
+g_ph = 0.3
 
-H_parameters = Eg, delta, omegac, coupling
+H_parameters = Eg, Delta, hw_ph, g_ph
 
 kappa = 0.1
-gL = 1e-3
-gR = 2e-3
+Gamma_L = 1e-3
+Gamma_R = 2e-3
 
 VL = 3
 VR = -3
@@ -24,96 +25,127 @@ kT = 0.1
 def test_Htls_nc_QuTiP():
     for rwa in (True, False):
         for max_bosons in (1, 2):
-            H_parameters = Eg, delta, omegac, coupling, rwa, max_bosons
-            Hnc0, Hnc1, [Dg, De, A] = tls.Hamiltonian("nanocavity", *H_parameters)
-            Hqt0, Hqt1, [dg, de, a] = tls.Hamiltonian("qutip", *H_parameters)
+            H_parameters = Eg, Delta, hw_ph, g_ph, rwa, max_bosons
+            Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
+            Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
             Hnc = Hnc0 + Hnc1
             Hqt = Hqt0 + Hqt1
             Enc, Vnc = Hnc.eigh()
             Eqt, Vqt = Hqt.eigenstates()
 
-            Dg = Dg.toarray()
-            De = De.toarray()
-            A = A.toarray()
+            dg_nc = dg_nc.toarray()
+            de_nc = de_nc.toarray()
+            a_nc = a_nc.toarray()
 
-            dg = dg.full()
-            de = de.full()
-            a = a.full()
+            dg_qt = dg_qt.full()
+            de_qt = de_qt.full()
+            a_qt = a_qt.full()
 
             assert np.allclose(Hnc.toarray(), Hqt.full())
             assert np.allclose(Enc, Eqt)
-            dim = A.shape[0]
+            dim = a_nc.shape[0]
             for i in range(dim):
                 M = np.vstack([Vqt[i].full().reshape(dim), Vnc[:, i]])
                 rank = np.linalg.matrix_rank(M)
                 assert rank == 1
 
-            assert np.allclose(Dg.T @ Dg + Dg @ Dg.T, np.eye(Dg.shape[0]))
-            assert np.allclose(Dg.T @ De + De @ Dg.T, 0)
-            assert np.allclose(De.T @ Dg + Dg @ De.T, 0)
-            assert np.allclose(De.T @ De + De @ De.T, np.eye(De.shape[0]))
-            assert np.allclose(A.T @ A - A @ A.T, a.T @ a - a @ a.T)
+            assert np.allclose(
+                dg_nc.T @ dg_nc + dg_nc @ dg_nc.T, np.eye(dg_nc.shape[0])
+            )
+            assert np.allclose(dg_nc.T @ de_nc + de_nc @ dg_nc.T, 0)
+            assert np.allclose(de_nc.T @ dg_nc + dg_nc @ de_nc.T, 0)
+            assert np.allclose(
+                de_nc.T @ de_nc + de_nc @ de_nc.T, np.eye(de_nc.shape[0])
+            )
+            assert np.allclose(
+                a_nc.T @ a_nc - a_nc @ a_nc.T, a_nc.T @ a_nc - a_nc @ a_nc.T
+            )
 
-            assert np.allclose(Dg, dg)
-            assert np.allclose(De, de)
-            assert np.allclose(A, a)
+            assert np.allclose(dg_nc, dg_qt)
+            assert np.allclose(de_nc, de_qt)
+            assert np.allclose(a_nc, a_qt)
 
 
 def test_collapses():
-    for coupling in [0.005, 0.05, 0.5]:
-        H_parameters = Eg, delta, omegac, coupling
+    for g_ph in [0.005, 0.05, 0.5]:
+        H_parameters = Eg, Delta, hw_ph, g_ph
+        Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
+        Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
+        Hnc = Hnc0 + Hnc1
+        Hqt = Hqt0 + Hqt1
         for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
-            Cqt = tls.collapses("qutip", H_parameters, VL, VR, kappa, gL, gR, kT)
-            Cnc = tls.collapses("nanocavity", H_parameters, VL, VR, kappa, gL, gR, kT)
+            Cqt = nqtls.collapses(
+                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            )
+            Cnc = ntls.collapses(
+                Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            )
 
             for i in range(len(Cnc)):
                 assert np.allclose(Cnc[i], Cqt[i].full())
 
 
 def test_jump_operator():
+    H_parameters = Eg, Delta, hw_ph, g_ph
+    Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
+    Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
+    Hnc = Hnc0 + Hnc1
+    Hqt = Hqt0 + Hqt1
     for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
-        c_qt = tls.collapses("qutip", H_parameters, VL, VR, kappa, gL, gR, kT)
-        c_nc = tls.collapses("nanocavity", H_parameters, VL, VR, kappa, gL, gR, kT)
+        c_qt = nqtls.collapses(
+            Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        )
+        c_nc = ntls.collapses(
+            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        )
 
-        Jqt = qo.jump(c_qt)
+        Jqt = nqo.jump(c_qt)
         Jnc = no.jump(c_nc)
 
         assert np.allclose(Jqt.full(), Jnc)
 
 
 def test_dissipators():
-    for coupling in [0.005, 0.05, 0.5]:
+    for g_ph in [0.005, 0.05, 0.5]:
         for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
-            H_parameters = Eg, delta, omegac, coupling
+            H_parameters = Eg, Delta, hw_ph, g_ph
+            Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
+            Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
+            Hnc = Hnc0 + Hnc1
+            Hqt = Hqt0 + Hqt1
             c_ops_qt = list(
-                tls.collapses("qutip", H_parameters, VL, VR, kappa, gL, gR, kT)
+                nqtls.collapses(
+                    Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+                )
             )
-            c_ops_nc = list(
-                tls.collapses("nanocavity", H_parameters, VL, VR, kappa, gL, gR, kT)
+            c_ops_nc = ntls.collapses(
+                Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
             )
 
             Dnc = no.dissipator(c_ops_nc)
-            Dqo = qo.dissipator(c_ops_qt)
-            Dqt = qo.dissipator(c_ops_qt, lindblad=True)
+            Dqo = nqo.dissipator(c_ops_qt)
+            Dqt = nqo.dissipator(c_ops_qt, lindblad=True)
             assert np.allclose(Dqo.full(), Dqt.full())
             assert np.allclose(Dnc, Dqt.full())
 
 
 def test_liovillian():
     for coupling in [0.005, 0.05, 0.5]:
-        H_parameters = Eg, delta, omegac, coupling
-        Hqt0, Hqt1, _ = tls.Hamiltonian("qutip", *H_parameters)
-        Hnc0, Hnc1, _ = tls.Hamiltonian("nanocavity", *H_parameters)
+        H_parameters = Eg, Delta, hw_ph, coupling
+        Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
+        Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
         Hqt = Hqt0 + Hqt1
         Hnc = Hnc0 + Hnc1
         for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
             c_ops_qt = list(
-                tls.collapses("qutip", H_parameters, VL, VR, kappa, gL, gR, kT)
+                nqtls.collapses(
+                    Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+                )
             )
-            Lqt = qo.liouvillian(Hqt, c_ops_qt)
+            Lqt = nqo.liouvillian(Hqt, c_ops_qt)
 
-            c_ops_nc = list(
-                tls.collapses("nanocavity", H_parameters, VL, VR, kappa, gL, gR, kT)
+            c_ops_nc = ntls.collapses(
+                Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
             )
             Lnc = no.liouvillian(Hnc, c_ops_nc)
             assert np.allclose(Lnc, Lqt.full())
