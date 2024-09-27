@@ -207,8 +207,8 @@ def collapses(
         lead2lead: logic
             Dissipator for a electron tunnleing interacting with the cavity mode
         total: Logic
-            By default False, returns a list with all the collapses, 
-            if True it returns the collapses for creation (Plus) and elimination of particles (Minus).
+            By default True, returns a list with all the collapses, 
+            if False it returns the collapses for creation (Plus) and elimination of particles (Minus).
     Returns:
         -----
         c_ops: List
