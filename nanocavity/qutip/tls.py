@@ -185,11 +185,9 @@ def collapses(
 
     Parameters:
         -----
-        H: qutip operator
-            Hamiltonian
-        ops: list with 3 entries
-            List containing the annihilation operators for the ground and
-            excited state, as well as the phononic one
+        H_parameters: Tuple 
+            System parameters [Eg, Delta, hw_ph, g_ph, U, rwa, max_bosons, ret_nop]
+            Defined in nanocavity.tls.Hamiltonian()
         VL: float
             bias at the left lead
         VR: float
