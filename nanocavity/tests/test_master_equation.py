@@ -61,7 +61,6 @@ def test_liouvillian(kT, bosons, rate):
         L = no.liouvillian(H, ops)
         # check determinant of L is zero
         assert np.isclose(np.linalg.det(L), 0)
-    return L
 
 
 @pytest.fixture(scope="module", params=["eig", "solve"])
@@ -80,14 +79,22 @@ def scale(request):
 
 
 def test_stationary(kT, bosons, rate, method):
-    L = test_liouvillian(kT, bosons, rate)
+    [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=bosons)
+    H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
+    c_ops = no.collapses(c, H, kT, "fermionic", rate)
+    a_ops = no.collapses(a, H, kT, "bosonic", rate)
+    L = no.liouvillian(H, c_ops + a_ops)
     rho = nme.stationary(L, method=method, check=True, tol=-1e8)
 
 
-L = test_liouvillian(0.1, 5, 0.001)
-
-
 def test_stationary_solve(row, scale):
+    [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=3)
+    H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
+    rate = 0.1
+    kT = 0.01
+    c_ops = no.collapses(c, H, kT, "fermionic", rate)
+    a_ops = no.collapses(a, H, kT, "bosonic", rate)
+    L = no.liouvillian(H, c_ops + a_ops)
     rho = nme.stationary(L, method="solve", row=row, scale=scale, check=True, tol=-1e8)
 
 
