@@ -96,7 +96,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
             Hamiltonian w/o interaciton between TLS and photons/vibrons
         Hint: qutip operator
             Interaction Hamiltonian
-        anni_list: list
+        anni_ops: list
             List containing the annihilation operators
     """
 
