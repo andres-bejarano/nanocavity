@@ -128,54 +128,6 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     anni_ops = [dg, de, a_ph, a_vi]
     return H, H0, H_int, anni_ops
 
-
-def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
-    """
-    Function to calculate the collapse operators with qutip operators
-
-    Parameters:
-        -----
-        H: qutip operator
-            Hamiltonian
-        ops: list with 3 entries
-            List containing the annihilation operators for the ground and
-            excited state, as well as the phononic one
-        VL: float
-            bias at the left lead
-        VR: float
-            bias at the right lead
-        kappa: float
-            Cavity damping
-        Gamma_L: float
-            coupling of the left lead to the central system
-        Gamma_R: float
-            coupling of the right lead to the central system
-        kT: float
-            Temperature
-
-    Returns:
-        -----
-        c_ops: list
-            List containing the collapse operators
-    """
-    dg = ops[0]
-    de = ops[1]
-    a_ph = ops[2]
-
-    c_gL = nqo.collapses(dg, H, kT, bath="fermionic", rate=Gamma_L, mu=VL)
-    c_eL = nqo.collapses(de, H, kT, bath="fermionic", rate=Gamma_L, mu=VL)
-    CL = c_gL + c_eL
-
-    c_gR = nqo.collapses(dg, H, kT, bath="fermionic", rate=Gamma_R, mu=VR)
-    c_eR = nqo.collapses(de, H, kT, bath="fermionic", rate=Gamma_R, mu=VR)
-    CR = c_gR + c_eR
-
-    CA = nqo.collapses(a_ph, H, kT, bath="bosonic", rate=kappa)
-
-    c_ops = CL + CR + CA
-    return c_ops
-
-
 def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     """
     Function to calculate the collapse operators with qutip  operators
