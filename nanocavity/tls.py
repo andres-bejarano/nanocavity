@@ -201,7 +201,7 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     -----
     c_ops: List
         containing all collapses. If total True returns 2 lists. First all collapses for creation an excitation
-    PLus: List
+    Plus: List
         In case total=True returns [c_gpL, c_epL, c_gpR, c_epR,  c_ap] list of collapses for creation of electrons/photons, each element is a list
     Minus: List
         In case total=True returns [c_gmL, c_emL, c_gmR, c_emR,  c_am] list of collapses for creation of electrons/photons, each element is a list

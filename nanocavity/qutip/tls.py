@@ -125,8 +125,8 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     H_int = H_m_ph + H_m_vi
     H = H0 + H_int
 
-    anni_list = [dg, de, a_ph, a_vi]
-    return H, H0, H_int, anni_list
+    anni_ops = [dg, de, a_ph, a_vi]
+    return H, H0, H_int, anni_ops
 
 
 def collapses_vi(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT):
@@ -210,7 +210,7 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
         -----
         c_ops: List
             containing all collapses. If total True returns 2 lists. First all collapses for creation an excitation
-        PLus: List
+        Plus: List
             In case total=True returns [c_gpL, c_epL, c_gpR, c_epR,  c_ap] list of collapses for creation of electrons/photons, each element is a list
         Minus: List
             In case total=True returns [c_gmL, c_emL, c_gmR, c_emR,  c_am] list of collapses for creation of electrons/photons, each element is a list
