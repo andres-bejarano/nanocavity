@@ -188,12 +188,18 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
         coupling of the right lead to the central system
     kT: float
         Temperature
-    alone: Logic
-        If false, it returns two lists with collapses for particle aggregation and elimination processes  
+    total: Logic
+        By default False, returns a list with all the collapses, 
+        if True it returns the collapses for creation (Plus) and elimination of particles (Minus).
+
     Returns:
     -----
-    c_ops: list
-        List containing the collapse operators
+    c_ops: List
+        containing all collapses. If total True returns 2 lists. First all collapses for creation an excitation 
+    PLus: List
+        In case total=True returns [c_gpL, c_epL, c_gpR, c_epR,  c_ap] list of collapses for creation of electrons/photons, each element is a list 
+    Minus: List
+        In case total=True returns [c_gmL, c_emL, c_gmR, c_emR,  c_am] list of collapses for creation of electrons/photons, each element is a list
     """
 
     [dg, de, a] = ops
