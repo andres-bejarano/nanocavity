@@ -71,124 +71,145 @@ def _toarray(x):
     return np.array(x)
 
 
-def correlation_AB(L, A, B, tlist, cutoff=1e-12, rho_st=None):
-    tlist = _toarray(tlist)
-
+def _operator2super(A, dim):
     if isinstance(A, Operator):
         A = A.toarray()
+    if A.shape[0] == dim:
+        Id = np.eye(dim)
+        A = np.kron(A, Id)
+    return A
 
-    if isinstance(B, Operator):
-        B = B.toarray()
 
-    dim = A.shape[0]
-    Id = np.eye(dim)
+def regression_theorem(
+    A, L, B, rho_st, sort=True, avgA=False, avgB=False, verbose=True
+):
+    """Uses the quantum regression theorem to compute two-operator coefficients and L-eigenvalues
 
-    A = np.kron(A, Id)
-    B = np.kron(B, Id)
+    Parameters
+    ----------
+    A : {ndarray, Operator}
+        operator or superoperator
+    L : ndarray
+        Liouvillian superoperator
+    B : {ndarray, Operator}
+        operator or superoperator
+    rho_st : ndarray
+        steady-state density matrix
+    sort : bool
+        whether to sort coefficients according to magnitude |M_k|
+    avgA : bool
+        whether to return the expectation value <A>
+    avgB : bool
+        whether to return the expectation value <B>
+    verbose : bool
+        print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
 
-    w0 = np.eye(dim).reshape(dim**2)
+    Returns
+    -------
+    Coefficients, Eigenvalues, (<A>), (<B>)
+    """
+
     if rho_st is None:
         # we will rely on the default method for obtaining rho_st
         rho_st = stationary(L)
+
+    dim = rho_st.shape[0]
+    A = _operator2super(A, dim)
+    B = _operator2super(B, dim)
+    w0 = np.eye(dim).reshape(dim**2)
     rho_st = rho_st.reshape(dim**2)
-    El, vl, vr = eig_norm(L)
+    E, vl, vr = eig_norm(L)
+
+    # intermediate quantities, potentially reused
+    w0A = w0 @ A
+    Brho = B @ rho_st
+
+    # coefficients M_k = <ALB>_k
+    M = (w0A @ vr) * (vl.conj().T @ Brho)
+
+    if sort:
+        # sort descending
+        idx = np.argsort(-np.abs(M))
+        M = M[idx]
+        E = E[idx]
+
+    if verbose:
+        # print up to 10 leading contributions according to magnitude of M[k]
+        idx = np.argsort(-np.abs(M))[:10]
+        print(f"\n{'k':>4} {'Re(Mk)':>12} {'Im(Mk)':>12} {'Re(Ek)':>12} {'Im(Ek)':>12}")
+        for k in idx:
+            print(
+                f"{k:4} {M[k].real:12.6f} {M[k].imag:12.6f} {E[k].real:12.6f} {E[k].imag:12.6f}"
+            )
+
+    # compute also expectation values?
+    if avgA and avgB:
+        return M, E, w0A @ rho_st, w0 @ Brho
+    if avgA:
+        return M, E, w0A @ rho_st
+    if avgB:
+        return M, E, w0 @ Brho
+
+    return M, E
+
+
+def correlation_AB(
+    A, L, B, tlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None
+):
+
+    M, E = regression_theorem(A, L, B, rho_st, verbose=verbose)
 
     # correlation function S is generally complex
-    M = (w0 @ A @ vr) * (vl.conj().T @ B @ rho_st)
     S = np.zeros(len(tlist), dtype=np.complex128)
+    tlist = _toarray(tlist)
 
-    for k in range(len(El)):
+    for k in range(len(E)):
         if abs(M[k]) > cutoff:
-            S += M[k] * np.exp(El[k] * tlist)
+            S += M[k] * np.exp(E[k] * tlist)
+
+    if ret_data:
+        # S, weights, eigenvalues
+        return S, M, E
+
     return S
 
 
 def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
-    wlist = _toarray(wlist)
 
-    if isinstance(a, Operator):
-        a = a.toarray()
+    M, E = regression_theorem(a.d, L, a, rho_st, verbose=verbose, sort=False)
 
-    dim = a.shape[0]
-    Id = np.eye(dim)
-
-    Ad = np.kron(a.conj().T, Id)
-    A = np.kron(a, Id)
-
-    w0 = np.eye(dim).reshape(dim**2)
-    if rho_st is None:
-        # we will rely on the default method for obtaining rho_st
-        rho_st = stationary(L)
-    rho_st = rho_st.reshape(dim**2)
-    El, vl, vr = eig_norm(L)
-
-    M = (w0 @ Ad @ vr) * (vl.conj().T @ A @ rho_st)
     # spectrum is a real quantity, so we can skip the imaginary part
     M = M.real
     I = np.zeros(len(wlist), dtype=np.float64)
+    wlist = _toarray(wlist)
 
-    for k in range(len(El)):
+    for k in range(len(E)):
         if M[k] > cutoff:
-            I += M[k] * ndist.lorentzian(wlist - El[k].imag, -2 * El[k].real)
-
-    if verbose:
-        # print up to 10 leading contributions according to magnitude of M[k]
-        idx = np.argsort(-M)[:10]
-        print(f"\nSPECTRUM:\n{'k':>4} {'abs-weight':>12} {'position':>12} {'fhwm':>12}")
-        for k in idx:
-            if El[k].imag > 0:
-                # only print for positive energies
-                print(
-                    f"{k:4} {np.abs(M[k]):12.6f} {El[k].imag:12.6f} {-2 * El[k].real:12.6f}"
-                )
+            I += M[k] * ndist.lorentzian(wlist - E[k].imag, -2 * E[k].real)
 
     if ret_data:
         # spectrum, weights, eigenvalues
         idx = np.argsort(-M)
-        return I, M[idx], El[idx]
+        return I, M[idx], E[idx]
 
     return I
 
 
 def g2(L, J, tlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
-    tlist = _toarray(tlist)
 
-    if isinstance(J, Operator):
-        J = J.toarray()
+    M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True)
 
-    dim = J.shape[0]
-
-    w0 = np.eye(int(np.sqrt(dim))).reshape(dim)
-    if rho_st is None:
-        # we will rely on the default method for obtaining rho_st
-        rho_st = stationary(L)
-    rho_st = rho_st.reshape(dim)
-    El, vl, vr = eig_norm(L)
-
-    G1 = w0 @ J @ rho_st
-    M = (w0 @ J @ vr) * (vl.conj().T @ J @ rho_st)
     M /= G1**2
 
     g2 = np.zeros(len(tlist), dtype=np.complex128)
+    tlist = _toarray(tlist)
 
-    for k in range(0, len(El)):
+    for k in range(len(E)):
         if abs(M[k]) > cutoff:
-            g2 += M[k] * np.exp(El[k] * tlist)
-
-    if verbose:
-        # print up to 10 leading contributions according to magnitude of M[k]
-        idx = np.argsort(-np.abs(M))[:10]
-        print(
-            f"\ng2 CORRELATION FUNCTION:\n{'k':>4} {'Re(Mk)':>12} {'Im(Mk)':>12} {'Re(Ek)':>12} {'Im(Ek)':>12}"
-        )
-        for k in idx:
-            print(
-                f"{k:4} {M[k].real:12.6f} {M[k].imag:12.6f} {El[k].real:12.6f} {El[k].imag:12.6f}"
-            )
+            g2 += M[k] * np.exp(E[k] * tlist)
 
     if ret_data:
         # g2, weights, eigenvalues
-        idx = np.argsort(-np.abs(M))
-        return g2.real, M[idx], El[idx]
+        return g2.real, M, E
 
     return g2.real

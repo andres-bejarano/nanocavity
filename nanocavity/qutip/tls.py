@@ -128,6 +128,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     anni_ops = [dg, de, a_ph, a_vi]
     return H, H0, H_int, anni_ops
 
+
 def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     """
     Function to calculate the collapse operators with qutip  operators
