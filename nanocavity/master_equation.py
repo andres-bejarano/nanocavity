@@ -81,7 +81,7 @@ def _operator2super(A, dim):
 
 
 def regression_theorem(
-    A, L, B, rho_st, sort=True, avgA=False, avgB=False, verbose=True
+    A, L, B, rho_st=None, sort=True, avgA=False, avgB=False, verbose=True
 ):
     """Uses the quantum regression theorem to compute two-operator coefficients and L-eigenvalues
 
