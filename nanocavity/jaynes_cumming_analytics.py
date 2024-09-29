@@ -63,8 +63,8 @@ def Emp(H_parameters, max_bosons=1):
     n = max_bosons
     Eg, Delta, hw_ph, g_ph = H_parameters[:4]
     OmegaR = Omega_R(Delta, hw_ph, g_ph, n)
-    Eplus = Eg + (hw_ph + (2 * n - 1) * Delta) / 2 + OmegaR / 2
-    Eminus = Eg + (hw_ph + (2 * n - 1) * Delta) / 2 - OmegaR / 2
+    Eplus = Eg + (Delta + (2 * n - 1) * hw_ph) / 2 + OmegaR / 2
+    Eminus = Eg + (Delta + (2 * n - 1) * hw_ph) / 2 - OmegaR / 2
     return Eminus, Eplus
 
 
