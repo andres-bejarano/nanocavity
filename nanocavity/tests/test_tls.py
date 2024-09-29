@@ -117,7 +117,7 @@ def test_correlation_AB():
                 Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
             )
             L = no.liouvillian(Hnc0 + Hnc1, c_nc)
-            Snc = nme.correlation_AB(L, a_nc.d, a_nc, tlist)
+            Snc = nme.correlation_AB(a_nc.d, L, a_nc, tlist)
 
             c_qt = nqtls.collapses(
                 Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
