@@ -160,8 +160,8 @@ def correlation_AB(
     M, E = regression_theorem(A, L, B, rho_st, verbose=verbose)
 
     # correlation function S is generally complex
-    S = np.zeros(len(tlist), dtype=np.complex128)
     tlist = _toarray(tlist)
+    S = np.zeros(len(tlist), dtype=np.complex128)
 
     for k in range(len(E)):
         if abs(M[k]) > cutoff:
@@ -180,8 +180,8 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=Non
 
     # spectrum is a real quantity, so we can skip the imaginary part
     M = M.real
-    I = np.zeros(len(wlist), dtype=np.float64)
     wlist = _toarray(wlist)
+    I = np.zeros(len(wlist), dtype=np.float64)
 
     for k in range(len(E)):
         if M[k] > cutoff:
@@ -201,8 +201,8 @@ def g2(L, J, tlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
 
     M /= G1**2
 
-    g2 = np.zeros(len(tlist), dtype=np.complex128)
     tlist = _toarray(tlist)
+    g2 = np.zeros(len(tlist), dtype=np.complex128)
 
     for k in range(len(E)):
         if abs(M[k]) > cutoff:
