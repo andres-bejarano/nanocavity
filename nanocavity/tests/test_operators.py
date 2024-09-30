@@ -151,19 +151,21 @@ def test_liovillian():
             assert np.allclose(Lnc, Lqt.full())
 
 
-def test_bosonic_collapse():
-    H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, hw_ph, g_ph)
-    ops1 = no.collapses(a, H0, kT, "bosonic", kappa)
-    ops2 = no.collapses(a, H0, kT, "bosonicX+", kappa)
-    H = H0 + Hint
-    L1 = no.liouvillian(H, ops1)
-    L2 = no.liouvillian(H, ops2)
-
-    # although the collapses are computed with X+, the results coincide
-    # in this specific case
-    assert np.allclose(L1, L2)
-
+def test_bosonic_collapses():
+    # hw_ph = 1
+    H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, 1.0, g_ph)
+    ops1 = no.collapses(a, H0, kT, "bosoNIC", kappa)
     # collapses using X+ can be called in different ways
-    no.collapses(a, H0, kT, "X+bosonic", kappa)
-    no.collapses(a, H0, kT, "bosonic-X+", kappa)
-    no.collapses(a, H0, kT, "bosonic.X+", kappa)
+    ops2 = no.collapses(a, H0, kT, "bosonicX+", kappa)
+    ops3 = no.collapses(a, H0, kT, "X+bosonic", kappa)
+    ops4 = no.collapses(a, H0, kT, "bosonic-X+", kappa)
+    ops5 = no.collapses(a, H0, kT, "bosonicx+", kappa)
+    # with hw=1 the collapses are identical with a or X+
+    for o in (ops2, ops3, ops4, ops5):
+        assert np.allclose(ops1, o)
+
+    # now with hw_ph=0.5
+    H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, 0.5, g_ph)
+    ops1 = no.collapses(a, H0, kT, "Bosonic", kappa)
+    ops2 = no.collapses(a, H0, kT, "bosonicX+", kappa)
+    assert not np.allclose(ops1, ops2)

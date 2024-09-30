@@ -16,7 +16,7 @@ def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
         kT: float
             Temperature
         bath: string
-            Either 'fermionic' or 'bosonic'
+            Either 'fermionic' or 'bosonic/bosonicX+'
         rate: float
             coupling strength
         mu: float
@@ -26,6 +26,7 @@ def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
             the individual opperators
         cutoff: float
             cutoff for the considered transition matrix elements
+
     Returns
     -------
     total = True: cp + cm
@@ -43,6 +44,7 @@ def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
     # state
     E_fi = E.reshape(dim, 1) - E.reshape(1, dim)
 
+    bath = bath.lower()
     if "bosonic" in bath:
         # This rate is for photon absorption, thus the final state must be
         # higher in energy than the initial one
@@ -51,11 +53,11 @@ def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
         # lower in energy than the initial one
         nb_fi_m = np.where(E_fi < 0, 1 + ndist.bose_einstein(-E_fi, kT), 0)
 
-    elif bath == "fermionic":
+    elif "fermionic" in bath:
         fd_fi_p = ndist.fermi_dirac(E_fi, kT, mu)
         fd_fi_m = 1 - ndist.fermi_dirac(-E_fi, kT, mu)
 
-    if "X+" in bath and "bosonic" in bath:
+    if "x+" in bath and "bosonic" in bath:
         # following procedure in https://doi.org/10.1103/PRXQuantum.5.010312
         pos_bath_energy = np.where(E_fi < 0, -E_fi, 0)  # find increase of bath energy
         # construct operator X+ = sqrt(E_fi) * (a + a^\dagger)
