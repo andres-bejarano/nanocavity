@@ -149,3 +149,21 @@ def test_liovillian():
             )
             Lnc = no.liouvillian(Hnc, c_ops_nc)
             assert np.allclose(Lnc, Lqt.full())
+
+
+def test_bosonic_collapse():
+    H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, hw_ph, g_ph)
+    ops1 = no.collapses(a, H0, kT, "bosonic", kappa)
+    ops2 = no.collapses(a, H0, kT, "bosonicX+", kappa)
+    H = H0 + Hint
+    L1 = no.liouvillian(H, ops1)
+    L2 = no.liouvillian(H, ops2)
+
+    # although the collapses are computed with X+, the results coincide
+    # in this specific case
+    assert np.allclose(L1, L2)
+
+    # collapses using X+ can be called in different ways
+    no.collapses(a, H0, kT, "X+bosonic", kappa)
+    no.collapses(a, H0, kT, "bosonic-X+", kappa)
+    no.collapses(a, H0, kT, "bosonic.X+", kappa)

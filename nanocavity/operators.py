@@ -42,22 +42,32 @@ def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
     # Matrix of all energy differences in the system between final and initial
     # state
     E_fi = E.reshape(dim, 1) - E.reshape(1, dim)
-    if bath == "bosonic":
+
+    if "bosonic" in bath:
         # This rate is for photon absorption, thus the final state must be
         # higher in energy than the initial one
         nb_fi_p = np.where(E_fi > 0, ndist.bose_einstein(E_fi, kT), 0)
         # This rate is for photon emission, thus the final state must be
         # lower in energy than the initial one
         nb_fi_m = np.where(E_fi < 0, 1 + ndist.bose_einstein(-E_fi, kT), 0)
+
     elif bath == "fermionic":
         fd_fi_p = ndist.fermi_dirac(E_fi, kT, mu)
         fd_fi_m = 1 - ndist.fermi_dirac(-E_fi, kT, mu)
+
+    if "X+" in bath and "bosonic" in bath:
+        # following procedure in https://doi.org/10.1103/PRXQuantum.5.010312
+        pos_bath_energy = np.where(E_fi < 0, -E_fi, 0)  # find increase of bath energy
+        # construct operator X+ = sqrt(E_fi) * (a + a^\dagger)
+        M_fi = (M_fi + M_fi.T) * np.sqrt(pos_bath_energy)
+        print("building collapses with X+")
+
     cp, cm = [], []
     for f in range(dim):
         for i in range(dim):
             if abs(M_fi[f, i]) > cutoff:
                 P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
-                if bath == "bosonic":
+                if "bosonic" in bath:
                     cp.append(np.sqrt(rate * nb_fi_p.T[f, i]) * P.conj().T)
                     cm.append(np.sqrt(rate * nb_fi_m[f, i]) * P)
 
