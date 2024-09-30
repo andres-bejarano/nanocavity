@@ -11,7 +11,10 @@ Delta = 0.9
 hw_ph = 1
 g_ph = 0.3
 
-H_parameters = Eg, Delta, hw_ph, g_ph
+U = 0
+max_bosons = 1
+
+H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
 
 kappa = 0.1
 Gamma_L = 1e-3
@@ -25,7 +28,8 @@ kT = 0.1
 def test_Htls_nc_QuTiP():
     for rwa in (True, False):
         for max_bosons in (1, 2):
-            H_parameters = Eg, Delta, hw_ph, g_ph, rwa, max_bosons
+            U = 0
+            H_parameters = Eg, Delta, hw_ph, g_ph, U,  max_bosons, rwa
             Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
             Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
             Hnc = Hnc0 + Hnc1
@@ -68,7 +72,9 @@ def test_Htls_nc_QuTiP():
 
 def test_collapses():
     for g_ph in [0.005, 0.05, 0.5]:
-        H_parameters = Eg, Delta, hw_ph, g_ph
+        U = 0
+        max_bosons = 1
+        H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
         Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
         Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
         Hnc = Hnc0 + Hnc1
@@ -86,7 +92,9 @@ def test_collapses():
 
 
 def test_jump_operator():
-    H_parameters = Eg, Delta, hw_ph, g_ph
+    U = 0
+    max_bosons = 1
+    H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
     Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
     Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
     Hnc = Hnc0 + Hnc1
@@ -108,7 +116,9 @@ def test_jump_operator():
 def test_dissipators():
     for g_ph in [0.005, 0.05, 0.5]:
         for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
-            H_parameters = Eg, Delta, hw_ph, g_ph
+            U = 0
+            max_bosons = 1
+            H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
             Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
             Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
             Hnc = Hnc0 + Hnc1
@@ -131,7 +141,9 @@ def test_dissipators():
 
 def test_liovillian():
     for coupling in [0.005, 0.05, 0.5]:
-        H_parameters = Eg, Delta, hw_ph, coupling
+        U = 0
+        max_bosons = 1
+        H_parameters = Eg, Delta, hw_ph, coupling, U, max_bosons
         Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
         Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
         Hqt = Hqt0 + Hqt1
@@ -153,7 +165,7 @@ def test_liovillian():
 
 def test_bosonic_collapses():
     # hw_ph = 1
-    H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, 1.0, g_ph)
+    H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, 1.0, g_ph, 0, 1)
     OPS = no.collapses(a, H0, kT, "bosoNIC", kappa)
 
     # collapses using X+ can be called in different ways
@@ -171,7 +183,7 @@ def test_bosonic_collapses():
     assert len(ops1) != len(ops2)
 
     # changing cavity mode energy also introduces differences
-    H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, 0.5, g_ph)
+    H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, 0.5, g_ph, 0, 1)
     ops1 = no.collapses(a, H0, kT, "Bosonic", kappa)
     ops2 = no.collapses(a, H0, kT, "bosonicX+", kappa)
     assert not np.allclose(ops1, ops2)
