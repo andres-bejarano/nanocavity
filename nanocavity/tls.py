@@ -5,7 +5,7 @@ import nanocavity.master_equation as nme
 import secondquant as sq
 
 
-def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1, ret_nop=False):
+def Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_bosons, rwa=False, ret_nop=False):
     """
     Function calculating the Hamiltonian describing a TLS coupled to a cavity.
     Utilizes secondquant operators
