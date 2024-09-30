@@ -3,7 +3,7 @@ import nanocavity.qutip.operators as nqo
 import qutip as qt
 
 
-def Hamiltonian(Eg, Delta, hw_ph, g_ph, U=0, rwa=False, max_bosons=1):
+def Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_bosons, rwa=False):
     """
     Function calculating the Hamiltonian describing a TLS coupled to a cavity
     and a vibronic environment.

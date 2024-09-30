@@ -61,8 +61,9 @@ def test_populations():
     kT = 1e-2
     kappa = 1
     VL, VR = 10, -10
+    max_bosons = 1
 
-    H_parameters = Eg, Delta, hw_ph, g_ph, U
+    H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
     H0, Hint, [dg, de, a] = ntls.Hamiltonian(*H_parameters)
     H = H0 + Hint
     c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT)
@@ -83,7 +84,8 @@ def test_populations():
 def test_stationary():
     for VL, VR in [[3, -3], [2, 0], [-1, 2]]:
         for g_ph in [0.005, 0.05, 0.5]:
-            H_parameters = Eg, Delta, hw_ph, g_ph, U
+            max_bosons = 1
+            H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
             H0, Hint, [dg, de, a] = ntls.Hamiltonian(*H_parameters)
             H = H0 + Hint
 
@@ -102,7 +104,8 @@ def test_stationary():
 def test_correlation_AB():
     tlist = np.linspace(0.0, 200, 101)
     for g_ph in [0.005, 0.05, 0.5]:
-        H_parameters = Eg, Delta, hw_ph, g_ph, U
+        max_bosons = 1
+        H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
         Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
         Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
         VL, VR = 3, -3
@@ -139,7 +142,8 @@ def test_correlation_AB():
 def test_spectrum_analytics():
     kT = 1e-2
     wlist = np.linspace(0.0, 1.8, 103)
-    H_parameters = Eg, Delta, hw_ph, g_ph, U, True
+    max_bosons = 1
+    H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons, True
     H0, Hint, [dg, de, a] = ntls.Hamiltonian(*H_parameters)
     H = H0 + Hint
     c_ops = ntls.collapses(H, [dg, de, a], 10, -10, kappa, Gamma_L, Gamma_R, kT)
@@ -164,8 +168,9 @@ def test_spectrum_g2():
     # g2 only matches at this values
     g_ph = 0.005
     Delta = 0.99
+    max_bosons = 1
 
-    H_parameters = Eg, Delta, hw_ph, g_ph, U
+    H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
     Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
     Hnc = Hnc0 + Hnc1
 
