@@ -20,8 +20,6 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_bosons, rwa=False, ret_nop=False)
         energy of the cavity (photon) mode
     g_ph: Float
         coupling strength to the cavity
-    g_vi: Float
-        Coupling to the phonon mode
     U: Float
         Coulomb repulsion
     max_bosons: int
