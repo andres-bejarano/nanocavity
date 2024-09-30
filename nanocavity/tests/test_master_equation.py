@@ -154,6 +154,14 @@ def test_spectrum():
     I4 = nme.spectrum(L, a, wlist, rho_st=rho_st)
     assert np.allclose(I, I4)
 
+    # check also with a number instead of array
+    I5 = nme.spectrum(L, a, wlist[0], verbose=False)
+    assert np.isclose(I[0], I5)
+
+    # test list
+    I6 = nme.spectrum(L, a, [1, 2], verbose=False)
+    assert np.allclose(I[:2], I6)
+
 
 def test_g2():
     # just a single harmonic oscillator, H = a.d * a, coupled to bath
@@ -173,3 +181,11 @@ def test_g2():
     rho_st = nme.stationary(L)
     g2c = nme.g2(L, J, tlist, rho_st=rho_st)
     assert np.allclose(g2, g2c)
+
+    # check also with a number instead of array
+    g2d = nme.g2(L, J, tlist[0], verbose=False)
+    assert np.isclose(g2[0], g2d)
+
+    # check list
+    g2e = nme.g2(L, J, [0, 1], verbose=False)
+    assert np.allclose(g2[:2], g2e)
