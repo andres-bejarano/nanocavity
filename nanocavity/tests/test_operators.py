@@ -149,3 +149,33 @@ def test_liovillian():
             )
             Lnc = no.liouvillian(Hnc, c_ops_nc)
             assert np.allclose(Lnc, Lqt.full())
+
+
+def test_bosonic_collapses():
+    # hw_ph = 1
+    H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, 1.0, g_ph)
+    OPS = no.collapses(a, H0, kT, "bosoNIC", kappa)
+
+    # collapses using X+ can be called in different ways
+    ops1 = no.collapses(a, H0, kT, "bosonicX+", kappa)
+    ops2 = no.collapses(a, H0, kT, "X+bosonic", kappa)
+    ops3 = no.collapses(a, H0, kT, "bosonic-X+", kappa)
+    ops4 = no.collapses(a, H0, kT, "bosonicx+", kappa)
+    # with hw=1 the collapses are identical with a or X+
+    for ops in (ops1, ops2, ops3, ops4):
+        assert np.allclose(OPS, ops)
+
+    # the story is different with dressed rates
+    ops1 = no.collapses(a, H0 + Hint, kT, "bosoNIC", kappa)
+    ops2 = no.collapses(a, H0 + Hint, kT, "bosonic-x+", kappa)
+    assert len(ops1) != len(ops2)
+
+    # changing cavity mode energy also introduces differences
+    H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, 0.5, g_ph)
+    ops1 = no.collapses(a, H0, kT, "Bosonic", kappa)
+    ops2 = no.collapses(a, H0, kT, "bosonicX+", kappa)
+    assert not np.allclose(ops1, ops2)
+
+    # the dependency on hw_ph can be incorporated as a renormalized rate
+    ops3 = no.collapses(a, H0, kT, "bosonicX+", kappa / 0.5**.5)
+    assert not np.allclose(OPS, ops3)
