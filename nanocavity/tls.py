@@ -117,7 +117,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     H = H0 + Hint
     anni_ops = [dg, de, a_ph, a_vi]
     num_ops = [ng, ne, n_ph, n_vi]
-    return H, H0, Hint, anni_ops, num_op
+    return H, H0, Hint, anni_ops, num_ops
 
 
 def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
