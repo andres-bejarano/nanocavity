@@ -153,11 +153,11 @@ def test_spectrum_analytics():
         else:
             H = H0 + Hint
         c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT)
-        L = no.liouvillian(H0+Hint, c_ops)
+        L = no.liouvillian(H0 + Hint, c_ops)
         Inc = kappa * nme.spectrum(L, a, wlist)
         Ianalytics = jc.spectrum(
             H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, iva=iva
-    )
+        )
         assert np.allclose(Inc, Ianalytics, atol=1e-6)
 
 

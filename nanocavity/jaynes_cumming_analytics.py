@@ -190,7 +190,7 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
     else:
         E, V = H.eigh()
         [i0, i1, ig, im, ip, ie1, ige, ige1] = E_index(H_parameters, E, "dress")
-        #rho is given in the non diagonal basis, so we have to move to diagonal
+        # rho is given in the non diagonal basis, so we have to move to diagonal
         Vinv = np.linalg.inv(V)
         rho = Vinv @ rho @ V
 
@@ -377,8 +377,8 @@ def spectrum_sec(
     # coeficientes A1, A2,  eqs 64, 65. 77, 78
     A1 = 1
     A2 = 1
-    B1 = P1 
-    B2 = Pge1 
+    B1 = P1
+    B2 = Pge1
     E1 = hw_ph
     E2 = hw_ph
     Gamma_1 = kappa + 4 * Gamma_L
