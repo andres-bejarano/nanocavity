@@ -136,7 +136,6 @@ def E_index(H_parameters, Elist, states="bare"):
     L = []
     diff = np.abs(E[:, np.newaxis] - Elist)
     L = np.argmin(diff, axis=1)
-    print(Elist, L)
     return L
 
 
@@ -191,6 +190,7 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
     else:
         E, V = H.eigh()
         [i0, i1, ig, im, ip, ie1, ige, ige1] = E_index(H_parameters, E, "dress")
+        #rho is given in the non diagonal basis, so we have to move to diagonal
         Vinv = np.linalg.inv(V)
         rho = Vinv @ rho @ V
 
@@ -371,7 +371,6 @@ def spectrum_sec(
     P1, Pge1, Pm, Pp, Pe1 = rho_arranged(
         H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=False
     )
-    print(P1, Pge1, Pm, Pp, Pe1)
     OmegaR = Omega_R(Delta, hw_ph, g_ph)
     angle = theta(Delta, hw_ph, g_ph)
     Em, Ep = Emp((Eg, Delta, hw_ph, g_ph))
