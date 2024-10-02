@@ -120,7 +120,7 @@ def E_index(H_parameters, Elist, states="bare"):
     Ee = Eg + Delta
     Ee1 = Ee + hw_ph
     Ege = 2 * Eg + Delta + U
-    Ege1 = Ege + hw_ph + U
+    Ege1 = Ege + hw_ph
     if states == "bare":
         E = np.array([E0, E1, Eg, Eg1, Ee, Ee1, Ege, Ege1])
 
@@ -136,6 +136,7 @@ def E_index(H_parameters, Elist, states="bare"):
     L = []
     diff = np.abs(E[:, np.newaxis] - Elist)
     L = np.argmin(diff, axis=1)
+    print(Elist, L)
     return L
 
 
@@ -188,8 +189,11 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
         return P1, Pge1, Pg1, Pg1_e, Pe1
 
     else:
-        E, _ = H.eigh()
+        E, V = H.eigh()
         [i0, i1, ig, im, ip, ie1, ige, ige1] = E_index(H_parameters, E, "dress")
+        Vinv = np.linalg.inv(V)
+        rho = Vinv @ rho @ V
+
         P1 = rho[i1, i1]
         Pge1 = rho[ige1, ige1]
         Pm = rho[im, im]
@@ -367,15 +371,15 @@ def spectrum_sec(
     P1, Pge1, Pm, Pp, Pe1 = rho_arranged(
         H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=False
     )
-
+    print(P1, Pge1, Pm, Pp, Pe1)
     OmegaR = Omega_R(Delta, hw_ph, g_ph)
     angle = theta(Delta, hw_ph, g_ph)
     Em, Ep = Emp((Eg, Delta, hw_ph, g_ph))
     # coeficientes A1, A2,  eqs 64, 65. 77, 78
     A1 = 1
     A2 = 1
-    B1 = P1
-    B2 = Pge1
+    B1 = P1 
+    B2 = Pge1 
     E1 = hw_ph
     E2 = hw_ph
     Gamma_1 = kappa + 4 * Gamma_L
@@ -407,7 +411,7 @@ def spectrum_sec(
     Gamma_5 = 2 * (Gamma_L + Gamma_R) + kappa * np.cos(angle) ** 2
     Gamma_6 = 2 * (Gamma_L + Gamma_R) + kappa * np.cos(angle) ** 2
 
-    I += A6 * B5 * ndist.lorentzian(wlist - E5, Gamma_6)
+    I += A5 * B5 * ndist.lorentzian(wlist - E5, Gamma_6)
     I += A6 * B6 * ndist.lorentzian(wlist - E6, Gamma_6)
 
     if data == True:
