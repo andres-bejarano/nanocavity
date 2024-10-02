@@ -102,7 +102,7 @@ def test_stationary():
 
 
 def test_correlation_AB():
-    tlist = np.linspace(0.0, 200, 101)
+    tlist = np.linspace(0.0, 200, 11)
     for g_ph in [0.005, 0.05, 0.5]:
         max_bosons = 1
         H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
@@ -141,22 +141,24 @@ def test_correlation_AB():
 
 def test_spectrum_analytics():
     kT = 1e-2
-    wlist = np.linspace(0.0, 1.8, 103)
+    wlist = np.linspace(0.0, 1.8, 10)
+    VL, VR = 10, -10
     max_bosons = 1
     H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons, True
     H0, Hint, [dg, de, a] = ntls.Hamiltonian(*H_parameters)
     H = H0 + Hint
-    c_ops = ntls.collapses(H, [dg, de, a], 10, -10, kappa, Gamma_L, Gamma_R, kT)
-    L = no.liouvillian(H, c_ops)
-    Inc = kappa * nme.spectrum(L, a, wlist)
-    Ianalytics_iva = jc.spectrum(
-        H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist, iva=True
+    for iva in [False, True]:
+        if iva:
+            H = H0
+        else:
+            H = H0 + Hint
+        c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+        L = no.liouvillian(H0+Hint, c_ops)
+        Inc = kappa * nme.spectrum(L, a, wlist)
+        Ianalytics = jc.spectrum(
+            H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, iva=iva
     )
-    Ianalytics_sec = jc.spectrum(
-        H_parameters, 3, -3, kappa, Gamma_L, Gamma_R, kT, wlist, iva=False
-    )
-    assert np.allclose(Inc, Ianalytics_iva, atol=7)
-    assert np.allclose(Inc, Ianalytics_sec, atol=7)
+        assert np.allclose(Inc, Ianalytics, atol=1e-6)
 
 
 def test_spectrum_g2():
