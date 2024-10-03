@@ -96,20 +96,20 @@ def dissipator(c_ops, method="kron"):
     dim = c_ops[0].shape[0]
     Id = np.eye(dim)
     # Look https://arxiv.org/pdf/1504.05266
-    L = 0
+    D = 0
     for c in c_ops:
         if method == "einsum":
             cdc = c.conj().T @ c
-            L += np.einsum("ik,jl->ijkl", c, c.conj())
-            L -= 0.5 * np.einsum("ik,jl->ijkl", Id, cdc)
-            L -= 0.5 * np.einsum("ik,jl->ijkl", cdc.conj(), Id)
+            D += np.einsum("ik,jl->ijkl", c, c.conj())
+            D -= 0.5 * np.einsum("ik,jl->ijkl", Id, cdc)
+            D -= 0.5 * np.einsum("ik,jl->ijkl", cdc.conj(), Id)
         elif method == "kron":
-            L += np.kron(c, c.conj())
-            L -= 0.5 * np.kron(Id, c.conj().T @ c)
-            L -= 0.5 * np.kron(c.T @ c.conj(), Id)
+            D += np.kron(c, c.conj())
+            D -= 0.5 * np.kron(Id, c.conj().T @ c)
+            D -= 0.5 * np.kron(c.T @ c.conj(), Id)
     if method == "einsum":
-        L = L.reshape((dim**2, dim**2))
-    return L
+        D = D.reshape((dim**2, dim**2))
+    return D
 
 
 def liouvillian(H, c_ops, method="kron"):
