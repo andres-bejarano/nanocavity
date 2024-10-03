@@ -93,19 +93,22 @@ def jump(c_ops):
 def dissipator(c_ops, method="kron"):
     if not isinstance(c_ops, list):
         raise TypeError("c_ops must be a list")
-    Id = np.eye(c_ops[0].shape[0])
+    dim = c_ops[0].shape[0]
+    Id = np.eye(dim)
     # Look https://arxiv.org/pdf/1504.05266
     L = 0
     for c in c_ops:
-        cdc = c.conj().T @ c
         if method == "einsum":
-            L = np.einsum("ik,jl->ijkl", c, c.conj())
-            L -= 0.5 * np.einsum("ik,jl->ijkl", cdc, Id)
-            L -= 0.5 * np.einsum("ki,lj->ijkl", Id, cdc)
+            cdc = c.conj().T @ c
+            L += np.einsum("ik,jl->ijkl", c, c.conj())
+            L -= 0.5 * np.einsum("ik,jl->ijkl", Id, cdc)
+            L -= 0.5 * np.einsum("ik,jl->ijkl", cdc.conj(), Id)
         elif method == "kron":
             L += np.kron(c, c.conj())
             L -= 0.5 * np.kron(Id, c.conj().T @ c)
             L -= 0.5 * np.kron(c.T @ c.conj(), Id)
+    if method == "einsum":
+        L = L.reshape((dim**2, dim**2))
     return L
 
 
@@ -118,10 +121,9 @@ def liouvillian(H, c_ops, method="kron"):
     Id = np.eye(H.shape[0])
     # Writing the coherent evolution
     if method == "einsum":
-        L = -1j * (
-            np.einsum("ik,jl->ijkl", H, Id) - 1j * np.einsum("ki,lj->ijkl", Id, H)
-        )
-        return np.reshape(L, (dim**2, dim**2))
+        L = 1j * (
+            np.einsum("ik,jl->ijkl", Id, H) - np.einsum("ik,jl->ijkl", H, Id)
+        ).reshape((dim**2, dim**2))
     elif method == "kron":
         L = 1j * (np.kron(Id, H) - np.kron(H, Id))
 
