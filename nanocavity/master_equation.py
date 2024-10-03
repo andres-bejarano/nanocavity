@@ -218,7 +218,7 @@ def g2(L, J, tlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
     return g2.real
 
 
-def g2_sametime(A, rho_st):
+def g2_sametime(A, rho_st, verbose=True):
     """Computes the same-time second-order correlation function
     from the exact expression g2(0) = (<n^2> - <n>) / <n>^2.
     """
@@ -235,5 +235,10 @@ def g2_sametime(A, rho_st):
     avg_n2 = average(n2, rho_st).real
 
     g2 = (avg_n2 - avg_n) / (avg_n**2)
+
+    if verbose:
+        print(f"g2(0)      = {g2:.6f}")
+        print(f" ... <n^2> = {avg_n2:.6e}")
+        print(f" ... <n>   = {avg_n:.6e}")
 
     return g2
