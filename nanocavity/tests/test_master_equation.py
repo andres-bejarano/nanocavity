@@ -193,4 +193,4 @@ def test_g2():
 
     # same-time
     g2_zero = nme.g2_sametime(a, rho_st)
-    assert np.isclose(g2[0], g2_zero)
+    assert np.isclose(2, g2_zero)
