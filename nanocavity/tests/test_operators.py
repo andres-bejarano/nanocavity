@@ -4,7 +4,7 @@ import nanocavity.qutip.operators as nqo
 import nanocavity.rate_equation as nre
 import nanocavity.tls as ntls
 import nanocavity.qutip.tls as nqtls
-
+import secondquant as sq
 
 Eg = 0.4
 Delta = 0.9
@@ -29,7 +29,7 @@ def test_Htls_nc_QuTiP():
     for rwa in (True, False):
         for max_bosons in (1, 2):
             U = 0
-            H_parameters = Eg, Delta, hw_ph, g_ph, U,  max_bosons, rwa
+            H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons, rwa
             Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
             Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
             Hnc = Hnc0 + Hnc1
@@ -163,6 +163,22 @@ def test_liovillian():
             assert np.allclose(Lnc, Lqt.full())
 
 
+def test_einsum():
+    [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=3)
+    H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
+    rate = 0.1
+    kT = 0.01
+    c_ops = no.collapses(c, H, kT, "fermionic", rate)
+    a_ops = no.collapses(a, H, kT, "bosonic", rate)
+    for ops in (c_ops, a_ops):
+        D1 = no.dissipator(ops)
+        D2 = no.dissipator(ops, method="einsum")
+        assert np.allclose(D1, D2)
+    L1 = no.liouvillian(H, c_ops + a_ops)
+    L2 = no.liouvillian(H, c_ops + a_ops, method="einsum")
+    assert np.allclose(L1, L2)
+
+
 def test_bosonic_collapses():
     # hw_ph = 1
     H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, 1.0, g_ph, 0, 1)
@@ -189,5 +205,5 @@ def test_bosonic_collapses():
     assert not np.allclose(ops1, ops2)
 
     # the dependency on hw_ph can be incorporated as a renormalized rate
-    ops3 = no.collapses(a, H0, kT, "bosonicX+", kappa / 0.5**.5)
+    ops3 = no.collapses(a, H0, kT, "bosonicX+", kappa / 0.5**0.5)
     assert not np.allclose(OPS, ops3)
