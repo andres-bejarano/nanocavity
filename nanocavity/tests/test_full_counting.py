@@ -5,7 +5,9 @@ import nanocavity.tls as tls
 
 
 def jc_rates():
-    H0, Hint, L = tls.Hamiltonian(Eg=0.4, Delta=0.9, hw_ph=1.0, g_ph=0.3, U=0, max_bosons=1)
+    H0, Hint, L = tls.Hamiltonian(
+        Eg=0.4, Delta=0.9, hw_ph=1.0, g_ph=0.3, U=0, max_bosons=1
+    )
     H = H0 + Hint
     e, v = H.eigh()
     VL = np.linspace(-2, 3, 3)

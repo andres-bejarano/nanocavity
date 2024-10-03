@@ -112,11 +112,12 @@ def test_stationary_single_cavity_mode():
     # numerics
     cp, cm = no.collapses(a, H, kT, "bosonic", kappa, total=False)
     L = no.liouvillian(H, cp + cm)
-    Pn = nme.stationary(L).diagonal()
+    rho_st = nme.stationary(L)
+    Pn = rho_st.diagonal()
 
     # photons coming out
-    In = nme.current(no.jump(cm) - no.jump(cp), L)
-    n_average = nme.current(no.jump(cm), L)
+    In = nme.average(no.jump(cm) - no.jump(cp), rho_st)
+    n_average = nme.average(no.jump(cm), rho_st)
 
     # analytics
     Gup = kappa * ndist.bose_einstein(hw_ph, kT)
