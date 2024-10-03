@@ -216,3 +216,24 @@ def g2(L, J, tlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
         return g2.real, M, E
 
     return g2.real
+
+
+def g2_sametime(A, rho_st):
+    """Computes the same-time second-order correlation function
+    from the exact expression g2(0) = (<n^2> - <n>) / <n>^2.
+    """
+    if isinstance(A, Operator):
+        n = A.d * A
+        n2 = n * n
+        n = n.toarray()
+        n2 = n2.toarray()
+    else:
+        n = A.conj().T @ A
+        n2 = n @ n
+
+    avg_n = average(n, rho_st).real
+    avg_n2 = average(n2, rho_st).real
+
+    g2 = (avg_n2 - avg_n) / (avg_n**2)
+
+    return g2
