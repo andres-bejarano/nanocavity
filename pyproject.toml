@@ -6,6 +6,8 @@ requires = [
 ]
 build-backend = "setuptools.build_meta"
 
+[tool.setuptools]
+packages = ["nanocavity"]
 
 [project]
 requires-python = ">=3.6"
