@@ -190,3 +190,7 @@ def test_g2():
     # check list
     g2e = nme.g2(L, J, [0, 1], verbose=False)
     assert np.allclose(g2[:2], g2e)
+
+    # analytic same-time
+    g2_zero = nme.g2_zero(a, rho_st)
+    assert np.isclose(2, g2_zero)
