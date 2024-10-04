@@ -120,7 +120,7 @@ def E_index(H_parameters, Elist, states="bare"):
     Ee = Eg + Delta
     Ee1 = Ee + hw_ph
     Ege = 2 * Eg + Delta + U
-    Ege1 = Ege + hw_ph + U
+    Ege1 = Ege + hw_ph
     if states == "bare":
         E = np.array([E0, E1, Eg, Eg1, Ee, Ee1, Ege, Ege1])
 
@@ -146,7 +146,7 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
         ----
         H_parameters: tuple
             contains the central system model parameters
-            H_parameters = Eg, Delta, hw_ph, g_ph, U, True
+            H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons, True
         VL: float
             left chemical potential
         VR: float
@@ -169,7 +169,7 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
         H = H0
     else:
         H = H0 + Hint
-    c_ops = tls.collapses(Hint, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT)
+    c_ops = tls.collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT)
 
     # density matrix
     L = no.liouvillian(H0 + Hint, list(c_ops))
@@ -188,8 +188,12 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
         return P1, Pge1, Pg1, Pg1_e, Pe1
 
     else:
-        E, _ = H.eigh()
+        E, V = H.eigh()
         [i0, i1, ig, im, ip, ie1, ige, ige1] = E_index(H_parameters, E, "dress")
+        # rho is given in the non diagonal basis, so we have to move to diagonal
+        Vinv = np.linalg.inv(V)
+        rho = Vinv @ rho @ V
+
         P1 = rho[i1, i1]
         Pge1 = rho[ige1, ige1]
         Pm = rho[im, im]
@@ -231,7 +235,7 @@ def spectrum_iva(
     # H_parameters = Eg, Delta, hw_ph, g_ph, U, True
     H_parameters = H_parameters[:5]
     _, Delta, hw_ph, g_ph, _ = H_parameters
-    H_parameters = *H_parameters, True
+    H_parameters = *H_parameters, 1, True
     P1, Pge1, Pg1, Pg1_e, Pe1 = rho_arranged(
         H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=True
     )
@@ -363,11 +367,10 @@ def spectrum_sec(
     # H_parameters = Eg, Delta, hw_ph, g_ph, U, True
     H_parameters = H_parameters[:5]
     Eg, Delta, hw_ph, g_ph, _ = H_parameters
-    H_parameters = *H_parameters, True
+    H_parameters = *H_parameters, 1, True
     P1, Pge1, Pm, Pp, Pe1 = rho_arranged(
         H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=False
     )
-
     OmegaR = Omega_R(Delta, hw_ph, g_ph)
     angle = theta(Delta, hw_ph, g_ph)
     Em, Ep = Emp((Eg, Delta, hw_ph, g_ph))
@@ -382,7 +385,7 @@ def spectrum_sec(
     Gamma_2 = kappa + 4 * Gamma_R
 
     I = A1 * B1 * ndist.lorentzian(wlist - E1, Gamma_1)
-    I = +A2 * B2 * ndist.lorentzian(wlist - E2, Gamma_2)
+    I += A2 * B2 * ndist.lorentzian(wlist - E2, Gamma_2)
 
     # coeficients A3, A4, B3, B4 eqs 66, 67, 88, 89
     A3 = np.sin(angle)
@@ -394,8 +397,8 @@ def spectrum_sec(
     Gamma_3 = 2 * (Gamma_L + Gamma_R) + kappa * np.sin(angle) ** 2
     Gamma_4 = 2 * (Gamma_L + Gamma_R) + kappa * np.sin(angle) ** 2
 
-    I = +A3 * B3 * ndist.lorentzian(wlist - E3, Gamma_3)
-    I = +A4 * B4 * ndist.lorentzian(wlist - E4, Gamma_4)
+    I += A3 * B3 * ndist.lorentzian(wlist - E3, Gamma_3)
+    I += A4 * B4 * ndist.lorentzian(wlist - E4, Gamma_4)
 
     # coeficients A5, A6, B5, B6 eqs 68, 69, 97, 98
     A5 = np.cos(angle)
@@ -407,8 +410,8 @@ def spectrum_sec(
     Gamma_5 = 2 * (Gamma_L + Gamma_R) + kappa * np.cos(angle) ** 2
     Gamma_6 = 2 * (Gamma_L + Gamma_R) + kappa * np.cos(angle) ** 2
 
-    I = +A6 * B5 * ndist.lorentzian(wlist - E5, Gamma_6)
-    I = +A6 * B6 * ndist.lorentzian(wlist - E6, Gamma_6)
+    I += A5 * B5 * ndist.lorentzian(wlist - E5, Gamma_6)
+    I += A6 * B6 * ndist.lorentzian(wlist - E6, Gamma_6)
 
     if data == True:
         print(f"1 {np.abs(A1):.6f} {np.abs(B1):.6f} {Gamma_1:.6f} {E1:.6f}")
