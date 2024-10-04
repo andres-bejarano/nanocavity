@@ -191,6 +191,6 @@ def test_g2():
     g2e = nme.g2(L, J, [0, 1], verbose=False)
     assert np.allclose(g2[:2], g2e)
 
-    # same-time
-    g2_zero = nme.g2_sametime(a, rho_st)
+    # analytic same-time
+    g2_zero = nme.g2_zero(a, rho_st)
     assert np.isclose(2, g2_zero)

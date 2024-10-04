@@ -218,7 +218,7 @@ def g2(L, J, tlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
     return g2.real
 
 
-def g2_sametime(A, rho_st, verbose=True):
+def g2_zero(A, rho_st, verbose=True):
     """Computes the same-time second-order correlation function
     from the exact expression g2(0) = (<n^2> - <n>) / <n>^2.
     """
