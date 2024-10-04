@@ -58,11 +58,14 @@ def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e8):
     return rho
 
 
-def current(J, L):
-    # w/v left/right eigenvectors
-    El, vl, vr = eig_norm(L)
-    index = np.argmin(np.abs(El))
-    return vl[:, index].conj() @ J @ vr[:, index]
+def average(A, rho_st):
+    if A.shape == rho_st.shape:
+        return np.trace(A @ rho_st)
+    dim = rho_st.shape[0]
+    A = _operator2super(A, dim)
+    w0 = np.eye(dim).reshape(dim**2)
+    rho_st = rho_st.reshape(dim**2)
+    return w0 @ A @ rho_st
 
 
 def _toarray(x):
