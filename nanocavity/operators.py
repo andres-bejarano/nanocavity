@@ -113,6 +113,7 @@ def dissipator(c_ops, method="kron"):
 
 
 def liouvillian(H, c_ops, method="kron"):
+def liouvillian(H, c_ops, method="kron", cond=True):
     if not isinstance(c_ops, list):
         raise TypeError("c_ops must be a list")
     if isinstance(H, Operator):
@@ -128,4 +129,7 @@ def liouvillian(H, c_ops, method="kron"):
         L = 1j * (np.kron(Id, H) - np.kron(H, Id))
 
     L += dissipator(c_ops, method)
+    if cond:
+        c = la.cond(L)
+        print("Condition number of Liouvillian: ", c)
     return L
