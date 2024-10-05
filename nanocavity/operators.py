@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.linalg as la
 import nanocavity.distributions as ndist
 from secondquant.operator import Operator
 
@@ -112,8 +113,22 @@ def dissipator(c_ops, method="kron"):
     return D
 
 
-def liouvillian(H, c_ops, method="kron"):
 def liouvillian(H, c_ops, method="kron", cond=True):
+    """
+    Function calculating the Liouvillian for a central system coupled to baths
+
+    Parameters:
+    ------------
+    H: secondquant operator
+        Hamiltonian describing the central system
+    c_ops: list
+        list of collapse operators
+    method: string
+        method on how to build the Liouvillian
+        defaults to "kron"
+    cond: logical
+        Defaults to True
+    """
     if not isinstance(c_ops, list):
         raise TypeError("c_ops must be a list")
     if isinstance(H, Operator):
