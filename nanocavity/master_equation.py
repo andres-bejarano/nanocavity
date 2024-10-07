@@ -228,10 +228,10 @@ def g2(
     -------
     g2: narray
         normalized second order correlation function
-    matrix elements: ndarray
-        the dominant matrix elements in the method 'eigen'
+    coefficients: ndarray
+        the coefficients in the method 'eigen'
     eigenvalues: ndarray
-        the dominant eigenvalues in the method 'eigen'
+        the eigenvalues of L in the method 'eigen'
     """
 
     tlist = _toarray(tlist)
