@@ -198,12 +198,14 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=Non
     return I
 
 
-def g2(L, J, tlist, method='eigen', cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
+def g2(
+    L, J, tlist, method="eigen", cutoff=1e-12, verbose=True, ret_data=False, rho_st=None
+):
     """Uses the quantum regression theorem to compute the second order correlation functions. The method 'eigen' expans in terms of liouvillian eigenvalues G2 =\sum_k (w0, J,v_k)(w_k, J rho_st) e^{lambda_k tau} whereas the method 'direct' traces all involved operatros G2 = Tr(J e^{L tau} J rho_st). The function is returned normalized G1 = (w0, J rho_st), then g2 = G2 / G1^2
-    
+
     Parameters
     ----------
-    J : ndarray 
+    J : ndarray
         Jump superoperator
     L : ndarray
         Liouvillian superoperator
@@ -234,8 +236,8 @@ def g2(L, J, tlist, method='eigen', cutoff=1e-12, verbose=True, ret_data=False, 
 
     tlist = _toarray(tlist)
     g2 = np.zeros(len(tlist), dtype=np.complex128)
-    
-    if method=='eigen':
+
+    if method == "eigen":
         M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True)
 
         M /= G1**2
@@ -245,10 +247,9 @@ def g2(L, J, tlist, method='eigen', cutoff=1e-12, verbose=True, ret_data=False, 
                 g2 += M[k] * np.exp(E[k] * tlist)
 
         if ret_data:
-        # g2, weights, eigenvalues
-            return g2.real, M, E 
-        return g2.real
-    elif method=='direct':
+            # g2, weights, eigenvalues
+            return g2.real, M, E
+    elif method == "direct":
         if rho_st is None:
             rho_st = stationary(L)
         dim = rho_st.shape[0]
@@ -260,7 +261,8 @@ def g2(L, J, tlist, method='eigen', cutoff=1e-12, verbose=True, ret_data=False, 
         for k, t in enumerate(tlist):
             g2[k] += A @ expm(L * t) @ C
         g2 /= G1**2
-        return g2.real
+
+    return g2.real
 
 
 def g2_zero(A, rho_st, verbose=True):
