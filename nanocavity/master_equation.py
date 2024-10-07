@@ -1,6 +1,6 @@
 import numpy as np
 import nanocavity.distributions as ndist
-from scipy.linalg import eig
+from scipy.linalg import eig, expm
 from secondquant.operator import Operator
 
 
@@ -198,22 +198,70 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=Non
     return I
 
 
-def g2(L, J, tlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
+def g2(
+    L, J, tlist, method="eigen", cutoff=1e-12, verbose=True, ret_data=False, rho_st=None
+):
+    """Uses the quantum regression theorem to compute the second order correlation functions. 
+    The method 'eigen' expans in terms of liouvillian eigenvalues  G2 =\sum_k (w0, J,v_k)(w_k, J rho_st) e^{E_k tau} 
+    whereas the method 'direct' traces all involved operatros G2 = Tr(J e^{L tau} J rho_st). 
+    The function is returned normalized G1 = (w0, J rho_st), then g2 = G2 / G1^2
 
-    M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True)
+    Parameters
+    ----------
+    J : ndarray
+        Jump superoperator
+    L : ndarray
+        Liouvillian superoperator
+    tlist : float or ndarray
+        Time dependance
+    method: str
+        'eigen' if you want to expand in liouville eigenvalues or 'direct' if you want to calculate the trace of all the operators involved
+    cutoff: float
+        the precision of the values to be considered in the 'eigen' method
+    verbose : bool
+        print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
+    ret_data: bool
+        whether to return the main contribution from method 'eigen'
+    rho_st : ndarray
+        steady-state density matrix
 
-    M /= G1**2
+    Returns
+    -------
+    g2: ndarray
+        normalized second order correlation function
+    coefficients: ndarray
+        the coefficients in the method 'eigen'
+    eigenvalues: ndarray
+        the eigenvalues of L in the method 'eigen'
+    """
 
     tlist = _toarray(tlist)
     g2 = np.zeros(len(tlist), dtype=np.complex128)
 
-    for k in range(len(E)):
-        if abs(M[k]) > cutoff:
-            g2 += M[k] * np.exp(E[k] * tlist)
+    if method == "eigen":
+        M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True)
 
-    if ret_data:
-        # g2, weights, eigenvalues
-        return g2.real, M, E
+        M /= G1**2
+
+        for k in range(len(E)):
+            if abs(M[k]) > cutoff:
+                g2 += M[k] * np.exp(E[k] * tlist)
+
+        if ret_data:
+            # g2, weights, eigenvalues
+            return g2.real, M, E
+    elif method == "direct":
+        if rho_st is None:
+            rho_st = stationary(L)
+        dim = rho_st.shape[0]
+        rho_st = rho_st.reshape(dim**2)
+        w0 = np.eye(dim).reshape(dim**2)
+        G1 = w0 @ J @ rho_st
+        A = w0 @ J
+        C = J @ rho_st
+        for k, t in enumerate(tlist):
+            g2[k] += A @ expm(L * t) @ C
+        g2 /= G1**2
 
     return g2.real
 
