@@ -1,6 +1,6 @@
 import numpy as np
 import nanocavity.distributions as ndist
-from scipy.linalg import eig
+from scipy.linalg import eig, expm
 from secondquant.operator import Operator
 
 
@@ -198,24 +198,37 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=Non
     return I
 
 
-def g2(L, J, tlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
-
-    M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True)
-
-    M /= G1**2
+def g2(L, J, tlist, method='eigen', cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
 
     tlist = _toarray(tlist)
     g2 = np.zeros(len(tlist), dtype=np.complex128)
+    
+    if method=='eigen':
+        M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True)
 
-    for k in range(len(E)):
-        if abs(M[k]) > cutoff:
-            g2 += M[k] * np.exp(E[k] * tlist)
+        M /= G1**2
 
-    if ret_data:
+        for k in range(len(E)):
+            if abs(M[k]) > cutoff:
+                g2 += M[k] * np.exp(E[k] * tlist)
+
+        if ret_data:
         # g2, weights, eigenvalues
-        return g2.real, M, E
-
-    return g2.real
+            return g2.real, M, E 
+        return g2.real
+    elif method=='direct':
+        if rho_st is None:
+            rho_st = stationary(L)
+        dim = rho_st.shape[0]
+        rho_st = rho_st.reshape(dim**2)
+        w0 = np.eye(dim).reshape(dim**2)
+        G1 = w0 @ J @ rho_st
+        A = w0 @ J
+        C = J @ rho_st
+        for k, t in enumerate(tlist):
+            g2[k] += A @ expm(L * t) @ C
+        g2 /= G1**2
+        return g2.real
 
 
 def g2_zero(A, rho_st, verbose=True):
