@@ -209,17 +209,15 @@ def g2(
         Jump superoperator
     L : ndarray
         Liouvillian superoperator
-    tlist : ndarry
+    tlist : float or ndarray
         Time dependance
     method: str
         'eigen' if you want to expand in liouville eigenvalues or 'direct' if you want to calculate the trace of all the operators involved
     cutoff: float
         the precision of the values to be considered in the 'eigen' method
-    verbose: bool
-        whether to print the main contribution from method 'eigen'
     verbose : bool
         print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
-    red_data: bool
+    ret_data: bool
         wether to return the main contribution from method 'eigen'
     rho_st : ndarray
         steady-state density matrix
