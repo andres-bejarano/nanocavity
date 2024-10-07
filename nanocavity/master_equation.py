@@ -201,7 +201,10 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=Non
 def g2(
     L, J, tlist, method="eigen", cutoff=1e-12, verbose=True, ret_data=False, rho_st=None
 ):
-    """Uses the quantum regression theorem to compute the second order correlation functions. The method 'eigen' expans in terms of liouvillian eigenvalues G2 =\sum_k (w0, J,v_k)(w_k, J rho_st) e^{lambda_k tau} whereas the method 'direct' traces all involved operatros G2 = Tr(J e^{L tau} J rho_st). The function is returned normalized G1 = (w0, J rho_st), then g2 = G2 / G1^2
+    """Uses the quantum regression theorem to compute the second order correlation functions. 
+    The method 'eigen' expans in terms of liouvillian eigenvalues  G2 =\sum_k (w0, J,v_k)(w_k, J rho_st) e^{E_k tau} 
+    whereas the method 'direct' traces all involved operatros G2 = Tr(J e^{L tau} J rho_st). 
+    The function is returned normalized G1 = (w0, J rho_st), then g2 = G2 / G1^2
 
     Parameters
     ----------
@@ -218,13 +221,13 @@ def g2(
     verbose : bool
         print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
     ret_data: bool
-        wether to return the main contribution from method 'eigen'
+        whether to return the main contribution from method 'eigen'
     rho_st : ndarray
         steady-state density matrix
 
     Returns
     -------
-    g2: narray
+    g2: ndarray
         normalized second order correlation function
     coefficients: ndarray
         the coefficients in the method 'eigen'
