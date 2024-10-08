@@ -32,7 +32,11 @@ def test_g2():
     _, c_am = no.collapses(a_ph_nc, H0_nc, kT, "bosonic", kappa, total=False)
     L_nc = no.liouvillian(H0_nc + Hint_nc, c_ops_nc)
     Jam = no.jump(c_am)
-    g2_nc = nme.g2(L_nc, Jam, [0], verbose=False)
+    rho_st = nme.stationary(L_nc)
+
+    g2_nc = nme.g2(L_nc, Jam, [0], verbose=False, rho_st=rho_st)
+    g2_zero = nme.g2_zero(a_ph_nc, rho_st)
+    assert np.allclose(g2_nc, g2_zero)
 
     H0, Hint, anni_ops = qtls.Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_photons, rwa)
     a_ph = anni_ops[2]
