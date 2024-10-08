@@ -159,14 +159,18 @@ def test_liouvillian_basic():
     rho_op = sq.operator.Operator(rho)
     # compute -i[H, rho]
     drho = -1j * sq.commutator(H, rho_op)
-    # construct Liouvillian
-    L = no.liouvillian(H)
-    # apply it to rho after reshape to vector
-    drho2 = L @ rho.reshape(len(L))
-    # and reshape back to matrix
-    drho2 = drho2.reshape(H.shape)
-    assert np.allclose(drho.toarray(), drho2)
-    assert not np.allclose(drho.toarray(), -drho2)
+    for method in [None, "einsum", "kron"]:
+        # construct Liouvillian
+        if method is None:
+            L = no.liouvillian(H)
+        else:
+            L = no.liouvillian(H, method=method)
+        # apply it to rho after reshape to vector
+        drho2 = L @ rho.reshape(len(L))
+        # and reshape back to matrix
+        drho2 = drho2.reshape(H.shape)
+        assert np.allclose(drho.toarray(), drho2)
+        assert not np.allclose(drho.toarray(), -drho2)
 
 
 def test_liouvillian():
