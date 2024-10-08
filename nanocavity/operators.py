@@ -113,7 +113,7 @@ def dissipator(c_ops, method="kron"):
     return D
 
 
-def liouvillian(H, c_ops, method="kron", cond=True):
+def liouvillian(H, c_ops=None, method="kron", cond=True):
     """
     Function calculating the Liouvillian for a central system coupled to baths
 
@@ -129,12 +129,12 @@ def liouvillian(H, c_ops, method="kron", cond=True):
     cond: logical
         Defaults to True
     """
-    if not isinstance(c_ops, list):
-        raise TypeError("c_ops must be a list")
     if isinstance(H, Operator):
         H = H.toarray()
+
     dim = H.shape[0]
     Id = np.eye(H.shape[0])
+
     # Writing the coherent evolution
     if method == "einsum":
         L = 1j * (
@@ -143,8 +143,11 @@ def liouvillian(H, c_ops, method="kron", cond=True):
     elif method == "kron":
         L = 1j * (np.kron(Id, H) - np.kron(H, Id))
 
-    L += dissipator(c_ops, method)
+    if c_ops is not None:
+        L += dissipator(c_ops, method)
+
     if cond:
         c = la.cond(L)
         print("Condition number of Liouvillian: ", c)
+
     return L
