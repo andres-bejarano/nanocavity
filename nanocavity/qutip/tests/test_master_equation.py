@@ -13,14 +13,11 @@ def test_g2():
     max_photons = 2
     rwa = False
 
-    # H_params = [Eg, Delta, hw_ph, g_ph, U, max_bosons, rwa]
-
     kT = 1e-1
     Gamma = 1e-3
     kappa = 1e-2
     VL = 3
     VR = -VL
-    # env_params = [kT, Gamma_L, Gamma_R, kappa, VL, VR]
 
     tlist = [0]
     # Calculating g2 with nanocavity
@@ -34,7 +31,7 @@ def test_g2():
     Jam = no.jump(c_am)
     rho_st = nme.stationary(L_nc)
 
-    g2_nc = nme.g2(L_nc, Jam, [0], verbose=False, rho_st=rho_st)
+    g2_nc = nme.g2(L_nc, Jam, tlist, verbose=False, rho_st=rho_st)
     g2_zero = nme.g2_zero(a_ph_nc, rho_st)
     assert np.allclose(g2_nc, g2_zero)
 
