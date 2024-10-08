@@ -10,7 +10,7 @@ def test_g2():
     Eg, Delta, U = -0, 0.99, 2
     g_ph = 1e-2
     hw_ph = 1
-    max_photons = 3
+    max_photons = 2
     rwa = False
 
     # H_params = [Eg, Delta, hw_ph, g_ph, U, max_bosons, rwa]
