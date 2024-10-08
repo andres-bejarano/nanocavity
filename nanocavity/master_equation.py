@@ -201,9 +201,9 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=Non
 def g2(
     L, J, tlist, method="eigen", cutoff=1e-12, verbose=True, ret_data=False, rho_st=None
 ):
-    """Uses the quantum regression theorem to compute the second order correlation functions. 
-    The method 'eigen' expans in terms of liouvillian eigenvalues  G2 =\sum_k (w0, J,v_k)(w_k, J rho_st) e^{E_k tau} 
-    whereas the method 'direct' traces all involved operatros G2 = Tr(J e^{L tau} J rho_st). 
+    """Uses the quantum regression theorem to compute the second order correlation functions.
+    The method 'eigen' expans in terms of liouvillian eigenvalues  G2 =\sum_k (w0, J,v_k)(w_k, J rho_st) e^{E_k tau}
+    whereas the method 'direct' traces all involved operatros G2 = Tr(J e^{L tau} J rho_st).
     The function is returned normalized G1 = (w0, J rho_st), then g2 = G2 / G1^2
 
     Parameters
