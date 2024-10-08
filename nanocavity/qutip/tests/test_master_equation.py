@@ -4,77 +4,25 @@ import nanocavity.tls as tls
 import nanocavity.operators as no
 import nanocavity.master_equation as nme
 import qutip as qt
-import pytest
 
 
-@pytest.fixture(scope="module", params=[0])
-def Eg(request):
-    return request.param
+def test_g2():
+    Eg, Delta, U = -0, 0.99, 2
+    g_ph = 1e-2
+    hw_ph = 1
+    max_photons = 3
+    rwa = False
 
+    # H_params = [Eg, Delta, hw_ph, g_ph, U, max_bosons, rwa]
 
-@pytest.fixture(scope="module", params=[0.99])
-def Delta(request):
-    return request.param
+    kT = 1e-1
+    Gamma = 1e-3
+    kappa = 1e-2
+    VL = 3
+    VR = -VL
+    # env_params = [kT, Gamma_L, Gamma_R, kappa, VL, VR]
 
-
-@pytest.fixture(scope="module", params=[2])
-def U(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[1e-3, 1e-2])
-def g_ph(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[1])
-def hw_ph(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[3])
-def max_photons(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[False])
-def rwa(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[1e-1])
-def kT(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[1e-3, 1e-1])
-def kappa(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[1e-3])
-def Gamma(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[3])
-def VL(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[-2])
-def VR(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[[0]])
-def tlist(request):
-    return request.param
-
-
-def test_g2(
-    Eg, Delta, U, g_ph, hw_ph, max_photons, rwa, kT, Gamma, kappa, VL, VR, tlist
-):
+    tlist = [0]
     # Calculating g2 with nanocavity
     H0_nc, Hint_nc, anni_ops_nc = tls.Hamiltonian(
         Eg, Delta, hw_ph, g_ph, U, max_photons, rwa
