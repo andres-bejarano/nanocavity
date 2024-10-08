@@ -129,7 +129,7 @@ def test_stationary_single_cavity_mode():
 
 
 def test_spectrum():
-    [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=3)
+    [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=2)
     H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
     kT = 0.1
     rate = 1e-3
