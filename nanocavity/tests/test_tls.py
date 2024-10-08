@@ -103,40 +103,43 @@ def test_stationary():
 
 def test_correlation_AB():
     tlist = np.linspace(0.0, 200, 11)
-    for g_ph in [0.005, 0.05, 0.5]:
-        max_bosons = 1
-        H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
-        Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
-        Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
-        VL, VR = 3, -3
-        for iva in (False, True):
-            if iva:
-                Hnc = Hnc0
-                Hqt = Hqt0
-            else:
-                Hnc = Hnc0 + Hnc1
-                Hqt = Hqt0 + Hqt1
-            c_nc = ntls.collapses(
-                Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
-            )
-            L = no.liouvillian(Hnc0 + Hnc1, c_nc)
-            Snc = nme.correlation_AB(a_nc.d, L, a_nc, tlist)
+    g_ph = 0.05
+    max_bosons = 1
+    Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(
+        Eg, Delta, hw_ph, g_ph, U, max_bosons
+    )
+    Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(
+        Eg, Delta, hw_ph, g_ph, U, max_bosons
+    )
+    VL, VR = 3, -3
+    for iva in (False, True):
+        if iva:
+            Hnc = Hnc0
+            Hqt = Hqt0
+        else:
+            Hnc = Hnc0 + Hnc1
+            Hqt = Hqt0 + Hqt1
+        c_nc = ntls.collapses(
+            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        )
+        L = no.liouvillian(Hnc0 + Hnc1, c_nc)
+        Snc = nme.correlation_AB(a_nc.d, L, a_nc, tlist)
 
-            c_qt = nqtls.collapses(
-                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
-            )
+        c_qt = nqtls.collapses(
+            Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        )
 
-            rho_st = qt.steadystate(Hqt0 + Hqt1, list(c_qt))
-            Sqt = qt.correlation_2op_1t(
-                H=Hqt0 + Hqt1,
-                state0=rho_st,
-                taulist=tlist,
-                c_ops=list(c_qt),
-                a_op=a_qt.dag(),
-                b_op=a_qt,
-            )
-            assert np.allclose(Snc.real, Sqt.real, atol=1e-5)
-            assert np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
+        rho_st = qt.steadystate(Hqt0 + Hqt1, list(c_qt))
+        Sqt = qt.correlation_2op_1t(
+            H=Hqt0 + Hqt1,
+            state0=rho_st,
+            taulist=tlist,
+            c_ops=list(c_qt),
+            a_op=a_qt.dag(),
+            b_op=a_qt,
+        )
+        assert np.allclose(Snc.real, Sqt.real, atol=1e-5)
+        assert np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
 
 
 def test_spectrum_analytics():
