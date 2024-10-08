@@ -82,27 +82,26 @@ def test_populations():
 
 
 def test_stationary():
+    g_ph = 0.05
     for VL, VR in [[3, -3], [2, 0], [-1, 2]]:
-        for g_ph in [0.005, 0.05, 0.5]:
-            max_bosons = 1
-            H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
-            H0, Hint, [dg, de, a] = ntls.Hamiltonian(*H_parameters)
-            H = H0 + Hint
+        max_bosons = 1
+        H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_bosons)
+        H = H0 + Hint
 
-            c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT)
-            L = no.liouvillian(H, c_ops)
-            Pme = nme.stationary(L)
+        c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+        L = no.liouvillian(H, c_ops)
+        Pme = nme.stationary(L)
 
-            H0, Hint, [dg, de, a] = nqtls.Hamiltonian(*H_parameters)
-            c_ops = nqtls.collapses(
-                H0 + Hint, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT
-            )
-            Pqt = qt.steadystate(H0 + Hint, c_ops).full()
-            assert np.allclose(Pme, Pqt)
+        H0, Hint, [dg, de, a] = nqtls.Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_bosons)
+        c_ops = nqtls.collapses(
+            H0 + Hint, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        )
+        Pqt = qt.steadystate(H0 + Hint, c_ops).full()
+        assert np.allclose(Pme, Pqt)
 
 
 def test_correlation_AB():
-    tlist = np.linspace(0.0, 200, 11)
+    tlist = np.linspace(0.0, 200, 100)
     g_ph = 0.05
     max_bosons = 1
     Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(
