@@ -15,10 +15,10 @@ rm -r ./build
 cd ~
 if command -v pytest > /dev/null; then
     # pytest is available
-    pytest --pyargs nanocavity
+    pytest --durations=10 --pyargs nanocavity
 elif command -v pytest-3 > /dev/null; then
     # pytest-3 is available
-    pytest-3 --pyargs nanocavity
+    pytest-3 --durations=10 --pyargs nanocavity
 else
     echo "Neither pytest-3 nor pytest is available. Please install pytest."
 fi
