@@ -27,7 +27,14 @@ maintainers = [
 ]
 dynamic = ["version"]
 
-
 [tool.setuptools_scm]
 version_file = "nanocavity/_version.py"
 fallback_version = "0.0.0.dev"
+
+[tool.pytest.ini_options]
+markers = [
+    "slow: marks tests as slow",
+]
+testpaths = [
+    "nanocavity"
+]
