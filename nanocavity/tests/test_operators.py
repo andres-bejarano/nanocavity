@@ -53,6 +53,12 @@ def test_einsum():
 
 def test_bosonic_collapses():
     # hw_ph = 1
+    Eg = 0.4
+    Delta = 0.9
+    g_ph = 0.3
+    kappa = 0.1
+
+    kT = 0.1
     H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, 1.0, g_ph, 0, 1)
     OPS = no.collapses(a, H0, kT, "bosoNIC", kappa)
 
