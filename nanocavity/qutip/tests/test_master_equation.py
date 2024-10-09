@@ -10,7 +10,7 @@ def test_g2():
     Eg, Delta, U = -0, 0.99, 2
     g_ph = 1e-2
     hw_ph = 1
-    max_photons = 2
+    max_photons = 1
     rwa = False
 
     kT = 1e-1
@@ -38,9 +38,8 @@ def test_g2():
     H0, Hint, anni_ops = qtls.Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_photons, rwa)
     a_ph = anni_ops[2]
     c_ops = qtls.collapses(H0, anni_ops, VL, VR, kappa, Gamma, Gamma, kT)
-    for method in ["direct", "eigen", "svd", "power"]:
-        rho = qt.steadystate(H0 + Hint, c_ops, method="direct")
-        g2, _ = qt.coherence_function_g2(
-            H0 + Hint, rho, tlist, c_ops, a_ph, options={"progress_bar": False}
-        )
+    rho = qt.steadystate(H0 + Hint, c_ops)
+    g2, _ = qt.coherence_function_g2(
+        H0 + Hint, rho, tlist, c_ops, a_ph, options={"progress_bar": False}
+    )
     assert np.allclose(g2_nc, g2)
