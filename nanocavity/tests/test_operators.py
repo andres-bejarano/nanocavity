@@ -154,8 +154,8 @@ def test_dissipator():
     D_ana[0, 3] = 2
     D_ana *= kappa / 2
 
-    a, _ = sq.composite(boson_modes=[1])
-    H = Delta * a.d * a
+    a, n = sq.composite(boson_modes=[1])
+    H = Delta * n
 
     c_ops = no.collapses(a, H, kT, "bosonic", kappa)
 
