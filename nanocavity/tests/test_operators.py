@@ -1,9 +1,6 @@
 import numpy as np
 import nanocavity.operators as no
-import nanocavity.qutip.operators as nqo
-import nanocavity.rate_equation as nre
 import nanocavity.tls as ntls
-import nanocavity.qutip.tls as nqtls
 import secondquant as sq
 import pytest
 import nanocavity.distributions as nd
