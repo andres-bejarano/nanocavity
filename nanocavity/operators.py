@@ -97,6 +97,8 @@ def dissipator(c_ops, method="kron"):
     dim = c_ops[0].shape[0]
     Id = np.eye(dim)
     # Look https://arxiv.org/pdf/1504.05266
+    # Attention: The paper uses column stacking
+    # This function uses row stacking
     D = 0
     for c in c_ops:
         cdc = c.conj().T @ c
@@ -116,6 +118,8 @@ def dissipator(c_ops, method="kron"):
 def liouvillian(H, c_ops=None, method="kron", cond=True):
     """
     Function calculating the Liouvillian for a central system coupled to baths
+    Uses row stacking in the superspace.
+
 
     Parameters:
     ------------

@@ -132,8 +132,36 @@ def test_bosonic_collapse(kappa):
 def test_coherent_evolution():
     Delta = 1
     H = Delta / 2 * np.array([[1, 0], [0, -1]])
-    L = no.liouvillian(H)
     L_analytics = np.zeros((4, 4), dtype="complex")
     L_analytics[1, 1] = -1j * Delta
     L_analytics[2, 2] = 1j * Delta
-    assert np.allclose(L, L_analytics)
+    for method in [None, "einsum", "kron"]:
+        if method is None:
+            L = no.liouvillian(H)
+        else:
+            L = no.liouvillian(H, method=method)
+        assert np.allclose(L, L_analytics)
+
+
+def test_dissipator():
+    Delta = 1
+    kT = 1e-2
+    kappa = 1e-3
+    D_ana = np.zeros((4, 4))
+    D_ana[1, 1] = -1
+    D_ana[2, 2] = -1
+    D_ana[3, 3] = -2
+    D_ana[0, 3] = 2
+    D_ana *= kappa / 2
+
+    a, n = sq.composite(boson_modes=[1])
+    H = Delta * n
+
+    c_ops = no.collapses(a, H, kT, "bosonic", kappa)
+
+    for method in [None, "einsum", "kron"]:
+        if method is None:
+            dissipator = no.dissipator(c_ops)
+        else:
+            dissipator = no.dissipator(c_ops, method=method)
+        assert np.allclose(dissipator, D_ana)
