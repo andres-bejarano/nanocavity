@@ -165,3 +165,17 @@ def test_dissipator():
         else:
             dissipator = no.dissipator(c_ops, method=method)
         assert np.allclose(dissipator, D_ana)
+
+
+def test_jump():
+    Delta = 1
+    kT = 1e-2
+    kappa = 1e-3
+    a, n = sq.composite(boson_modes=[1])
+    H = Delta * n
+
+    c_ops = no.collapses(a, H, kT, "bosonic", kappa)
+    J = no.jump(c_ops)
+    J_ana = np.zeros((4, 4))
+    J_ana[0, 3] = kappa
+    assert np.allclose(J, J_ana)
