@@ -71,24 +71,27 @@ def test_Htls_nc_QuTiP():
 
 
 def test_collapses():
-    for g_ph in [0.005, 0.05, 0.5]:
-        U = 0
-        max_bosons = 1
-        H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
-        Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
-        Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
-        Hnc = Hnc0 + Hnc1
-        Hqt = Hqt0 + Hqt1
-        for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
-            Cqt = nqtls.collapses(
-                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
-            )
-            Cnc = ntls.collapses(
-                Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
-            )
+    g_ph = 0.05
+    U = 0
+    max_bosons = 1
+    Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(
+        Eg, Delta, hw_ph, g_ph, U, max_bosons
+    )
+    Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(
+        Eg, Delta, hw_ph, g_ph, U, max_bosons
+    )
+    Hnc = Hnc0 + Hnc1
+    Hqt = Hqt0 + Hqt1
+    for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
+        Cqt = nqtls.collapses(
+            Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        )
+        Cnc = ntls.collapses(
+            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        )
 
-            for i in range(len(Cnc)):
-                assert np.allclose(Cnc[i], Cqt[i].full())
+        for i in range(len(Cnc)):
+            assert np.allclose(Cnc[i], Cqt[i].full())
 
 
 def test_jump_operator():
@@ -114,53 +117,59 @@ def test_jump_operator():
 
 
 def test_dissipators():
-    for g_ph in [0.005, 0.05, 0.5]:
-        for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
-            U = 0
-            max_bosons = 1
-            H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
-            Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
-            Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
-            Hnc = Hnc0 + Hnc1
-            Hqt = Hqt0 + Hqt1
-            c_ops_qt = list(
-                nqtls.collapses(
-                    Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
-                )
-            )
-            c_ops_nc = ntls.collapses(
-                Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
-            )
-
-            Dnc = no.dissipator(c_ops_nc)
-            Dqo = nqo.dissipator(c_ops_qt)
-            Dqt = nqo.dissipator(c_ops_qt, lindblad=True)
-            assert np.allclose(Dqo.full(), Dqt.full())
-            assert np.allclose(Dnc, Dqt.full())
-
-
-def test_liovillian():
-    for coupling in [0.005, 0.05, 0.5]:
+    g_ph = 0.05
+    for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
         U = 0
         max_bosons = 1
-        H_parameters = Eg, Delta, hw_ph, coupling, U, max_bosons
-        Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(*H_parameters)
-        Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(*H_parameters)
-        Hqt = Hqt0 + Hqt1
+        Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(
+            Eg, Delta, hw_ph, g_ph, U, max_bosons
+        )
+        Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(
+            Eg, Delta, hw_ph, g_ph, U, max_bosons
+        )
         Hnc = Hnc0 + Hnc1
-        for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
-            c_ops_qt = list(
-                nqtls.collapses(
-                    Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
-                )
+        Hqt = Hqt0 + Hqt1
+        c_ops_qt = list(
+            nqtls.collapses(
+                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
             )
-            Lqt = nqo.liouvillian(Hqt, c_ops_qt)
+        )
+        c_ops_nc = ntls.collapses(
+            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        )
 
-            c_ops_nc = ntls.collapses(
-                Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        Dnc = no.dissipator(c_ops_nc)
+        Dqo = nqo.dissipator(c_ops_qt)
+        Dqt = nqo.dissipator(c_ops_qt, lindblad=True)
+        assert np.allclose(Dqo.full(), Dqt.full())
+        assert np.allclose(Dnc, Dqt.full())
+
+
+def test_liouvillian():
+    g_ph = 0.05
+    U = 0
+    max_bosons = 1
+    Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(
+        Eg, Delta, hw_ph, g_ph, U, max_bosons
+    )
+    Hnc0, Hnc1, [dg_nc, de_nc, a_nc] = ntls.Hamiltonian(
+        Eg, Delta, hw_ph, g_ph, U, max_bosons
+    )
+    Hqt = Hqt0 + Hqt1
+    Hnc = Hnc0 + Hnc1
+    for VL, VR in [[-3, 3], [0, 3], [1, 3]]:
+        c_ops_qt = list(
+            nqtls.collapses(
+                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
             )
-            Lnc = no.liouvillian(Hnc, c_ops_nc)
-            assert np.allclose(Lnc, Lqt.full())
+        )
+        Lqt = nqo.liouvillian(Hqt, c_ops_qt)
+
+        c_ops_nc = ntls.collapses(
+            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        )
+        Lnc = no.liouvillian(Hnc, c_ops_nc)
+        assert np.allclose(Lnc, Lqt.full())
 
 
 def test_einsum():

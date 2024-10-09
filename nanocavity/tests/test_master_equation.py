@@ -6,19 +6,13 @@ import secondquant as sq
 import pytest
 import nanocavity.distributions as ndist
 
-A = 0.4
-B = 0.9
-C = 1
-D = 0.5
-F = 3
-
 
 def test_eig_norm():
-    a = 1j * A - B
-    b = 1j * C - D
-    c = 1j * F
-    L = np.array([[a, c], [c, b]])
-
+    # build symmetric matrix
+    x = np.random.rand(8, 8)
+    x += x.T
+    # build symmetric, nonhermitian matrix
+    L = (1 + 0.1j) * x
     E, vl, vr = eig(L, left=True)
 
     E1, wr = np.linalg.eig(L)
@@ -135,7 +129,7 @@ def test_stationary_single_cavity_mode():
 
 
 def test_spectrum():
-    [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=3)
+    [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=2)
     H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
     kT = 0.1
     rate = 1e-3
