@@ -132,8 +132,12 @@ def test_bosonic_collapse(kappa):
 def test_coherent_evolution():
     Delta = 1
     H = Delta / 2 * np.array([[1, 0], [0, -1]])
-    L = no.liouvillian(H)
     L_analytics = np.zeros((4, 4), dtype="complex")
     L_analytics[1, 1] = -1j * Delta
     L_analytics[2, 2] = 1j * Delta
-    assert np.allclose(L, L_analytics)
+    for method in [None, "einsum", "kron"]:
+        if method is None:
+            L = no.liouvillian(H)
+        else:
+            L = no.liouvillian(H, method=method)
+        assert np.allclose(L, L_analytics)
