@@ -94,16 +94,6 @@ def Eg(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[1e-2])
-def kT(request):
-    return request.param
-
-
-@pytest.fixture(scope="module", params=[1e-3])
-def Gamma(request):
-    return request.param
-
-
 @pytest.fixture(scope="module", params=[-0.5, 0, 0.5])
 def V(request):
     return request.param
@@ -114,14 +104,11 @@ def kappa(request):
     return request.param
 
 
-@pytest.fixture(scope="module", params=[1])
-def hw(request):
-    return request.param
-
-
-def test_fermionic_collapse(Eg, kT, Gamma, V):
+def test_fermionic_collapse(Eg, V):
+    Gamma = 1e-3
     dg, ng = sq.composite(1)
     H = Eg * dg.d * dg
+    kT = 1e-2
     cp, cm = no.collapses(dg, H, kT, "fermionic", Gamma, V, False)
     cp_an = np.zeros((2, 2))
     cm_an = np.zeros((2, 2))
@@ -131,7 +118,9 @@ def test_fermionic_collapse(Eg, kT, Gamma, V):
     assert np.allclose(cm, cm_an)
 
 
-def test_bosonic_collapse(hw, kT, kappa):
+def test_bosonic_collapse(kappa):
+    hw = 1
+    kT = 1e-2
     ag, ng = sq.composite(fermion_modes=0, boson_modes=[1])
     H = hw * ng
     cp, cm = no.collapses(ag, H, kT, "bosonic", kappa, total=False)
