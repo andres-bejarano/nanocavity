@@ -145,6 +145,34 @@ def test_dissipators():
         assert np.allclose(Dnc, Dqt.full())
 
 
+def test_liouvillian_basic():
+    c, n = sq.composite(fermion_modes=3)
+    # building some Hamiltonian
+    H = 0
+    for i in range(len(c) - 1):
+        cdc = c[i].d * c[i + 1]
+        H += cdc + cdc.d
+    for i, ni in enumerate(n):
+        H += (i + 1) * ni
+    # let's build a random density matrix
+    rho = np.random.rand(*H.shape)
+    rho_op = sq.operator.Operator(rho)
+    # compute -i[H, rho]
+    drho = -1j * sq.commutator(H, rho_op)
+    for method in [None, "einsum", "kron"]:
+        # construct Liouvillian
+        if method is None:
+            L = no.liouvillian(H)
+        else:
+            L = no.liouvillian(H, method=method)
+        # apply it to rho after reshape to vector
+        drho2 = L @ rho.reshape(len(L))
+        # and reshape back to matrix
+        drho2 = drho2.reshape(H.shape)
+        assert np.allclose(drho.toarray(), drho2)
+        assert not np.allclose(drho.toarray(), -drho2)
+
+
 def test_liouvillian():
     g_ph = 0.05
     U = 0
