@@ -5,6 +5,8 @@ import nanocavity.rate_equation as nre
 import nanocavity.tls as ntls
 import nanocavity.qutip.tls as nqtls
 import secondquant as sq
+import pytest
+import nanocavity.distributions as nd
 
 
 def test_liouvillian_basic():
@@ -85,3 +87,57 @@ def test_bosonic_collapses():
     # the dependency on hw_ph can be incorporated as a renormalized rate
     ops3 = no.collapses(a, H0, kT, "bosonicX+", kappa / 0.5**0.5)
     assert not np.allclose(OPS, ops3)
+
+
+@pytest.fixture(scope="module", params=[-0.5, 0.5])
+def Eg(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=[1e-2])
+def kT(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=[1e-3])
+def Gamma(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=[-0.5, 0, 0.5])
+def V(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=[1e-3, 1e-2])
+def kappa(request):
+    return request.param
+
+
+@pytest.fixture(scope="module", params=[1])
+def hw(request):
+    return request.param
+
+
+def test_fermionic_collapse(Eg, kT, Gamma, V):
+    dg, ng = sq.composite(1)
+    H = Eg * dg.d * dg
+    cp, cm = no.collapses(dg, H, kT, "fermionic", Gamma, V, False)
+    cp_an = np.zeros((2, 2))
+    cm_an = np.zeros((2, 2))
+    cp_an[1, 0] = np.sqrt(Gamma * nd.fermi_dirac(Eg, kT, V))
+    cm_an[0, 1] = np.sqrt(Gamma * (1 - nd.fermi_dirac(Eg, kT, V)))
+    assert np.allclose(cp, cp_an)
+    assert np.allclose(cm, cm_an)
+
+
+def test_bosonic_collapse(hw, kT, kappa):
+    ag, ng = sq.composite(fermion_modes=0, boson_modes=[1])
+    H = hw * ng
+    cp, cm = no.collapses(ag, H, kT, "bosonic", kappa, total=False)
+    cp_an = np.zeros((2, 2))
+    cm_an = np.zeros((2, 2))
+    cp_an[1, 0] = np.sqrt(kappa * nd.bose_einstein(hw, kT))
+    cm_an[0, 1] = np.sqrt(kappa * (1 - nd.bose_einstein(hw, kT)))
+    assert np.allclose(cp, cp_an)
+    assert np.allclose(cm, cm_an)
