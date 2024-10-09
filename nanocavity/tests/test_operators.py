@@ -141,3 +141,27 @@ def test_coherent_evolution():
         else:
             L = no.liouvillian(H, method=method)
         assert np.allclose(L, L_analytics)
+
+
+def test_dissipator():
+    Delta = 1
+    kT = 1e-2
+    kappa = 1e-3
+    D_ana = np.zeros((4, 4))
+    D_ana[1, 1] = -1
+    D_ana[2, 2] = -1
+    D_ana[3, 3] = -2
+    D_ana[0, 3] = 2
+    D_ana *= kappa / 2
+
+    a, _ = sq.composite(fermion_modes=1)
+    H = Delta * a.d * a
+
+    c_ops = no.collapses(a, H, kT, "bosonic", kappa)
+
+    for method in [None, "einsum", "kron"]:
+        if method is None:
+            dissipator = no.dissipator(c_ops)
+        else:
+            dissipator = no.dissipator(c_ops, method=method)
+        assert np.allclose(dissipator, D_ana)
