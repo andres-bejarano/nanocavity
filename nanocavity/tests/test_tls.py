@@ -3,6 +3,7 @@ import nanocavity.master_equation as nme
 import nanocavity.tls as ntls
 import nanocavity.operators as no
 import nanocavity.jaynes_cumming_analytics as jc
+import pytest
 
 
 # the angle of each branch in Jaynes-Cummings model
@@ -70,6 +71,7 @@ def test_populations():
     assert np.allclose(Pme, Pan, atol=1e-3)
 
 
+@pytest.mark.slow
 def test_spectrum_analytics():
     Eg = 0.4
     Delta = 0.9

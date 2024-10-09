@@ -5,3 +5,16 @@
 *.svg
 # Ignore python chached files
 **/__pycache__
+nanocavity.egg-info
+*.ngz
+*.npy
+*.dat
+*.txt
+*.odp
+*.odt
+*~
+*#
+# tex stuff
+*.aux
+*.log
+*.gz

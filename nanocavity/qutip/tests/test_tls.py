@@ -5,6 +5,7 @@ import nanocavity.tls as ntls
 import nanocavity.qutip.tls as nqtls
 import nanocavity.master_equation as nme
 import qutip as qt
+import pytest
 
 
 def test_Htls_nc_QuTiP():
@@ -124,6 +125,7 @@ def test_jump_operator():
         assert np.allclose(Jqt.full(), Jnc)
 
 
+@pytest.mark.slow
 def test_dissipators():
     g_ph = 0.05
     Eg = 0.4
@@ -229,6 +231,7 @@ def test_stationary():
         assert np.allclose(Pme, Pqt)
 
 
+@pytest.mark.slow
 def test_correlation_AB():
     tlist = np.linspace(0.0, 200, 100)
     Eg = 0.4
@@ -277,6 +280,7 @@ def test_correlation_AB():
         assert np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
 
 
+@pytest.mark.slow
 def test_spectrum_g2():
     wlist = np.linspace(0.0, 1.8, 13)
     tlist = np.linspace(0.0, 300, 10)
