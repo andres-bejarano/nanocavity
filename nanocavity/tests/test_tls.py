@@ -98,29 +98,3 @@ def test_spectrum_analytics():
             H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, iva=iva
         )
         assert np.allclose(Inc, Ianalytics, atol=1e-6)
-
-
-"""peding to develop
-def test_current():
-    for VL, VR in [[3, -3], [2, 0], [-1, 2]]:
-            [dg, de, a], Hqt, c_ops = tls.collapses('qutip', H_parameters, VL, VR, kappa, gL, gR, kT, alone=False)
-
-            #left electrode
-            cp_gL, cm_gL = qo.collapses( dg, Hqt, kT, bath='fermionic', mu=VL, total=False)
-            cp_eL, cm_eL = qo.collapses(de, Hqt, kT, bath='fermionic', mu=VL, total=False)
-            CpL = list(np.sqrt(gL) * np.array(cp_gL + cp_eL))
-            CmL = list(np.sqrt(gL) * np.array(cm_gL + cm_eL))
-
-            #cavity mode
-            cap, cam = qo.collapses(a, Hqt, kT, bath='bosonic', total=False)
-            Cp = list(np.sqrt(kappa) * np.array(cap))
-            Cm = list(np.sqrt(kappa) * np.array(cam))
-
-            L = qo.liouvillian(Hqt, list(c_ops))
-
-            Ig_me = qme.current(qo.jump(Cm) - qo.jump(Cp), L)
-            Ie_me = qme.current(qo.jump(CpL) - qo.jump(CmL), L)
-            Ig_re, Ie_re, _, _ = fcs(VL, VR)
-
-            #assert np.allclose(Ig_me, Ig_re)
-            #assert np.allclose(Ie_me, Ie_re)"""
