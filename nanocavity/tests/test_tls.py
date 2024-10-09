@@ -5,45 +5,44 @@ import nanocavity.operators as no
 import nanocavity.jaynes_cumming_analytics as jc
 
 
-g_ph = 0.5
+# g_ph = 0.5
 # system parameters
-Eg = 0.4
-Delta = 0.9
-hw_ph = 1
-U = 1
+# Eg = 0.4
+# Delta = 0.9
+# hw_ph = 1
+# U = 1
 
-H_parameters = Eg, Delta, hw_ph, g_ph, U
 
 # bath parameters
-Gamma_L, Gamma_R = 1e-3, 2e-3
-kappa = 0.1
-kT = 0.1
+# Gamma_L, Gamma_R = 1e-3, 2e-3
+# kappa = 0.1
+# kT = 0.1
 
 
 # the angle of each branch in Jaynes-Cummings model
 # \ket{+}_n = \cos{\theta_n}\ket{ng}-i \sin{\theta_n}\ket{n-1,e}
 # \ket{-}_n = \sin{\theta_n}\ket{ng}+i \cos{\theta_n}\ket{n-1,e}
-def theta(n):
+def theta(n, hw_ph, Delta, g_ph):
     delta = hw_ph - Delta
     theta = 0.5 * np.arctan(2 * np.sqrt(n) * g_ph / delta)
     return theta
 
 
-def A_theta():
-    tan_theta2 = np.tan(theta(1)) ** 2
+def A_theta(hw_ph, Delta, g_ph):
+    tan_theta2 = np.tan(theta(1, hw_ph, Delta, g_ph)) ** 2
     return tan_theta2 + 1 / tan_theta2
 
 
 # formulas in issue #138
-def analytics_sec():
+def analytics_sec(Gamma_L, Gamma_R, hw_ph, Delta, g_ph):
     # huge kappa to have better precision in our analytics
     kappa = 1
 
     x = Gamma_L / Gamma_R
     y = (Gamma_L + Gamma_R) / (2 * kappa)
-    tan2 = np.tan(theta(1)) ** 2
+    tan2 = np.tan(theta(1, hw_ph, Delta, g_ph)) ** 2
 
-    Pg = 2 / (2 + x + 1 / x + A_theta() * y)
+    Pg = 2 / (2 + x + 1 / x + A_theta(hw_ph, Delta, g_ph) * y)
 
     Pplus = tan2 * y * Pg
     Pminus = (1 / tan2) * y * Pg
@@ -56,6 +55,12 @@ def analytics_sec():
 
 # peding to add populations coming from nanocavity.rate_equation()
 def test_populations():
+    Gamma_L, Gamma_R = 1e-3, 2e-3
+    Eg = 0.4
+    Delta = 0.9
+    hw_ph = 1
+    U = 1
+    g_ph = 0.5
     kT = 1e-2
     kappa = 1
     VL, VR = 10, -10
@@ -74,12 +79,20 @@ def test_populations():
     Pme = rho.diagonal().real
 
     Pgme, Pme = Pme[1], [Pme[0], Pme[2], Pme[4], Pme[6]]
-    Pgan, Pan = analytics_sec()
+    Pgan, Pan = analytics_sec(Gamma_L, Gamma_R, hw_ph, Delta, g_ph)
     assert np.allclose(Pgme, Pgan, atol=1e-2)
     assert np.allclose(Pme, Pan, atol=1e-3)
 
 
 def test_spectrum_analytics():
+    Eg = 0.4
+    Delta = 0.9
+    hw_ph = 1
+    U = 1
+    g_ph = 0.5
+
+    Gamma_L, Gamma_R = 1e-3, 2e-3
+    kappa = 0.1
     kT = 1e-2
     wlist = np.linspace(0.0, 1.8, 10)
     VL, VR = 10, -10
