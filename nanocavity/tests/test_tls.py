@@ -5,20 +5,6 @@ import nanocavity.operators as no
 import nanocavity.jaynes_cumming_analytics as jc
 
 
-# g_ph = 0.5
-# system parameters
-# Eg = 0.4
-# Delta = 0.9
-# hw_ph = 1
-# U = 1
-
-
-# bath parameters
-# Gamma_L, Gamma_R = 1e-3, 2e-3
-# kappa = 0.1
-# kT = 0.1
-
-
 # the angle of each branch in Jaynes-Cummings model
 # \ket{+}_n = \cos{\theta_n}\ket{ng}-i \sin{\theta_n}\ket{n-1,e}
 # \ket{-}_n = \sin{\theta_n}\ket{ng}+i \cos{\theta_n}\ket{n-1,e}
