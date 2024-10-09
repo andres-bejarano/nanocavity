@@ -157,7 +157,7 @@ def test_dissipator():
     a, _ = sq.composite(fermion_modes=1)
     H = Delta * a.d * a
 
-    c_ops = no.collapses(a, H, kT, "bosonic", kappa)
+    c_ops = no.collapses(a, H, kT, "fermionic", kappa)
 
     for method in [None, "einsum", "kron"]:
         if method is None:
