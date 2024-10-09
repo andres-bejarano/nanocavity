@@ -130,3 +130,13 @@ def test_bosonic_collapse(kappa):
     cm_an[0, 1] = np.sqrt(kappa * (1 - nd.bose_einstein(hw, kT)))
     assert np.allclose(cp, cp_an)
     assert np.allclose(cm, cm_an)
+
+
+def test_coherent_evolution():
+    Delta = 1
+    H = Delta / 2 * np.array([[1, 0], [0, -1]])
+    L = no.liouvillian(H)
+    L_analytics = np.zeros((4, 4), dtype="complex")
+    L_analytics[1, 1] = -1j * Delta
+    L_analytics[2, 2] = 1j * Delta
+    assert np.allclose(L, L_analytics)
