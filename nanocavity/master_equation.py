@@ -156,9 +156,7 @@ def regression_theorem(
     return M, E
 
 
-def correlation_AB(
-    A, L, B, tlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None
-):
+def correlation_AB(A, L, B, tlist, cutoff=0, verbose=True, ret_data=False, rho_st=None):
 
     M, E = regression_theorem(A, L, B, rho_st, verbose=verbose)
 
@@ -177,7 +175,7 @@ def correlation_AB(
     return S
 
 
-def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
+def spectrum(L, a, wlist, cutoff=0, verbose=True, ret_data=False, rho_st=None):
 
     M, E = regression_theorem(a.d, L, a, rho_st, verbose=verbose, sort=False)
 
@@ -199,7 +197,7 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=Non
 
 
 def g2(
-    L, J, tlist, method="eigen", cutoff=1e-12, verbose=True, ret_data=False, rho_st=None
+    L, J, tlist, method="eigen", cutoff=0, verbose=True, ret_data=False, rho_st=None
 ):
     """Uses the quantum regression theorem to compute the second order correlation functions.
     The method 'eigen' expands in terms of Liouvillian eigenvalues G2 = \sum_k (w0, J v_k)(w_k, J rho_st) e^{E_k tau}
@@ -221,7 +219,7 @@ def g2(
     verbose : bool
         print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
     ret_data : bool
-        whether to return the main contribution from method 'eigen'
+        whether to return also G1, M_k, and E_k
     rho_st : ndarray
         steady-state density matrix
 
