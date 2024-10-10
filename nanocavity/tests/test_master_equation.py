@@ -174,7 +174,7 @@ def test_g2():
     g2 = nme.g2(L, J, tlist)
 
     assert np.all(g2[:-1] > g2[1:])  # decreasing function of delay
-    g2b, Mk, E = nme.g2(L, J, tlist, ret_data=True)
+    g2b, G1, Mk, E = nme.g2(L, J, tlist, ret_data=True)
     assert np.allclose(g2, g2b)
 
     rho_st = nme.stationary(L)
