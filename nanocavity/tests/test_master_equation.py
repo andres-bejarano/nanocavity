@@ -166,7 +166,7 @@ def test_g2():
     J = no.jump(am)
     tlist = np.linspace(0, 200, 2)
     for method in ["eigen", "direct"]:
-        g2 = nme.g2(L, J, tlist, method)
+        g2, G1, M, E = nme.g2(L, J, tlist, method, ret_data=True)
         assert np.isclose(g2[0], 2)  # g2(0) = 2 in thermal equilibrium
         assert np.isclose(g2[-1], 1)  # g2(infty) = 1, uncorrelated
 
