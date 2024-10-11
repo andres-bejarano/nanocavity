@@ -4,7 +4,7 @@ from scipy.linalg import eig, expm
 from secondquant.operator import Operator
 
 
-def reduced_populations(rho_st, nr_op):
+def reduced_populations(rho, nr_op):
     """
     Function to extract the reduced populations of a density matrix
     Parameters:
@@ -22,10 +22,10 @@ def reduced_populations(rho_st, nr_op):
             An array containing the reduced populations for each excitation of the type provided by nr_op
     """
     nr_pops = np.max(nr_op.toarray()) + 1
-    pops_reduced = np.zeros(rho_st.shape[:-2] + (nr_pops,))
+    pops_reduced = np.zeros(rho.shape[:-2] + (nr_pops,))
     for i in range(nr_pops):
         idx = nr_op.where(i)
-        pops_reduced[..., i] = np.einsum("...k->...", rho_st[..., idx, idx])
+        pops_reduced[..., i] = np.einsum("...k->...", rho[..., idx, idx])
     return pops_reduced
 
 
