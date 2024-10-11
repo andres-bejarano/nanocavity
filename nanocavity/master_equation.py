@@ -4,7 +4,7 @@ from scipy.linalg import eig, expm
 from secondquant.operator import Operator
 
 
-def reduced_populations(rho, nr_op):
+def reduced_populations(nr_op, rho):
     """
     Function to extract the reduced populations of a density matrix
     Parameters:
