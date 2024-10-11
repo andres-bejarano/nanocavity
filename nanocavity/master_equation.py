@@ -9,13 +9,13 @@ def reduced_populations(nr_op, rho):
     Function to extract the reduced populations of a density matrix
     Parameters:
         --------
+        nr_op: Secondquant operator or 2d-array
+            Number operator used to specify which indices to extract
         rho: nd-array (2 at minimum)
             Density matrix from which the reduced populations should be extracted.
             The last two dimensions correspond to a density matrix.
             Therefore, one can for example pass a 4d array where the first two indices
             represent a loop over the bias
-        nr_op: Secondquant operator
-            Number operator used to specify which indices to extract
     Returns:
         ------
         pops_reduced: (nd-1) array
