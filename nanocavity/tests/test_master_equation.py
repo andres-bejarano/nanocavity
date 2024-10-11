@@ -7,6 +7,33 @@ import pytest
 import nanocavity.distributions as ndist
 
 
+def test_reduced_populations():
+    _, [nf, nb] = sq.composite(fermion_modes=1, boson_modes=[3])
+    rho = np.random.rand(8, 8)
+    pops = np.diag(rho)
+    boson_red = nme.reduced_populations(rho, nb)
+    fermi_red = nme.reduced_populations(rho, nf)
+    boson_red2 = nme.reduced_populations(rho[None, None], nb)
+    fermi_red2 = nme.reduced_populations(rho[None, None], nf)
+    assert np.allclose(boson_red2, boson_red)
+    assert np.allclose(fermi_red2, fermi_red)
+    assert np.allclose(boson_red.shape[0], 4)
+    assert np.allclose(fermi_red.shape[0], 2)
+    assert np.allclose(pops[0] + pops[4], boson_red[0])
+    assert np.allclose(pops[1] + pops[5], boson_red[1])
+    assert np.allclose(pops[2] + pops[6], boson_red[2])
+    assert np.allclose(pops[3] + pops[7], boson_red[3])
+    assert np.allclose(np.sum(pops[0:4]), fermi_red[0])
+    assert np.allclose(np.sum(pops[4:]), fermi_red[1])
+    # Checking for higher dimensional (bias maps) density matrices
+    rho = np.random.rand(3, 2, 8, 8)
+    f_pop0 = np.sum(np.diag(rho[1, 1, 0:4, 0:4]))
+    f_pop1 = np.sum(np.diag(rho[2, 0, 4:, 4:]))
+    fermi_red3 = nme.reduced_populations(rho, nf)
+    assert np.allclose(fermi_red3[1, 1, 0], f_pop0)
+    assert np.allclose(fermi_red3[2, 0, 1], f_pop1)
+
+
 def test_eig_norm():
     # build symmetric matrix
     x = np.random.rand(8, 8)
