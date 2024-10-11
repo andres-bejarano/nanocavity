@@ -156,9 +156,7 @@ def regression_theorem(
     return M, E
 
 
-def correlation_AB(
-    A, L, B, tlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None
-):
+def correlation_AB(A, L, B, tlist, cutoff=0, verbose=True, ret_data=False, rho_st=None):
 
     M, E = regression_theorem(A, L, B, rho_st, verbose=verbose)
 
@@ -177,7 +175,7 @@ def correlation_AB(
     return S
 
 
-def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=None):
+def spectrum(L, a, wlist, cutoff=0, verbose=True, ret_data=False, rho_st=None):
 
     M, E = regression_theorem(a.d, L, a, rho_st, verbose=verbose, sort=False)
 
@@ -199,11 +197,12 @@ def spectrum(L, a, wlist, cutoff=1e-12, verbose=True, ret_data=False, rho_st=Non
 
 
 def g2(
-    L, J, tlist, method="eigen", cutoff=1e-12, verbose=True, ret_data=False, rho_st=None
+    L, J, tlist, method="eigen", cutoff=0, verbose=True, ret_data=False, rho_st=None
 ):
-    """Uses the quantum regression theorem to compute the second order correlation functions.
-    The method 'eigen' expans in terms of liouvillian eigenvalues  G2 =\sum_k (w0, J,v_k)(w_k, J rho_st) e^{E_k tau}
-    whereas the method 'direct' traces all involved operatros G2 = Tr(J e^{L tau} J rho_st).
+    """Uses the quantum regression theorem to compute the second-order correlation functions.
+    The method 'eigen' expands in terms of Liouvillian eigenvalues E_k, such that
+    G2 = \sum_k M_k e^{E_k tau} with M_k = (w0, J v_k)(w_k, J rho_st).
+    The method 'direct' traces all involved operatros G2 = Tr(J e^{L tau} J rho_st).
     The function is returned normalized G1 = (w0, J rho_st), then g2 = G2 / G1^2
 
     Parameters
@@ -213,55 +212,58 @@ def g2(
     L : ndarray
         Liouvillian superoperator
     tlist : float or ndarray
-        Time dependance
-    method: str
-        'eigen' if you want to expand in liouville eigenvalues or 'direct' if you want to calculate the trace of all the operators involved
-    cutoff: float
+        Time delay
+    method : str
+        'eigen' to expand in eigenvalues of L or 'direct' to calculate the trace of all the operators involved
+    cutoff : float
         the precision of the values to be considered in the 'eigen' method
     verbose : bool
         print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
-    ret_data: bool
-        whether to return the main contribution from method 'eigen'
+    ret_data : bool
+        whether to return also G1, M_k, and E_k
     rho_st : ndarray
         steady-state density matrix
 
     Returns
     -------
-    g2: ndarray
-        normalized second order correlation function
-    coefficients: ndarray
-        the coefficients in the method 'eigen'
-    eigenvalues: ndarray
-        the eigenvalues of L in the method 'eigen'
+    g2 : ndarray
+        normalized second-order correlation function
+    G1 : float
+        first-order correlation function
+    M : ndarray
+        coefficients in the method 'eigen'
+    E : ndarray
+        eigenvalues of L in the method 'eigen'
     """
 
     tlist = _toarray(tlist)
-    g2 = np.zeros(len(tlist), dtype=np.complex128)
+    G2 = np.zeros(len(tlist), dtype=np.complex128)
 
     if method == "eigen":
         M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True)
 
-        M /= G1**2
-
         for k in range(len(E)):
             if abs(M[k]) > cutoff:
-                g2 += M[k] * np.exp(E[k] * tlist)
+                G2 += M[k] * np.exp(E[k] * tlist)
 
-        if ret_data:
-            # g2, weights, eigenvalues
-            return g2.real, M, E
     elif method == "direct":
+
         if rho_st is None:
             rho_st = stationary(L)
         dim = rho_st.shape[0]
         rho_st = rho_st.reshape(dim**2)
         w0 = np.eye(dim).reshape(dim**2)
-        G1 = w0 @ J @ rho_st
         A = w0 @ J
         C = J @ rho_st
         for k, t in enumerate(tlist):
-            g2[k] += A @ expm(L * t) @ C
-        g2 /= G1**2
+            G2[k] += A @ expm(L * t) @ C
+        G1 = A @ rho_st
+        M, E = None, None
+
+    g2 = G2 / G1**2
+
+    if ret_data:
+        return g2.real, G1.real, M, E
 
     return g2.real
 

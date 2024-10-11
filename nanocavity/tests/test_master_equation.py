@@ -166,7 +166,7 @@ def test_g2():
     J = no.jump(am)
     tlist = np.linspace(0, 200, 2)
     for method in ["eigen", "direct"]:
-        g2 = nme.g2(L, J, tlist, method)
+        g2, G1, M, E = nme.g2(L, J, tlist, method, ret_data=True)
         assert np.isclose(g2[0], 2)  # g2(0) = 2 in thermal equilibrium
         assert np.isclose(g2[-1], 1)  # g2(infty) = 1, uncorrelated
 
@@ -174,7 +174,7 @@ def test_g2():
     g2 = nme.g2(L, J, tlist)
 
     assert np.all(g2[:-1] > g2[1:])  # decreasing function of delay
-    g2b, Mk, E = nme.g2(L, J, tlist, ret_data=True)
+    g2b, G1, Mk, E = nme.g2(L, J, tlist, ret_data=True)
     assert np.allclose(g2, g2b)
 
     rho_st = nme.stationary(L)
