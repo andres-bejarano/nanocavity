@@ -36,7 +36,7 @@ def reduced_populations(nr_op, rho):
     pops_reduced = np.zeros(rho.shape[:-2] + (nr_pops,))
     for i in range(nr_pops):
         idx = nr_op.where(i)
-        pops_reduced[..., i] = np.einsum("...k->...", rho[..., idx, idx])
+        pops_reduced[..., i] = np.einsum("...k->...", rho[..., idx, idx].real)
     return pops_reduced
 
 
