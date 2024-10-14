@@ -7,6 +7,15 @@ import pytest
 import nanocavity.distributions as ndist
 
 
+def test_get_pop():
+    _, [nf, nb] = sq.composite(fermion_modes=1, boson_modes=[2])
+    rho = np.random.rand(*nf.shape)
+    pop = nme.get_pop(nf, nb, rho, 1, 0)
+    # TO-DO: Tests to be written
+    # 1 electronic level plus bosons
+    # 2 electronic levels plus bosons
+
+
 def test_reduced_populations():
     _, [nf, nb] = sq.composite(fermion_modes=1, boson_modes=[3])
     rho = np.random.rand(*nf.shape)
