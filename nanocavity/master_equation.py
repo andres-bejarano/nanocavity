@@ -4,6 +4,50 @@ from scipy.linalg import eig, expm
 from secondquant.operator import Operator
 
 
+def get_pop(nr_op_f, nr_op_b, rho, cnt_f, cnt_b):
+    """
+    Function to extract one specific population from a density matrix
+    Only works for one electronic and one bosonic mode
+    Parameters:
+        ------
+        nr_op_f: Secondquant operator or 2d-array
+            Number operator for the fermionic state we want to extract
+        nr_op_b: Secondquant operator or 2d-array
+            Number operator for the bosonic state we want to extract
+        rho: nd-array (2 at minimum)
+            Density matrix from which the reduced populations should be extracted.
+            The last two dimensions correspond to a density matrix.
+            Therefore, one can for example pass a 4d array where the first two indices
+            represent a loop over the bias
+        cnt_f: int
+            Number of fermions in the return population
+        cnt_b: int
+            Number of bosons in the return population
+    Returns:
+        -----
+        pop: float
+            The population with |q=cnt_f, n=cnt_b>
+    """
+    for nr_op in [nr_op_f, nr_op_b]:
+        if not isinstance(nr_op, Operator):
+            if not isinstance(nr_op, np.array()):
+                raise TypeError(
+                    "nr_op_* needs to be a secondquant operator or a 2d matrix"
+                )
+            else:
+                if len(nr_op.shape) == 2:
+                    nr_op = Operator(nr_op)
+                else:
+                    raise TypeError(
+                        "nr_op_* needs to be a secondquant operator or a 2d matrix"
+                    )
+    idf = nr_op_f.where(cnt_f)
+    idb = nr_op_b.where(cnt_b)
+    idx = np.intersect1d(idf, idb)
+    pop = rho[idx, idx]
+    return pop
+
+
 def reduced_populations(nr_op, rho):
     """
     Function to extract the reduced populations of a density matrix
