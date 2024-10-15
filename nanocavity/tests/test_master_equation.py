@@ -53,6 +53,11 @@ def test_reduced_populations():
         idx = (nf1 + nf2).where(n)
         assert np.allclose(np.sum(pops[idx]), p_f[n])
 
+    nr_list = [nf1, nf2, nb1, nb2]
+    P_1021 = nme.reduced_populations(nr_list, rho, [1, 0, 2, 1])
+    idx = np.where(pops == P_1021)
+    assert pops[idx] == P_1021
+
 
 def test_eig_norm():
     # build symmetric matrix
