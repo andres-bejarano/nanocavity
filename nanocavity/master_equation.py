@@ -55,7 +55,8 @@ def reduced_populations(nr_op, rho, values=[]):
         ), "nr_op and values need to have the same length"
         idx = nr_op[0].where(values[0])
         for i, n in enumerate(nr_op[1:]):
-            idx = np.intersect1d(idx, n.where(values[i]))
+            idx = np.intersect1d(idx, n.where(values[i + 1]))
+
         return np.sum(rho[..., idx, idx], axis=-1)
 
 
