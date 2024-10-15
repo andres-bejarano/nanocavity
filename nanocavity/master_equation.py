@@ -48,7 +48,7 @@ def get_pop(nr_op_f, nr_op_b, rho, cnt_f, cnt_b):
     return pop
 
 
-def reduced_populations(nr_op, rho):
+def reduced_populations(nr_op, rho, values=[]):
     """
     Function to extract the reduced populations of a density matrix
     Parameters:
@@ -65,6 +65,7 @@ def reduced_populations(nr_op, rho):
         pops_reduced: (nd-1) array
             An array containing the reduced populations for each excitation of the type provided by nr_op
     """
+
     if not isinstance(nr_op, Operator):
         if not isinstance(nr_op, np.array()):
             raise TypeError("nr_op needs to be a secondquant operator or a 2d matrix")
@@ -76,12 +77,26 @@ def reduced_populations(nr_op, rho):
                     "nr_op needs to be a secondquant operator or a 2d matrix"
                 )
 
-    nr_pops = np.max(nr_op.toarray()) + 1
-    pops_reduced = np.zeros(rho.shape[:-2] + (nr_pops,))
-    for i in range(nr_pops):
-        idx = nr_op.where(i)
-        pops_reduced[..., i] = np.einsum("...k->...", rho[..., idx, idx].real)
-    return pops_reduced
+    if not isinstance(nr_op, list):
+        if not values:
+            nr_pops = np.max(nr_op.toarray()) + 1
+            pops_reduced = np.zeros(rho.shape[:-2] + (nr_pops,))
+            for i in range(nr_pops):
+                idx = nr_op.where(i)
+                pops_reduced[..., i] = np.einsum("...k->...", rho[..., idx, idx].real)
+        else:
+            idx = nr_op.where(value[0])
+            pops_reduced = np.einsum("...k->...", rho[..., idx, idx].real)
+        return pops_reduced
+    else:
+        assert (
+            len(nr_op) == len(values),
+            "Need to provide as many values as number operators",
+        )
+        idx = nr_op[0].where(value[0])
+        for i, n in enumerate(nr_op[1:]):
+            idx = np.intersect1d(idx, n.where(value[i + q]))
+        return np.sum(rho[..., idx, idx], axis=-1)
 
 
 def eig_norm(L):
