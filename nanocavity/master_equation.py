@@ -82,25 +82,24 @@ def reduced_populations(nr_op, rho, values=[]):
                         "nr_op needs to be a secondquant operator or a 2d matrix"
                     )
 
-    if not isinstance(nr_op, list):
+    if len(nr_op) == 1:
         if not values:
-            nr_pops = np.max(nr_op.toarray()) + 1
+            nr_pops = np.max(nr_op[0].toarray()) + 1
             pops_reduced = np.zeros(rho.shape[:-2] + (nr_pops,))
             for i in range(nr_pops):
-                idx = nr_op.where(i)
+                idx = nr_op[0].where(i)
                 pops_reduced[..., i] = np.einsum("...k->...", rho[..., idx, idx].real)
         else:
-            idx = nr_op.where(value[0])
+            idx = nr_op[0].where(values[0])
             pops_reduced = np.einsum("...k->...", rho[..., idx, idx].real)
         return pops_reduced
     else:
-        assert (
-            len(nr_op) == len(values),
-            "Need to provide as many values as number operators",
-        )
-        idx = nr_op[0].where(value[0])
+        assert len(nr_op) == len(
+            values
+        ), "nr_op and values need to have the same length"
+        idx = nr_op[0].where(values[0])
         for i, n in enumerate(nr_op[1:]):
-            idx = np.intersect1d(idx, n.where(value[i + q]))
+            idx = np.intersect1d(idx, n.where(values[i]))
         return np.sum(rho[..., idx, idx], axis=-1)
 
 
