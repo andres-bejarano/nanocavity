@@ -66,16 +66,21 @@ def reduced_populations(nr_op, rho, values=[]):
             An array containing the reduced populations for each excitation of the type provided by nr_op
     """
 
-    if not isinstance(nr_op, Operator):
-        if not isinstance(nr_op, np.array()):
-            raise TypeError("nr_op needs to be a secondquant operator or a 2d matrix")
-        else:
-            if len(nr_op.shape) == 2:
-                nr_op = Operator(nr_op)
-            else:
+    if not isinstance(nr_op, list):
+        nr_op = [nr_op]
+    for i, n in enumerate(nr_op):
+        if not isinstance(n, Operator):
+            if not isinstance(n, np.array()):
                 raise TypeError(
                     "nr_op needs to be a secondquant operator or a 2d matrix"
                 )
+            else:
+                if len(n.shape) == 2:
+                    nr_op[i] = Operator(n)
+                else:
+                    raise TypeError(
+                        "nr_op needs to be a secondquant operator or a 2d matrix"
+                    )
 
     if not isinstance(nr_op, list):
         if not values:
