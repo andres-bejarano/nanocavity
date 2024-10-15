@@ -45,9 +45,11 @@ def test_reduced_populations():
         assert np.allclose(np.sum(pops[idx]), p_f[n])
 
     nr_list = [nf1, nf2, nb1, nb2]
+    P_102 = nme.reduced_populations(nr_list[0:3], rho, [1, 0, 2])
+    P_1020 = nme.reduced_populations(nr_list, rho, [1, 0, 2, 0])
     P_1021 = nme.reduced_populations(nr_list, rho, [1, 0, 2, 1])
-    idx = np.where(pops == P_1021)
-    assert pops[idx] == P_1021
+    P_1022 = nme.reduced_populations(nr_list, rho, [1, 0, 2, 2])
+    assert np.allclose(P_1020 + P_1021 + P_1022, P_102)
 
 
 def test_eig_norm():
