@@ -4,7 +4,7 @@ from scipy.linalg import eig, expm
 from secondquant.operator import Operator
 
 
-def reduced_populations(nr_op, rho, values=[]):
+def reduced_population(nr_op, rho, values=[]):
     """
     Function to extract the reduced populations or one specific population of a density matrix
     Parameters:
@@ -36,6 +36,7 @@ def reduced_populations(nr_op, rho, values=[]):
                 )
             else:
                 if len(n.shape) == 2:
+                    # Converting the matrix to a secondquant opeartor
                     nr_op[i] = Operator(n)
                 else:
                     raise TypeError(

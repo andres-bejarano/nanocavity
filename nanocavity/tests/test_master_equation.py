@@ -7,7 +7,7 @@ import pytest
 import nanocavity.distributions as ndist
 
 
-def test_reduced_populations():
+def test_reduced_population():
     _, [nf, nb] = sq.composite(fermion_modes=1, boson_modes=[3])
     rho = np.random.rand(*nf.shape)
     pops = np.diag(rho)
@@ -15,20 +15,20 @@ def test_reduced_populations():
     rho = np.random.rand(3, 2, 8, 8)
     f_pop0 = np.sum(np.diag(rho[1, 1, 0:4, 0:4]))
     f_pop1 = np.sum(np.diag(rho[2, 0, 4:, 4:]))
-    fermi_red3 = nme.reduced_populations(nf, rho)
+    fermi_red3 = nme.reduced_population(nf, rho)
     assert np.allclose(fermi_red3[1, 1, 0], f_pop0)
     assert np.allclose(fermi_red3[2, 0, 1], f_pop1)
 
     _, [nf1, nf2, nb1, nb2] = sq.composite(fermion_modes=2, boson_modes=[3, 2])
     rho = np.random.rand(*nf1.shape)
     pops = np.diag(rho)
-    p_f1 = nme.reduced_populations(nf1, rho)
-    p_f1N = nme.reduced_populations(nf1, rho[None, None])
+    p_f1 = nme.reduced_population(nf1, rho)
+    p_f1N = nme.reduced_population(nf1, rho[None, None])
     assert np.allclose(p_f1, p_f1N)
-    p_f2 = nme.reduced_populations(nf2, rho)
-    p_f = nme.reduced_populations(nf1 + nf2, rho)
-    p_b1 = nme.reduced_populations(nb1, rho)
-    p_b2 = nme.reduced_populations(nb2, rho)
+    p_f2 = nme.reduced_population(nf2, rho)
+    p_f = nme.reduced_population(nf1 + nf2, rho)
+    p_b1 = nme.reduced_population(nb1, rho)
+    p_b2 = nme.reduced_population(nb2, rho)
     for n in range(len(p_b1)):
         idx = nb1.where(n)
         assert np.allclose(np.sum(pops[idx]), p_b1[n])
@@ -45,10 +45,10 @@ def test_reduced_populations():
         assert np.allclose(np.sum(pops[idx]), p_f[n])
 
     nr_list = [nf1, nf2, nb1, nb2]
-    P_102 = nme.reduced_populations(nr_list[0:3], rho, [1, 0, 2])
-    P_1020 = nme.reduced_populations(nr_list, rho, [1, 0, 2, 0])
-    P_1021 = nme.reduced_populations(nr_list, rho, [1, 0, 2, 1])
-    P_1022 = nme.reduced_populations(nr_list, rho, [1, 0, 2, 2])
+    P_102 = nme.reduced_population(nr_list[0:3], rho, [1, 0, 2])
+    P_1020 = nme.reduced_population(nr_list, rho, [1, 0, 2, 0])
+    P_1021 = nme.reduced_population(nr_list, rho, [1, 0, 2, 1])
+    P_1022 = nme.reduced_population(nr_list, rho, [1, 0, 2, 2])
     assert np.allclose(P_1020 + P_1021 + P_1022, P_102)
 
 
