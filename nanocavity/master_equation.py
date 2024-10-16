@@ -6,16 +6,20 @@ from secondquant.operator import Operator
 
 def reduced_populations(nr_op, rho, values=[]):
     """
-    Function to extract the reduced populations of a density matrix
+    Function to extract the reduced populations or one specific population of a density matrix
     Parameters:
         --------
-        nr_op: Secondquant operator or 2d-array
+        nr_op: list of secondquant operators or 2d-arrays
             Number operator used to specify which indices to extract
         rho: nd-array (2 at minimum)
             Density matrix from which the reduced populations should be extracted.
             The last two dimensions correspond to a density matrix.
             Therefore, one can for example pass a 4d array where the first two indices
             represent a loop over the bias
+        values: list of integers
+            If a specific population should be returned this specifies the state
+            whose population should be returned
+            Needs to be of the same length as nr_op
     Returns:
         ------
         pops_reduced: (nd-1) array
