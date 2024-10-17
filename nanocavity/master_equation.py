@@ -217,17 +217,19 @@ def regression_theorem(
     return M, E
 
 
-def correlation_AB(A, L, B, tlist, cutoff=0, verbose=True, ret_data=False, rho_st=None):
+def correlation_AB(
+    A, L, B, time_delay, cutoff=0, verbose=True, ret_data=False, rho_st=None
+):
 
     M, E = regression_theorem(A, L, B, rho_st, verbose=verbose)
 
     # correlation function S is generally complex
-    tlist = _toarray(tlist)
-    S = np.zeros(len(tlist), dtype=np.complex128)
+    time_delay = _toarray(time_delay)
+    S = np.zeros(len(time_delay), dtype=np.complex128)
 
     for k in range(len(E)):
         if abs(M[k]) > cutoff:
-            S += M[k] * np.exp(E[k] * tlist)
+            S += M[k] * np.exp(E[k] * time_delay)
 
     if ret_data:
         # S, weights, eigenvalues
@@ -236,18 +238,18 @@ def correlation_AB(A, L, B, tlist, cutoff=0, verbose=True, ret_data=False, rho_s
     return S
 
 
-def spectrum(L, a, wlist, cutoff=0, verbose=True, ret_data=False, rho_st=None):
+def spectrum(L, a, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=None):
 
     M, E = regression_theorem(a.d, L, a, rho_st, verbose=verbose, sort=False)
 
     # spectrum is a real quantity, so we can skip the imaginary part
     M = M.real
-    wlist = _toarray(wlist)
-    I = np.zeros(len(wlist), dtype=np.float64)
+    frequency = _toarray(frequency)
+    I = np.zeros(len(frequency), dtype=np.float64)
 
     for k in range(len(E)):
         if M[k] > cutoff:
-            I += M[k] * ndist.lorentzian(wlist - E[k].imag, -2 * E[k].real)
+            I += M[k] * ndist.lorentzian(frequency - E[k].imag, -2 * E[k].real)
 
     if ret_data:
         # spectrum, weights, eigenvalues
@@ -258,7 +260,14 @@ def spectrum(L, a, wlist, cutoff=0, verbose=True, ret_data=False, rho_st=None):
 
 
 def g2(
-    L, J, tlist, method="eigen", cutoff=0, verbose=True, ret_data=False, rho_st=None
+    L,
+    J,
+    time_delay,
+    method="eigen",
+    cutoff=0,
+    verbose=True,
+    ret_data=False,
+    rho_st=None,
 ):
     """Uses the quantum regression theorem to compute the second-order correlation functions.
     The method 'eigen' expands in terms of Liouvillian eigenvalues E_k, such that
@@ -272,7 +281,7 @@ def g2(
         Liouvillian superoperator
     J : ndarray
         Jump superoperator
-    tlist : float or ndarray
+    time_delay : float or ndarray
         Time delay
     method : str
         'eigen' to expand in eigenvalues of L or 'direct' to calculate the trace of all the operators involved
@@ -297,15 +306,15 @@ def g2(
         eigenvalues of L in the method 'eigen'
     """
 
-    tlist = _toarray(tlist)
-    G2 = np.zeros(len(tlist), dtype=np.complex128)
+    time_delay = _toarray(time_delay)
+    G2 = np.zeros(len(time_delay), dtype=np.complex128)
 
     if method == "eigen":
         M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True)
 
         for k in range(len(E)):
             if abs(M[k]) > cutoff:
-                G2 += M[k] * np.exp(E[k] * tlist)
+                G2 += M[k] * np.exp(E[k] * time_delay)
 
     elif method == "direct":
 
@@ -316,7 +325,7 @@ def g2(
         w0 = np.eye(dim).reshape(dim**2)
         A = w0 @ J
         C = J @ rho_st
-        for k, t in enumerate(tlist):
+        for k, t in enumerate(time_delay):
             G2[k] += A @ expm(L * t) @ C
         G1 = A @ rho_st
         M, E = None, None

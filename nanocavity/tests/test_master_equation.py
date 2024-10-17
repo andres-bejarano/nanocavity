@@ -181,21 +181,21 @@ def test_spectrum():
     c_ops = no.collapses(c, H, kT, "fermionic", rate)
     a_ops = no.collapses(a, H, kT, "bosonic", rate)
     L = no.liouvillian(H, c_ops + a_ops)
-    wlist = np.arange(1, 10)
-    I = nme.spectrum(L, a, wlist, verbose=False)
-    I2, Mk, E = nme.spectrum(L, a, wlist, verbose=False, ret_data=True)
+    frequency = np.arange(1, 10)
+    I = nme.spectrum(L, a, frequency, verbose=False)
+    I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True)
     assert np.allclose(I, I2)
     assert np.all(Mk >= -1e-30)  # tolerate tiny negative values?
     assert np.all(Mk[1:] <= Mk[:-1])  # entries sorted descending?
-    I3 = nme.spectrum(L, a, wlist, cutoff=10)
+    I3 = nme.spectrum(L, a, frequency, cutoff=10)
     assert np.allclose(I3, 0)
 
     rho_st = nme.stationary(L, method="solve")
-    I4 = nme.spectrum(L, a, wlist, rho_st=rho_st)
+    I4 = nme.spectrum(L, a, frequency, rho_st=rho_st)
     assert np.allclose(I, I4)
 
     # check also with a number instead of array
-    I5 = nme.spectrum(L, a, wlist[0], verbose=False)
+    I5 = nme.spectrum(L, a, frequency[0], verbose=False)
     assert np.isclose(I[0], I5)
 
     # test list
@@ -209,25 +209,25 @@ def test_g2():
     ap, am = no.collapses(a, H, 0.1, "bosonic", 0.1, total=False)
     L = no.liouvillian(H, ap + am)
     J = no.jump(am)
-    tlist = np.linspace(0, 200, 2)
+    time_delay = np.linspace(0, 200, 2)
     for method in ["eigen", "direct"]:
-        g2, G1, M, E = nme.g2(L, J, tlist, method, ret_data=True)
+        g2, G1, M, E = nme.g2(L, J, time_delay, method, ret_data=True)
         assert np.isclose(g2[0], 2)  # g2(0) = 2 in thermal equilibrium
         assert np.isclose(g2[-1], 1)  # g2(infty) = 1, uncorrelated
 
-    tlist = np.arange(200)
-    g2 = nme.g2(L, J, tlist)
+    time_delay = np.arange(200)
+    g2 = nme.g2(L, J, time_delay)
 
     assert np.all(g2[:-1] > g2[1:])  # decreasing function of delay
-    g2b, G1, Mk, E = nme.g2(L, J, tlist, ret_data=True)
+    g2b, G1, Mk, E = nme.g2(L, J, time_delay, ret_data=True)
     assert np.allclose(g2, g2b)
 
     rho_st = nme.stationary(L)
-    g2c = nme.g2(L, J, tlist, rho_st=rho_st)
+    g2c = nme.g2(L, J, time_delay, rho_st=rho_st)
     assert np.allclose(g2, g2c)
 
     # check also with a number instead of array
-    g2d = nme.g2(L, J, tlist[0], verbose=False)
+    g2d = nme.g2(L, J, time_delay[0], verbose=False)
     assert np.isclose(g2[0], g2d)
 
     # check list
