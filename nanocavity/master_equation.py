@@ -268,10 +268,10 @@ def g2(
 
     Parameters
     ----------
-    J : ndarray
-        Jump superoperator
     L : ndarray
         Liouvillian superoperator
+    J : ndarray
+        Jump superoperator
     tlist : float or ndarray
         Time delay
     method : str
