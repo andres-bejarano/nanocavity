@@ -18,5 +18,9 @@ def test_formating():
     array_numbers = np.array([1e-2, -1e-2, 4e-4, 0])
 
     # Array of numbers
-    assert ft.scientific(array_numbers)  == ['$10^{-2}$', '$-10^{-2}$', '$4\\times 10^{-4}$', '$0$']
-
+    assert ft.scientific(array_numbers) == [
+        "$10^{-2}$",
+        "$-10^{-2}$",
+        "$4\\times 10^{-4}$",
+        "$0$",
+    ]

@@ -1,9 +1,10 @@
 import numpy as np
 
+
 def single_value(num, decimals=1, style="latex"):
     """
     Formats a single number in scientific notation in LaTeX or simple format.
-    
+
     Parameters:
         -------------
         num: float
@@ -12,7 +13,7 @@ def single_value(num, decimals=1, style="latex"):
             Number of decimals to keep.
         style: str
             Output format. Can be "latex" for LaTeX-style output, or "simple" for plain text.
-            
+
     Returns:
         ----------
         str
@@ -36,13 +37,25 @@ def single_value(num, decimals=1, style="latex"):
     # If the exponent is 0, return the number without scientific notation
     if exponent == 0:
         if decimals == 0:
-            return f"${sign}{int(round(num, decimals))}$" if style == "latex" else f"{sign}{int(round(num, decimals))}"
+            return (
+                f"${sign}{int(round(num, decimals))}$"
+                if style == "latex"
+                else f"{sign}{int(round(num, decimals))}"
+            )
         else:
-            return f"${sign}{round(num, decimals)}$" if style == "latex" else f"{sign}{round(num, decimals)}"
-    
+            return (
+                f"${sign}{round(num, decimals)}$"
+                if style == "latex"
+                else f"{sign}{round(num, decimals)}"
+            )
+
     if exponent == 1:
-        return f"${round(num, decimals)}$" if style == "latex" else f"{round(num, decimals)}"
-    
+        return (
+            f"${round(num, decimals)}$"
+            if style == "latex"
+            else f"{round(num, decimals)}"
+        )
+
     # If the base is 1.0, only show the exponent (no base required)
     if base == 1.0:
         if style == "latex":
@@ -51,17 +64,22 @@ def single_value(num, decimals=1, style="latex"):
             return f"{sign}10^{exponent}"
     else:
         # Format the base and exponent depending on the chosen style
-        base_str = f"{int(base)}" if base.is_integer() else f"{base:.{decimals}f}".rstrip('0').rstrip('.')
-        
+        base_str = (
+            f"{int(base)}"
+            if base.is_integer()
+            else f"{base:.{decimals}f}".rstrip("0").rstrip(".")
+        )
+
         if style == "latex":
             return r"${}{}\times 10^{{{}}}$".format(sign, base_str, exponent)
         else:
             return f"{sign}{base_str} \times  10^{exponent}"
 
+
 def scientific(number, decimals=1, style="latex"):
     """
     Handles formatting of both single numbers and NumPy arrays in scientific notation in LaTeX or simple format.
-    
+
     Parameters:
         -------------
         number: float or np.array
@@ -70,7 +88,7 @@ def scientific(number, decimals=1, style="latex"):
             Number of decimals to keep.
         style: str
             Output format. Can be "latex" for LaTeX-style output, or "simple" for plain text.
-            
+
     Returns:
         ----------
         str or list of str
