@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def single_value(num, decimals=1, style="latex"):
+def _single_value(num, decimals=1, style="latex"):
     """
     Formats a single number in scientific notation in LaTeX or simple format.
 
@@ -97,7 +97,7 @@ def scientific(number, decimals=1, style="latex"):
     # If the input is a numpy array, apply the function element-wise and return as a Python list
     if isinstance(number, np.ndarray):
         # Ensure the output is a Python list, not a NumPy string array
-        return [single_value(n, decimals, style) for n in number]
+        return [_single_value(n, decimals, style) for n in number]
 
     # Otherwise, apply to a single number
-    return single_value(number, decimals, style)
+    return _single_value(number, decimals, style)
