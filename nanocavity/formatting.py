@@ -83,17 +83,3 @@ def scientific(number, decimals=1, style="latex"):
 
     # Otherwise, apply to a single number
     return single_value(number, decimals, style)
-
-
-# Example usage:
-single_number = 4e-4
-array_numbers = np.array([1e-2, -1e-2, 4e-4, 0])
-
-# Display results in LaTeX format:
-print(scientific(single_number, style="latex"))  # Single number in LaTeX
-print(scientific(array_numbers, style="latex"))  # Array in LaTeX
-
-# Display results in simple format:
-print(scientific(single_number, style="simple"))  # Single number in simple format
-print(scientific(array_numbers, style="simple"))  # Array in simple format
-
