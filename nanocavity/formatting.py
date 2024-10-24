@@ -6,17 +6,17 @@ def _single_value(num, decimals=1, style="latex"):
     Formats a single number in scientific notation in LaTeX or simple format.
 
     Parameters:
-        -------------
-        num: float
-            Number to be formatted.
-        decimals: int
-            Number of decimals to keep.
-        style: str
-            Output format. Can be "latex" for LaTeX-style output, or "simple" for plain text.
+    -------------
+    num: float
+        Number to be formatted.
+    decimals: int
+        Number of decimals to keep.
+    style: str
+        Output format. Can be "latex" for LaTeX-style output, or "simple" for plain text.
 
     Returns:
-        ----------
-        str
+    ----------
+    str
         A string with the number in scientific notation in the chosen format.
     """
     # Special case for the number 0
@@ -81,18 +81,18 @@ def scientific(number, decimals=1, style="latex"):
     Handles formatting of both single numbers and NumPy arrays in scientific notation in LaTeX or simple format.
 
     Parameters:
-        -------------
-        number: float or np.array
-            Number or array to be converted.
-        decimals: int
-            Number of decimals to keep.
-        style: str
-            Output format. Can be "latex" for LaTeX-style output, or "simple" for plain text.
+    -------------
+    number: float or np.array
+        Number or array to be converted.
+    decimals: int
+        Number of decimals to keep.
+    style: str
+        Output format. Can be "latex" for LaTeX-style output, or "simple" for plain text.
 
     Returns:
-        ----------
-        str or list of str
-        Formatted string for a single number or array of such strings in the chosen format.
+    ----------
+    str or list of str
+    Formatted string for a single number or array of such strings in the chosen format.
     """
     # If the input is a numpy array, apply the function element-wise and return as a Python list
     if isinstance(number, np.ndarray):
