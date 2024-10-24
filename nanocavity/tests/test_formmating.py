@@ -24,3 +24,9 @@ def test_formating():
         "$4\\times 10^{-4}$",
         "$0$",
     ]
+    assert ft.scientific(array_numbers, style="simple") == [
+        "10^-2",
+        "-10^-2",
+        "4 \times  10^-4",
+        "0",
+    ]
