@@ -83,8 +83,12 @@ def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
 
 
 def jump(c_ops):
+    if isinstance(c_ops, Operator):
+        c_ops = c_ops.toarray()
+    if isinstance(c_ops, np.ndarray):
+        c_ops = [c_ops]
     if not isinstance(c_ops, list):
-        raise TypeError("c_ops must be a list")
+        raise TypeError("c_ops must be a single operator or a list of them")
     J = 0
     for c in c_ops:
         J += np.kron(c, c.conj())
