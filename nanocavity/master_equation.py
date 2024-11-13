@@ -241,7 +241,7 @@ def correlation_AB(
 
 def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=None):
     """Uses the regression theorem to compute the first-order correlation function
-    Re \int_0^\infty < A^\dagger(\tau) A(0) > e^{-i \omega \tau}.
+    Re \int_0^\infty < A^\dagger(\tau) A(0) > e^{-i \omega \tau} d\tau.
 
     Parameters
     ----------
