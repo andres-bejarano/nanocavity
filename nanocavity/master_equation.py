@@ -1,5 +1,6 @@
 import numpy as np
 import nanocavity.distributions as ndist
+import nanocavity.operators as no
 from scipy.linalg import eig, expm
 from secondquant.operator import Operator
 
@@ -261,7 +262,7 @@ def spectrum(L, a, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
 
 def g2(
     L,
-    J,
+    A,
     time_delay,
     method="eigen",
     cutoff=0,
@@ -269,9 +270,11 @@ def g2(
     ret_data=False,
     rho_st=None,
 ):
-    """Uses the quantum regression theorem to compute the second-order correlation functions.
+    """Uses the quantum regression theorem to compute the second-order correlation function
+    < A^\dagger(0) A^\dagger(tau) A(tau) A(0) > / < A^\dagger A >^2.
     The method 'eigen' expands in terms of Liouvillian eigenvalues E_k, such that
-    G2 = \sum_k M_k e^{E_k tau} with M_k = (w0, J v_k)(w_k, J rho_st).
+    G2 = \sum_k M_k e^{E_k tau} with M_k = (w0, J v_k)(w_k, J rho_st)
+    where J = A \rho A^\dagger is a kind of jump superoperator.
     The method 'direct' traces all involved operatros G2 = Tr(J e^{L tau} J rho_st).
     The function is returned normalized G1 = (w0, J rho_st), then g2 = G2 / G1^2
 
@@ -279,8 +282,8 @@ def g2(
     ----------
     L : ndarray
         Liouvillian superoperator
-    J : ndarray
-        Jump superoperator
+    A : ndarray
+        Annihilation operator
     time_delay : float or ndarray
         Time delay
     method : str
@@ -308,6 +311,8 @@ def g2(
 
     time_delay = _toarray(time_delay)
     G2 = np.zeros(len(time_delay), dtype=np.complex128)
+
+    J = no.jump(A)
 
     if method == "eigen":
         M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True)

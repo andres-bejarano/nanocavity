@@ -28,10 +28,9 @@ def test_g2():
     c_ops_nc = tls.collapses(H0_nc, anni_ops_nc, VL, VR, kappa, Gamma, Gamma, kT)
     _, c_am = no.collapses(a_ph_nc, H0_nc, kT, "bosonic", kappa, total=False)
     L_nc = no.liouvillian(H0_nc + Hint_nc, c_ops_nc)
-    Jam = no.jump(c_am)
     rho_st = nme.stationary(L_nc)
 
-    g2_nc = nme.g2(L_nc, Jam, tlist, verbose=False, rho_st=rho_st)
+    g2_nc = nme.g2(L_nc, a_ph_nc, tlist, verbose=False, rho_st=rho_st)
     g2_zero = nme.g2_zero(a_ph_nc, rho_st)
     assert np.allclose(g2_nc, g2_zero)
 
