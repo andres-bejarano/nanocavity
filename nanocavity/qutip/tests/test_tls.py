@@ -315,8 +315,7 @@ def test_spectrum_g2():
     L = no.liouvillian(Hnc, c_nc)
     Inc = kappa * nme.spectrum(L, a_nc, wlist)
     _, c_am = no.collapses(a_nc, Hnc, kT, bath="bosonic", rate=kappa, total=False)
-    J = no.jump(c_am)
-    g2nc = nme.g2(L, J, tlist)
+    g2nc = nme.g2(L, a_nc, tlist)
 
     c_qt = nqtls.collapses(
         Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
