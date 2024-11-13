@@ -179,3 +179,7 @@ def test_jump():
     J_ana = np.zeros((4, 4))
     J_ana[0, 3] = kappa
     assert np.allclose(J, J_ana)
+
+    for op in (a, a.toarray()):
+        J1 = kappa * no.jump(op)
+        assert np.allclose(J1, J_ana)
