@@ -208,30 +208,29 @@ def test_g2():
     a, H = sq.composite(fermion_modes=0, boson_modes=1, max_bosons=6)
     ap, am = no.collapses(a, H, 0.1, "bosonic", 0.1, total=False)
     L = no.liouvillian(H, ap + am)
-    J = no.jump(am)
     time_delay = np.linspace(0, 200, 2)
     for method in ["eigen", "direct"]:
-        g2, G1, M, E = nme.g2(L, J, time_delay, method, ret_data=True)
+        g2, G1, M, E = nme.g2(L, a, time_delay, method, ret_data=True)
         assert np.isclose(g2[0], 2)  # g2(0) = 2 in thermal equilibrium
         assert np.isclose(g2[-1], 1)  # g2(infty) = 1, uncorrelated
 
     time_delay = np.arange(200)
-    g2 = nme.g2(L, J, time_delay)
+    g2 = nme.g2(L, a, time_delay)
 
     assert np.all(g2[:-1] > g2[1:])  # decreasing function of delay
-    g2b, G1, Mk, E = nme.g2(L, J, time_delay, ret_data=True)
+    g2b, G1, Mk, E = nme.g2(L, a, time_delay, ret_data=True)
     assert np.allclose(g2, g2b)
 
     rho_st = nme.stationary(L)
-    g2c = nme.g2(L, J, time_delay, rho_st=rho_st)
+    g2c = nme.g2(L, a, time_delay, rho_st=rho_st)
     assert np.allclose(g2, g2c)
 
     # check also with a number instead of array
-    g2d = nme.g2(L, J, time_delay[0], verbose=False)
+    g2d = nme.g2(L, a, time_delay[0], verbose=False)
     assert np.isclose(g2[0], g2d)
 
     # check list
-    g2e = nme.g2(L, J, [0, 1], verbose=False)
+    g2e = nme.g2(L, a, [0, 1], verbose=False)
     assert np.allclose(g2[:2], g2e)
 
     # analytic same-time
