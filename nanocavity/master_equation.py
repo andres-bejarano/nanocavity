@@ -239,9 +239,37 @@ def correlation_AB(
     return S
 
 
-def spectrum(L, a, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=None):
+def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=None):
+    """Uses the regression theorem to compute the first-order correlation function
+    Re \int_0^\infty < A^\dagger(\tau) A(0) > e^{-i \omega \tau} d\tau.
 
-    M, E = regression_theorem(a.d, L, a, rho_st, verbose=verbose, sort=False)
+    Parameters
+    ----------
+    L : ndarray
+        Liouvillian superoperator
+    A : ndarray
+        Annihilation operator
+    frequency : float or ndarray
+        Frequencies (energies) to be evaluated
+    cutoff : float
+        the precision of the values to be considered in the 'eigen' method
+    verbose : bool
+        print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
+    ret_data : bool
+        whether to return also G1, M_k, and E_k
+    rho_st : ndarray
+        steady-state density matrix
+
+    Returns
+    -------
+    I : ndarray
+        computed spectrum on frequency (energy) grid
+    M : ndarray
+        coefficients M_k
+    E : ndarray
+        eigenvalues E_k of L
+    """
+    M, E = regression_theorem(A.d, L, A, rho_st, verbose=verbose, sort=False)
 
     # spectrum is a real quantity, so we can skip the imaginary part
     M = M.real
@@ -345,7 +373,8 @@ def g2(
 
 def g2_zero(A, rho_st, verbose=True):
     """Computes the same-time second-order correlation function
-    from the exact expression g2(0) = (<n^2> - <n>) / <n>^2.
+    from the exact expression g2(0) = (<n^2> - <n>) / <n>^2 where
+    n = A.d * A.
     """
     if isinstance(A, Operator):
         n = A.d * A
