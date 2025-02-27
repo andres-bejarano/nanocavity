@@ -4,7 +4,7 @@ import nanocavity.distributions as ndist
 from secondquant.operator import Operator
 
 
-def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=0):
+def collapses(A_op, basis, kT, bath, rate, mu=0, total=True, cutoff=0):
     """
     Function to calculate the collapse operators which are needed to
     build a Liouvillian with secondquant operators
@@ -12,8 +12,8 @@ def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=0):
         ----
         A_op: secondquantoperator
             annihilation operator
-        H:  secondquant operator
-            Hamiltonian of the central system
+        basis: list
+            (E, V) describing the basis for the collapse operators
         kT: float
             Temperature
         bath: string
@@ -35,7 +35,7 @@ def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=0):
     total = False: cp, cm
         two lists of collapse operators for adding or removing particles
     """
-    E, V = H.eigh()
+    E, V = basis
 
     # Transition matrix elements between final (f) and initial (i) states
     # Thus the first index refers to the final state

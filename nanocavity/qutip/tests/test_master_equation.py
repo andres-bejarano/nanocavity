@@ -26,7 +26,8 @@ def test_g2():
     )
     a_ph_nc = anni_ops_nc[2]
     c_ops_nc = tls.collapses(H0_nc, anni_ops_nc, VL, VR, kappa, Gamma, Gamma, kT)
-    _, c_am = no.collapses(a_ph_nc, H0_nc, kT, "bosonic", kappa, total=False)
+    basis = H0_nc.eigh()
+    _, c_am = no.collapses(a_ph_nc, basis, kT, "bosonic", kappa, total=False)
     L_nc = no.liouvillian(H0_nc + Hint_nc, c_ops_nc)
     rho_st = nme.stationary(L_nc)
 

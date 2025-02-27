@@ -314,7 +314,8 @@ def test_spectrum_g2():
     c_nc = c_gpL + c_epL + c_gpR + c_epR + c_ap + c_gmL + c_emL + c_gmR + c_emR + c_am
     L = no.liouvillian(Hnc, c_nc)
     Inc = kappa * nme.spectrum(L, a_nc, wlist)
-    _, c_am = no.collapses(a_nc, Hnc, kT, bath="bosonic", rate=kappa, total=False)
+    basis = Hnc.eigh()
+    _, c_am = no.collapses(a_nc, basis, kT, bath="bosonic", rate=kappa, total=False)
     g2nc = nme.g2(L, a_nc, tlist)
 
     c_qt = nqtls.collapses(

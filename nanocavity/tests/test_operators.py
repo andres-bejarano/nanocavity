@@ -39,8 +39,9 @@ def test_einsum():
     H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
     rate = 0.1
     kT = 0.01
-    c_ops = no.collapses(c, H, kT, "fermionic", rate)
-    a_ops = no.collapses(a, H, kT, "bosonic", rate)
+    basis = H.eigh()
+    c_ops = no.collapses(c, basis, kT, "fermionic", rate)
+    a_ops = no.collapses(a, basis, kT, "bosonic", rate)
     for ops in (c_ops, a_ops):
         D1 = no.dissipator(ops)
         D2 = no.dissipator(ops, method="einsum")
@@ -59,30 +60,34 @@ def test_bosonic_collapses():
 
     kT = 0.1
     H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, 1.0, g_ph, 0, 1)
-    OPS = no.collapses(a, H0, kT, "bosoNIC", kappa)
+
+    basis = H0.eigh()
+    OPS = no.collapses(a, basis, kT, "bosoNIC", kappa)
 
     # collapses using X+ can be called in different ways
-    ops1 = no.collapses(a, H0, kT, "bosonicX+", kappa)
-    ops2 = no.collapses(a, H0, kT, "X+bosonic", kappa)
-    ops3 = no.collapses(a, H0, kT, "bosonic-X+", kappa)
-    ops4 = no.collapses(a, H0, kT, "bosonicx+", kappa)
+    ops1 = no.collapses(a, basis, kT, "bosonicX+", kappa)
+    ops2 = no.collapses(a, basis, kT, "X+bosonic", kappa)
+    ops3 = no.collapses(a, basis, kT, "bosonic-X+", kappa)
+    ops4 = no.collapses(a, basis, kT, "bosonicx+", kappa)
     # with hw=1 the collapses are identical with a or X+
     for ops in (ops1, ops2, ops3, ops4):
         assert np.allclose(OPS, ops)
 
     # the story is different with dressed rates
-    ops1 = no.collapses(a, H0 + Hint, kT, "bosoNIC", kappa)
-    ops2 = no.collapses(a, H0 + Hint, kT, "bosonic-x+", kappa)
+    basis = (H0 + Hint).eigh()
+    ops1 = no.collapses(a, basis, kT, "bosoNIC", kappa)
+    ops2 = no.collapses(a, basis, kT, "bosonic-x+", kappa)
     assert len(ops1) != len(ops2)
 
     # changing cavity mode energy also introduces differences
     H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, 0.5, g_ph, 0, 1)
-    ops1 = no.collapses(a, H0, kT, "Bosonic", kappa)
-    ops2 = no.collapses(a, H0, kT, "bosonicX+", kappa)
+    basis = H0.eigh()
+    ops1 = no.collapses(a, basis, kT, "Bosonic", kappa)
+    ops2 = no.collapses(a, basis, kT, "bosonicX+", kappa)
     assert not np.allclose(ops1, ops2)
 
     # the dependency on hw_ph can be incorporated as a renormalized rate
-    ops3 = no.collapses(a, H0, kT, "bosonicX+", kappa / 0.5**0.5)
+    ops3 = no.collapses(a, basis, kT, "bosonicX+", kappa / 0.5**0.5)
     assert not np.allclose(OPS, ops3)
 
 
@@ -106,7 +111,8 @@ def test_fermionic_collapse(Eg, V):
     dg, ng = sq.composite(1)
     H = Eg * dg.d * dg
     kT = 1e-2
-    cp, cm = no.collapses(dg, H, kT, "fermionic", Gamma, V, False)
+    basis = H.eigh()
+    cp, cm = no.collapses(dg, basis, kT, "fermionic", Gamma, V, False)
     cp_an = np.zeros((2, 2))
     cm_an = np.zeros((2, 2))
     cp_an[1, 0] = np.sqrt(Gamma * nd.fermi_dirac(Eg, kT, V))
@@ -120,7 +126,8 @@ def test_bosonic_collapse(kappa):
     kT = 1e-2
     ag, ng = sq.composite(fermion_modes=0, boson_modes=[1])
     H = hw * ng
-    cp, cm = no.collapses(ag, H, kT, "bosonic", kappa, total=False)
+    basis = H.eigh()
+    cp, cm = no.collapses(ag, basis, kT, "bosonic", kappa, total=False)
     cp_an = np.zeros((2, 2))
     cm_an = np.zeros((2, 2))
     cp_an[1, 0] = np.sqrt(kappa * nd.bose_einstein(hw, kT))
@@ -156,8 +163,8 @@ def test_dissipator():
 
     a, n = sq.composite(boson_modes=[1])
     H = Delta * n
-
-    c_ops = no.collapses(a, H, kT, "bosonic", kappa)
+    basis = H.eigh()
+    c_ops = no.collapses(a, basis, kT, "bosonic", kappa)
 
     for method in [None, "einsum", "kron"]:
         if method is None:
@@ -173,8 +180,8 @@ def test_jump():
     kappa = 1e-3
     a, n = sq.composite(boson_modes=[1])
     H = Delta * n
-
-    c_ops = no.collapses(a, H, kT, "bosonic", kappa)
+    basis = H.eigh()
+    c_ops = no.collapses(a, basis, kT, "bosonic", kappa)
     J = no.jump(c_ops)
     J_ana = np.zeros((4, 4))
     J_ana[0, 3] = kappa
