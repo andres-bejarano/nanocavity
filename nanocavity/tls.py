@@ -118,7 +118,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     return H, H0, Hint, anni_ops, num_ops
 
 
-def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
+def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True, cutoff=0):
     """
     Function to calculate the collapse operators with secondquant operators
 
@@ -158,15 +158,15 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     [dg, de, a] = ops
 
     # left electrode
-    c_gpL, c_gmL = no.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL, total=False)
-    c_epL, c_emL = no.collapses(de, H, kT, "fermionic", Gamma_L, mu=VL, total=False)
+    c_gpL, c_gmL = no.collapses(dg, H, kT, "fermionic", Gamma_L, mu=VL, total=False, cutoff=cutoff)
+    c_epL, c_emL = no.collapses(de, H, kT, "fermionic", Gamma_L, mu=VL, total=False, cutoff=cutoff)
 
     # right electrode
-    c_gpR, c_gmR = no.collapses(dg, H, kT, "fermionic", Gamma_R, mu=VR, total=False)
-    c_epR, c_emR = no.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR, total=False)
+    c_gpR, c_gmR = no.collapses(dg, H, kT, "fermionic", Gamma_R, mu=VR, total=False, cutoff=cutoff)
+    c_epR, c_emR = no.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR, total=False, cutoff=cutoff)
 
     # cavity mode
-    c_ap, c_am = no.collapses(a, H, kT, "bosonic", kappa, total=False)
+    c_ap, c_am = no.collapses(a, H, kT, "bosonic", kappa, total=False, cutoff=cutoff)
 
     if total:
         CL = c_gpL + c_epL + c_gmL + c_emL
