@@ -68,7 +68,7 @@ def reduced_population(nr_op, rho, values=[]):
 
 def eig_norm(L):
     El, vl, vr = eig(L, left=True)
-    norm = np.einsum("ai,ai->i", vl.conj(), vr)**0.5
+    norm = np.einsum("ai,ai->i", vl.conj(), vr) ** 0.5
     vl /= norm.conj()
     vr /= norm
     return El, vl, vr

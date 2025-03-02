@@ -79,6 +79,7 @@ def test_eig_norm():
     E1 = np.einsum("ai,ab,bi->i", vl.conj(), L, vr)
     assert np.allclose(E, E1)
 
+
 def test_eig_norm_nonsymmetric():
     d = 25
     # build nonsymmetric, nonhermitian matrix
@@ -117,6 +118,7 @@ def test_liouvillian(kT, bosons, rate):
         L = no.liouvillian(H, ops)
         # check determinant of L is zero
         assert np.isclose(np.linalg.det(L), 0)
+
 
 @pytest.fixture(scope="module", params=["eig", "solve"])
 def method(request):
