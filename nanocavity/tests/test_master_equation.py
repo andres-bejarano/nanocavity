@@ -69,11 +69,16 @@ def test_eig_norm():
     assert np.allclose(vl, wl)
     assert np.allclose(vr, wr)
 
+    # now check our orthonormalization routine
     E, vl, vr = nme.eig_norm(L)
 
-    norm = np.einsum("ai,ai->i", vl.conj(), vr)
+    # orthonormalization
+    norm = np.einsum("ai,aj->ij", vl.conj(), vr)
+    assert np.allclose(norm, np.eye(8))
 
-    assert np.allclose(norm.all(), 1)
+    # recovering eigenvalues
+    E1 = np.einsum("ai,ab,bi->i", vl.conj(), L, vr)
+    assert np.allclose(E, E1)
 
 
 @pytest.fixture(scope="module", params=[0.01, 1.0])
