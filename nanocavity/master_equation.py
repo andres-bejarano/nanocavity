@@ -201,10 +201,10 @@ def regression_theorem(
     if verbose:
         # print up to 10 leading contributions according to magnitude of M[k]
         idx = np.argsort(-np.abs(M))[:10]
-        print(f"\n{'k':>4} {'Re(Mk)':>12} {'Im(Mk)':>12} {'Re(Ek)':>12} {'Im(Ek)':>12}")
+        print(f"{'k':>4} {'Re(Mk)':>16} {'Im(Mk)':>16} {'Re(Ek)':>16} {'Im(Ek)':>16}")
         for k in idx:
             print(
-                f"{k:4} {M[k].real:12.6f} {M[k].imag:12.6f} {E[k].real:12.6f} {E[k].imag:12.6f}"
+                f"{k:4} {M[k].real:16.8e} {M[k].imag:16.8e} {E[k].real:16.8e} {E[k].imag:16.8e}"
             )
 
     # compute also expectation values?
@@ -269,6 +269,8 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     E : ndarray
         eigenvalues E_k of L
     """
+    if verbose:
+        print(f"Computing spectrum with cutoff={cutoff}")
     M, E = regression_theorem(A.d, L, A, rho_st, verbose=verbose, sort=False)
 
     # spectrum is a real quantity, so we can skip the imaginary part
@@ -342,6 +344,9 @@ def g2(
 
     J = no.jump(A)
 
+    if verbose:
+        print(f"Computing g2 with cutoff={cutoff} and method={method}")
+
     if method == "eigen":
         M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True)
 
@@ -363,12 +368,15 @@ def g2(
         G1 = A @ rho_st
         M, E = None, None
 
+    # taking real parts BEFORE computing normalized g2:
+    G1 = G1.real
+    G2 = G2.real
     g2 = G2 / G1**2
 
     if ret_data:
-        return g2.real, G1.real, M, E
+        return g2, G1, M, E
 
-    return g2.real
+    return g2
 
 
 def g2_zero(A, rho_st, verbose=True):
