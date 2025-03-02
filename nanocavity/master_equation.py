@@ -368,12 +368,15 @@ def g2(
         G1 = A @ rho_st
         M, E = None, None
 
+    # taking real parts BEFORE computing normalized g2:
+    G1 = G1.real
+    G2 = G2.real
     g2 = G2 / G1**2
 
     if ret_data:
-        return g2.real, G1.real, M, E
+        return g2, G1, M, E
 
-    return g2.real
+    return g2
 
 
 def g2_zero(A, rho_st, verbose=True):
