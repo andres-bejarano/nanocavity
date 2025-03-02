@@ -53,11 +53,10 @@ def test_reduced_population():
 
 
 def test_eig_norm():
-    # build symmetric matrix
-    x = np.random.rand(8, 8)
-    x += x.T
+    d = 25
     # build symmetric, nonhermitian matrix
-    L = (1 + 0.1j) * x
+    L = np.random.rand(d, d) + 1j * np.random.rand(d, d)
+    L += L.T
     E, vl, vr = eig(L, left=True)
 
     E1, wr = np.linalg.eig(L)
@@ -74,7 +73,7 @@ def test_eig_norm():
 
     # orthonormalization
     norm = np.einsum("ai,aj->ij", vl.conj(), vr)
-    assert np.allclose(norm, np.eye(8))
+    assert np.allclose(norm, np.eye(d))
 
     # recovering eigenvalues
     E1 = np.einsum("ai,ab,bi->i", vl.conj(), L, vr)
@@ -106,7 +105,6 @@ def test_liouvillian(kT, bosons, rate):
         L = no.liouvillian(H, ops)
         # check determinant of L is zero
         assert np.isclose(np.linalg.det(L), 0)
-
 
 @pytest.fixture(scope="module", params=["eig", "solve"])
 def method(request):
