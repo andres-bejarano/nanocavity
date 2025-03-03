@@ -142,7 +142,7 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, total=True, cu
         coupling of the right lead to the central system
     kT: float
         Temperature
-    hw_ph: Float
+    hw_ph: float
         energy of the cavity (photon) mode
     total: Logic
         By default True, returns a list with all the collapses,
