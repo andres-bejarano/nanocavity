@@ -1,5 +1,6 @@
 import numpy as np
 import nanocavity.qutip.operators as nqo
+import nanocavity.distributions as ndist
 import qutip as qt
 
 
@@ -129,7 +130,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     return H, H0, H_int, anni_ops
 
 
-def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
+def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, total=True):
     """
     Function to calculate the collapse operators with qutip  operators
 
@@ -152,6 +153,8 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
             coupling of the right lead to the central system
         kT: float
             Temperature
+        hw_ph: Float
+            energy of the cavity (photon) mode
         m: float
             coupling between electron tunneling as cavity mode
         lead2lead: logic
@@ -180,7 +183,11 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):
     c_epR, c_emR = nqo.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR, total=False)
 
     # cavity mode
-    c_ap, c_am = nqo.collapses(a, H, kT, "bosonic", kappa, total=False)
+    # c_ap, c_am = nqo.collapses(a, H, kT, "bosonic", kappa, total=False)
+    nb_p = ndist.bose_einstein(hw_ph, kT)
+    nb_m = 1 + nb_p
+    c_ap = [np.sqrt(kappa * nb_p) * a.dag()]
+    c_am = [np.sqrt(kappa * nb_m) * a]
 
     if total:
         CL = c_gpL + c_epL + c_gmL + c_emL

@@ -139,7 +139,7 @@ def E_index(H_parameters, Elist, states="bare"):
     return L
 
 
-def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
+def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, iva):
     """
     When we sweep one of the parameters in the Jaynes-Cummings model, we find that the arrangement of the energy levels changes, and therefore the labels of the density matrix also change. For this reason, we created this function, which ensures that even if the ordering of the energy levels changes, the labels of the density matrix remain consistent.
     Parameters:
@@ -159,6 +159,8 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
             left tunneling rates
         kT: float
             Temperature
+        hw_ph: float
+            energy of the cavity (photon) mode
     """
     # We need the bare energies (without coupling)
     # H_parameters = Eg, Delta, hw_ph, g_ph, U, True
@@ -169,7 +171,7 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva):
         H = H0
     else:
         H = H0 + Hint
-    c_ops = tls.collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT)
+    c_ops = tls.collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph)
 
     # density matrix
     L = no.liouvillian(H0 + Hint, list(c_ops))
@@ -237,7 +239,7 @@ def spectrum_iva(
     _, Delta, hw_ph, g_ph, _ = H_parameters
     H_parameters = *H_parameters, 1, True
     P1, Pge1, Pg1, Pg1_e, Pe1 = rho_arranged(
-        H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=True
+        H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, iva=True
     )
 
     OmegaR = Omega_R(Delta, hw_ph, g_ph)
@@ -369,7 +371,7 @@ def spectrum_sec(
     Eg, Delta, hw_ph, g_ph, _ = H_parameters
     H_parameters = *H_parameters, 1, True
     P1, Pge1, Pm, Pp, Pe1 = rho_arranged(
-        H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, iva=False
+        H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, iva=False
     )
     OmegaR = Omega_R(Delta, hw_ph, g_ph)
     angle = theta(Delta, hw_ph, g_ph)

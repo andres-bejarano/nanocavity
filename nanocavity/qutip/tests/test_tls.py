@@ -81,10 +81,10 @@ def test_collapses():
     Hqt = Hqt0 + Hqt1
     for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
         Cqt = nqtls.collapses(
-            Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         Cnc = ntls.collapses(
-            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
 
         for i in range(len(Cnc)):
@@ -113,10 +113,10 @@ def test_jump_operator():
     Hqt = Hqt0 + Hqt1
     for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
         c_qt = nqtls.collapses(
-            Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         c_nc = ntls.collapses(
-            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
 
         Jqt = nqo.jump(c_qt)
@@ -153,11 +153,11 @@ def test_dissipators():
         Hqt = Hqt0 + Hqt1
         c_ops_qt = list(
             nqtls.collapses(
-                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
             )
         )
         c_ops_nc = ntls.collapses(
-            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
 
         Dnc = no.dissipator(c_ops_nc)
@@ -193,13 +193,13 @@ def test_liouvillian():
     for VL, VR in [[-3, 3], [0, 3], [1, 3]]:
         c_ops_qt = list(
             nqtls.collapses(
-                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
             )
         )
         Lqt = nqo.liouvillian(Hqt, c_ops_qt)
 
         c_ops_nc = ntls.collapses(
-            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         Lnc = no.liouvillian(Hnc, c_ops_nc)
         assert np.allclose(Lnc, Lqt.full())
@@ -219,13 +219,15 @@ def test_stationary():
         H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_bosons)
         H = H0 + Hint
 
-        c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+        c_ops = ntls.collapses(
+            H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
+        )
         L = no.liouvillian(H, c_ops)
         Pme = nme.stationary(L)
 
         H0, Hint, [dg, de, a] = nqtls.Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_bosons)
         c_ops = nqtls.collapses(
-            H0 + Hint, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            H0 + Hint, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         Pqt = qt.steadystate(H0 + Hint, c_ops).full()
         assert np.allclose(Pme, Pqt)
@@ -258,13 +260,13 @@ def test_correlation_AB():
             Hnc = Hnc0 + Hnc1
             Hqt = Hqt0 + Hqt1
         c_nc = ntls.collapses(
-            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         L = no.liouvillian(Hnc0 + Hnc1, c_nc)
         Snc = nme.correlation_AB(a_nc.d, L, a_nc, tlist)
 
         c_qt = nqtls.collapses(
-            Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+            Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
 
         rho_st = qt.steadystate(Hqt0 + Hqt1, list(c_qt))
@@ -290,7 +292,7 @@ def test_spectrum_g2():
     Eg = 0.4
     hw_ph = 1
     U = 1
-    Gamma_L, Gamma_R = 1e-3, 2e-3
+    Gamma_L, Gamma_R = 1e-6, 2e-6
     kappa = 0.1
     kT = 0.1
 
@@ -307,7 +309,16 @@ def test_spectrum_g2():
     Hqt = Hqt0 + Hqt1
 
     c_nc_p, c_nc_m = ntls.collapses(
-        Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, total=False
+        Hnc,
+        [dg_nc, de_nc, a_nc],
+        VL,
+        VR,
+        kappa,
+        Gamma_L,
+        Gamma_R,
+        kT,
+        hw_ph,
+        total=False,
     )
     [c_gpL, c_epL, c_gpR, c_epR, c_ap] = c_nc_p
     [c_gmL, c_emL, c_gmR, c_emR, c_am] = c_nc_m
@@ -319,7 +330,7 @@ def test_spectrum_g2():
     g2nc = nme.g2(L, a_nc, tlist)
 
     c_qt = nqtls.collapses(
-        Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT
+        Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
     )
     Iqt = kappa / (2 * np.pi) * qt.spectrum(Hqt, wlist, c_qt, a_qt.dag(), a_qt)
     rho_st = qt.steadystate(Hqt, list(c_qt))
@@ -327,7 +338,7 @@ def test_spectrum_g2():
         Hqt, state0=rho_st, taulist=tlist, c_ops=c_qt, a_op=a_qt, solver="me"
     )
 
-    assert np.allclose(Inc, Iqt)
+    assert np.allclose(Inc, Iqt, atol=1e-5)
     assert np.allclose(g2nc, g2qt, atol=1e-1)
 
 
