@@ -42,21 +42,21 @@ def analytics_sec(Gamma_L, Gamma_R, hw_ph, Delta, g_ph):
 
 # peding to add populations coming from nanocavity.rate_equation()
 def test_populations():
-    Gamma_L, Gamma_R = 1e-3, 2e-3
+    Gamma_L, Gamma_R = 1e-6, 2e-6
     Eg = 0.4
     Delta = 0.9
     hw_ph = 1
     U = 1
-    g_ph = 0.5
+    g_ph = 5e-2
     kT = 1e-2
-    kappa = 1
+    kappa = 0.01
     VL, VR = 10, -10
     max_bosons = 1
 
     H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
     H0, Hint, [dg, de, a] = ntls.Hamiltonian(*H_parameters)
     H = H0 + Hint
-    c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+    c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph)
     L = no.liouvillian(H, c_ops)
     rho = nme.stationary(L)
     # rho is written in the basis without interaction
@@ -79,7 +79,7 @@ def test_spectrum_analytics():
     U = 1
     g_ph = 0.5
 
-    Gamma_L, Gamma_R = 1e-3, 2e-3
+    Gamma_L, Gamma_R = 1e-5, 2e-5
     kappa = 0.1
     kT = 1e-2
     wlist = np.linspace(0.0, 1.8, 10)
@@ -93,7 +93,7 @@ def test_spectrum_analytics():
             H = H0
         else:
             H = H0 + Hint
-        c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT)
+        c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph)
         L = no.liouvillian(H0 + Hint, c_ops)
         Inc = kappa * nme.spectrum(L, a, wlist)
         Ianalytics = jc.spectrum(
