@@ -2,6 +2,7 @@ import numpy as np
 import nanocavity.operators as no
 import nanocavity.rate_equation as nre
 import nanocavity.master_equation as nme
+import nanocavity.distributions as ndist
 import secondquant as sq
 
 
@@ -118,7 +119,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     return H, H0, Hint, anni_ops, num_ops
 
 
-def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True, cutoff=0):
+def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, total=True, cutoff=0):
     """
     Function to calculate the collapse operators with secondquant operators
 
@@ -141,6 +142,8 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True, cutoff=0)
         coupling of the right lead to the central system
     kT: float
         Temperature
+    hw_ph: Float
+        energy of the cavity (photon) mode
     total: Logic
         By default True, returns a list with all the collapses,
         if False it returns the collapses for creation (Plus) and elimination of particles (Minus).
@@ -169,7 +172,12 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True, cutoff=0)
     c_epR, c_emR = no.collapses(de, basis, kT, "fermionic", Gamma_R, mu=VR, total=False, cutoff=cutoff)
 
     # cavity mode
-    c_ap, c_am = no.collapses(a, basis, kT, "bosonic", kappa, total=False, cutoff=cutoff)
+    #c_ap, c_am = no.collapses(a, basis, kT, "bosonic", kappa, total=False, cutoff=cutoff)
+    # we need to use the full cavity dissipator (see eq 6.37 in D.F.Walls and Gererd J. Milburn -  Quantum Optics).
+    nb_p = ndist.bose_einstein(hw_ph, kT)
+    nb_m = 1 + nb_p
+    c_ap = [np.sqrt(kappa * nb_p) * a.d.toarray()]
+    c_am = [np.sqrt(kappa * nb_m) * a.toarray()]
 
     if total:
         CL = c_gpL + c_epL + c_gmL + c_emL
