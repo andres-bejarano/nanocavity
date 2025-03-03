@@ -183,12 +183,11 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, total=True):
     c_epR, c_emR = nqo.collapses(de, H, kT, "fermionic", Gamma_R, mu=VR, total=False)
 
     # cavity mode
-    #c_ap, c_am = nqo.collapses(a, H, kT, "bosonic", kappa, total=False)
+    # c_ap, c_am = nqo.collapses(a, H, kT, "bosonic", kappa, total=False)
     nb_p = ndist.bose_einstein(hw_ph, kT)
     nb_m = 1 + nb_p
     c_ap = [np.sqrt(kappa * nb_p) * a.dag()]
     c_am = [np.sqrt(kappa * nb_m) * a]
-
 
     if total:
         CL = c_gpL + c_epL + c_gmL + c_emL

@@ -93,7 +93,9 @@ def test_spectrum_analytics():
             H = H0
         else:
             H = H0 + Hint
-        c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph)
+        c_ops = ntls.collapses(
+            H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
+        )
         L = no.liouvillian(H0 + Hint, c_ops)
         Inc = kappa * nme.spectrum(L, a, wlist)
         Ianalytics = jc.spectrum(
