@@ -159,8 +159,8 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, iva):
             left tunneling rates
         kT: float
             Temperature
-        hw_ph: Float
-        energy of the cavity (photon) mode
+        hw_ph: float
+            energy of the cavity (photon) mode
     """
     # We need the bare energies (without coupling)
     # H_parameters = Eg, Delta, hw_ph, g_ph, U, True
