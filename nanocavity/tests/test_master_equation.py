@@ -53,11 +53,10 @@ def test_reduced_population():
 
 
 def test_eig_norm():
-    # build symmetric matrix
-    x = np.random.rand(8, 8)
-    x += x.T
+    d = 25
     # build symmetric, nonhermitian matrix
-    L = (1 + 0.1j) * x
+    L = np.random.rand(d, d) + 1j * np.random.rand(d, d)
+    L += L.T
     E, vl, vr = eig(L, left=True)
 
     E1, wr = np.linalg.eig(L)
@@ -69,11 +68,29 @@ def test_eig_norm():
     assert np.allclose(vl, wl)
     assert np.allclose(vr, wr)
 
+    # now check our orthonormalization routine
     E, vl, vr = nme.eig_norm(L)
 
-    norm = np.einsum("ai,ai->i", vl.conj(), vr)
+    # orthonormalization
+    norm = np.einsum("ai,aj->ij", vl.conj(), vr)
+    assert np.allclose(norm, np.eye(d))
 
-    assert np.allclose(norm.all(), 1)
+    # recovering eigenvalues
+    E1 = np.einsum("ai,ab,bi->i", vl.conj(), L, vr)
+    assert np.allclose(E, E1)
+
+
+def test_eig_norm_nonsymmetric():
+    d = 25
+    # build nonsymmetric, nonhermitian matrix
+    L = np.random.rand(d, d) + 1j * np.random.rand(d, d)
+    E, vl, vr = nme.eig_norm(L)
+    # orthonormalization
+    norm = np.einsum("ai,aj->ij", vl.conj(), vr)
+    assert np.allclose(norm, np.eye(d))
+    # recovering eigenvalues
+    E1 = np.einsum("ai,ab,bi->i", vl.conj(), L, vr)
+    assert np.allclose(E, E1)
 
 
 @pytest.fixture(scope="module", params=[0.01, 1.0])
