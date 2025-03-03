@@ -25,7 +25,7 @@ def test_g2():
         Eg, Delta, hw_ph, g_ph, U, max_photons, rwa
     )
     a_ph_nc = anni_ops_nc[2]
-    c_ops_nc = tls.collapses(H0_nc, anni_ops_nc, VL, VR, kappa, Gamma, Gamma, kT)
+    c_ops_nc = tls.collapses(H0_nc, anni_ops_nc, VL, VR, kappa, Gamma, Gamma, kT, hw_ph)
     basis = H0_nc.eigh()
     _, c_am = no.collapses(a_ph_nc, basis, kT, "bosonic", kappa, total=False)
     L_nc = no.liouvillian(H0_nc + Hint_nc, c_ops_nc)
@@ -37,7 +37,7 @@ def test_g2():
 
     H0, Hint, anni_ops = qtls.Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_photons, rwa)
     a_ph = anni_ops[2]
-    c_ops = qtls.collapses(H0, anni_ops, VL, VR, kappa, Gamma, Gamma, kT)
+    c_ops = qtls.collapses(H0, anni_ops, VL, VR, kappa, Gamma, Gamma, kT, hw_ph)
     rho = qt.steadystate(H0 + Hint, c_ops)
     g2, _ = qt.coherence_function_g2(
         H0 + Hint, rho, tlist, c_ops, a_ph, options={"progress_bar": False}
