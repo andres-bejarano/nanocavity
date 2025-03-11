@@ -3,7 +3,7 @@ import secondquant as sq
 import scipy.linalg as sa
 
 
-def Hamiltonian(E, hw_ph, max_bosons):
+def Hamiltonian(hw_ph, E=0, max_bosons=5):
     """
     Function that gives the Hamiltonian for a one level system coupled to a cavity after
     applying the Lang Firsov transformation.
