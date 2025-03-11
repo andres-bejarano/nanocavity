@@ -27,6 +27,13 @@ def Hamiltonian(E, hw_ph, max_bosons):
     return Hs, anni_ops, num_ops
 
 
+def Lang_Firsov_transform(dg, a_ph, g_ph):
+    x = g_ph * (a_ph - a_ph.d)
+    X = sq.operator.Operator(sa.expm(x.toarray()))
+    Dg = dg * X
+    return Dg
+
+
 def collapse_electronic(Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False, cutoff=0):
     """
         Function to calculate the electronic collapse operators for the OLS.
