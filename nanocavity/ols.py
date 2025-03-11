@@ -27,23 +27,17 @@ def Hamiltonian(E, hw_ph, max_bosons):
     return Hs, anni_ops, num_ops
 
 
-def collapse_electronic(
-    dg, a_ph, basis, g_ph, VL, VR, Gamma_L, Gamma_R, kT, total=False, cutoff=0
-):
+def collapse_electronic(Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False, cutoff=0):
     """
         Function to calculate the electronic collapse operators for the OLS.
     Applies a Lang Firsov transform on the electronic operators
 
     Parameters:
     -----
-    dg: secondquant operator
-        electronic annihilation operator
-    a_ph: secondquant operator
-        photonic annihilation operator
+    Dg: secondquant operator
+        electronic annihilation operator AFTER Lang-Firsov transformation
     basis: list
         (E, V) describing the basis for the collapse operators
-    g_ph: float
-        electron-photon coupling strength
     VL: float
         bias at left lead
     VR: float
@@ -60,9 +54,6 @@ def collapse_electronic(
     cutoff: float
         cutoff for the considered transition matrix elements
     """
-    x = g_ph * (a_ph - a_ph.d)
-    X = sq.operator.Operator(sa.expm(x.toarray()))
-    Dg = dg * X
 
     # Electronic collapse operators
     c_pL, c_mL = no.collapses(
