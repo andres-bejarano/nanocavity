@@ -73,10 +73,3 @@ def collapse_electronic(Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False, cu
         c_e = c_pL + c_mL + c_pR + c_mR
         return c_e
     return [c_pL, c_mL, c_pR, c_mR]
-
-
-def collapse_cavity(a_ph, basis, kT, kappa, total=False, cutoff=0):
-    cAp, cAm = no.collapses(a_ph, basis, kT, "bosonic", kappa, 0, total=False)
-    if total:
-        return cAp + cAm
-    return cAp, cAm
