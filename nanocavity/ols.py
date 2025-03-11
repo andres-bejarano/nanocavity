@@ -82,10 +82,3 @@ def collapse_cavity(a_ph, basis, kT, kappa, total=False, cutoff=0):
     if total:
         return cAp + cAm
     return cAp, cAm
-
-
-H, [dg, a_ph], [ng, n_ph] = Hamiltonian(0, 1, 5)
-kappa = 1e-1
-basis = H.eigh()
-kT = 1e-3
-c_ap, c_am = collapse_cavity(a_ph, basis, kT, kappa)
