@@ -164,15 +164,23 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, total=True, cu
     basis = H.eigh()
 
     # left electrode
-    c_gpL, c_gmL = no.collapses(dg, basis, kT, "fermionic", Gamma_L, mu=VL, total=False, cutoff=cutoff)
-    c_epL, c_emL = no.collapses(de, basis, kT, "fermionic", Gamma_L, mu=VL, total=False, cutoff=cutoff)
+    c_gpL, c_gmL = no.collapses(
+        dg, basis, kT, "fermionic", Gamma_L, mu=VL, total=False, cutoff=cutoff
+    )
+    c_epL, c_emL = no.collapses(
+        de, basis, kT, "fermionic", Gamma_L, mu=VL, total=False, cutoff=cutoff
+    )
 
     # right electrode
-    c_gpR, c_gmR = no.collapses(dg, basis, kT, "fermionic", Gamma_R, mu=VR, total=False, cutoff=cutoff)
-    c_epR, c_emR = no.collapses(de, basis, kT, "fermionic", Gamma_R, mu=VR, total=False, cutoff=cutoff)
+    c_gpR, c_gmR = no.collapses(
+        dg, basis, kT, "fermionic", Gamma_R, mu=VR, total=False, cutoff=cutoff
+    )
+    c_epR, c_emR = no.collapses(
+        de, basis, kT, "fermionic", Gamma_R, mu=VR, total=False, cutoff=cutoff
+    )
 
     # cavity mode
-    #c_ap, c_am = no.collapses(a, basis, kT, "bosonic", kappa, total=False, cutoff=cutoff)
+    # c_ap, c_am = no.collapses(a, basis, kT, "bosonic", kappa, total=False, cutoff=cutoff)
     # we need to use the full cavity dissipator (see eq 6.37 in D.F.Walls and Gererd J. Milburn -  Quantum Optics).
     nb_p = ndist.bose_einstein(hw_ph, kT)
     nb_m = 1 + nb_p
