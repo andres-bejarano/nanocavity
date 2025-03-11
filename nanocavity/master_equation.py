@@ -1,8 +1,9 @@
 import numpy as np
-import nanocavity.distributions as ndist
-import nanocavity.operators as no
 from scipy.linalg import eig, expm
 from secondquant.operator import Operator
+
+import nanocavity.distributions as ndist
+import nanocavity.operators as no
 
 
 def reduced_population(nr_op, rho, values=[]):

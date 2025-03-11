@@ -1,11 +1,12 @@
 import numpy as np
+import pytest
+import qutip as qt
+
+import nanocavity.master_equation as nme
 import nanocavity.operators as no
 import nanocavity.qutip.operators as nqo
-import nanocavity.tls as ntls
 import nanocavity.qutip.tls as nqtls
-import nanocavity.master_equation as nme
-import qutip as qt
-import pytest
+import nanocavity.tls as ntls
 
 
 def test_Htls_nc_QuTiP():

@@ -1,7 +1,9 @@
-import pytest
-import nanocavity.franck_condon as nfc
-import numpy as np
 import math
+
+import numpy as np
+import pytest
+
+import nanocavity.franck_condon as nfc
 
 
 # The following functions are taken from: Mitra, Aleiner and Millis, PRB 69, 245302 (2004)

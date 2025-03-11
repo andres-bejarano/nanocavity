@@ -1,9 +1,10 @@
 import numpy as np
+import secondquant as sq
+
+import nanocavity.distributions as ndist
+import nanocavity.master_equation as nme
 import nanocavity.operators as no
 import nanocavity.rate_equation as nre
-import nanocavity.master_equation as nme
-import nanocavity.distributions as ndist
-import secondquant as sq
 
 
 def Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_bosons, rwa=False, ret_nop=False):

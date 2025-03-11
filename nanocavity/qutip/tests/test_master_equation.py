@@ -1,9 +1,10 @@
 import numpy as np
+import qutip as qt
+
+import nanocavity.master_equation as nme
+import nanocavity.operators as no
 import nanocavity.qutip.tls as qtls
 import nanocavity.tls as tls
-import nanocavity.operators as no
-import nanocavity.master_equation as nme
-import qutip as qt
 
 
 def test_g2():

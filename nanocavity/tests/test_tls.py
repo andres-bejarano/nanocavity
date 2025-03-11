@@ -1,9 +1,10 @@
 import numpy as np
-import nanocavity.master_equation as nme
-import nanocavity.tls as ntls
-import nanocavity.operators as no
-import nanocavity.jaynes_cumming_analytics as jc
 import pytest
+
+import nanocavity.jaynes_cumming_analytics as jc
+import nanocavity.master_equation as nme
+import nanocavity.operators as no
+import nanocavity.tls as ntls
 
 
 # the angle of each branch in Jaynes-Cummings model

@@ -1,6 +1,7 @@
 import numpy as np
+from qutip import lindblad_dissipator, spost, spre, sprepost
+
 import nanocavity.distributions as ndist
-from qutip import sprepost, spre, spost, lindblad_dissipator
 
 
 def collapses(A_op, H, kT, bath, rate, mu=0, total=True, cutoff=1e-12):

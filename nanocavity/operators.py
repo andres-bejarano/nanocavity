@@ -1,7 +1,8 @@
 import numpy as np
 import numpy.linalg as la
-import nanocavity.distributions as ndist
 from secondquant.operator import Operator
+
+import nanocavity.distributions as ndist
 
 
 def collapses(A_op, basis, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
