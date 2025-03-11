@@ -3,28 +3,39 @@ import scipy.special as sp
 from math import factorial
 
 
-def FC_factor(nr_bosons, g):
-    """Function to calculate the squared Franck-Condon Factors
-    Parameters:
-    --------------
-        nr_bosons: int
-        number of considered bosons in the system
-        g: float
-        coupling strength
-    Returns:
-    --------------
-        FC: np.array
-        Matrix containing the Franck-Condon Factors
-        Probably calculated according to:
-            Koch, von Oppen, Andreev, PRB 74, 205438 (2006),
-            Theory of the Franck-Condon blockade regime
+def FC2(a, b, g):
+    """Squared Franck-Condon matrix elements M^2_{a,b}
+
+    See Eq. (8) in:
+    J. Koch, F. von Oppen, and A. V. Andreev
+    Theory of the Franck-Condon blockade regime
+    Phys. Rev. B 74, 205438 (2006)
+
+    Parameters
+    ----------
+    a : int or array-like
+       first index
+    b : int or array-like
+       second index
+    g : float
+       coupling strength
+
+    Returns
+    -------
+    M2 : np.array or float
+       Squared Franck-Condon matrix element(s)
     """
-    a = np.arange(nr_bosons + 1)
-    nr_bosons, m = np.meshgrid(a, a)
-    q = np.minimum(nr_bosons, m)
-    Q = np.maximum(nr_bosons, m)
+
+    n, m = np.meshgrid(a, b, indexing="ij")
+    q = np.minimum(n, m)
+    Q = np.maximum(n, m)
     fq = sp.factorial(q)
     fQ = sp.factorial(Q)
     L = sp.eval_genlaguerre(q, Q - q, g**2)
     M2 = fq / fQ * np.exp(-(g**2)) * (g ** (Q - q) * L) ** 2
+
+    if np.isscalar(a) and np.isscalar(b):
+        return M2[0].item()
+    elif np.isscalar(a) or np.isscalar(b):
+        return M2.ravel()
     return M2
