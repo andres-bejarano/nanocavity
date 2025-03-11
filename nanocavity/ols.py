@@ -31,7 +31,7 @@ def collapse_electronic(
     dg, a_ph, basis, g_ph, VL, VR, Gamma_L, Gamma_R, kT, total=False, cutoff=0
 ):
     """
-    Function to calculate the electronic collapse operators for the OLS.
+        Function to calculate the electronic collapse operators for the OLS.
     Applies a Lang Firsov transform on the electronic operators
 
     Parameters:
