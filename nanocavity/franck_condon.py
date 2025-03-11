@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.special as sp
-from math import factorial
 
 
 def FC2(a, b, g):
