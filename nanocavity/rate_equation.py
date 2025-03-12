@@ -1,6 +1,7 @@
 import numpy as np
-import nanocavity.distributions as ndist
 import numpy.linalg as la
+
+import nanocavity.distributions as ndist
 
 
 def matrix_elements(A, v, g):

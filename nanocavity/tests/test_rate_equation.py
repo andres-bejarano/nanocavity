@@ -1,7 +1,8 @@
 import numpy as np
 import secondquant as sq
-import nanocavity.rate_equation as nre
+
 import nanocavity.distributions as ndist
+import nanocavity.rate_equation as nre
 
 
 def rate_parameters(modes=1):

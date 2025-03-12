@@ -1,8 +1,9 @@
 import numpy as np
-from scipy.linalg import eig
-import nanocavity.qutip.operators as qo
-import nanocavity.master_equation as nme
 from qutip import operator_to_vector, steadystate
+from scipy.linalg import eig
+
+import nanocavity.master_equation as nme
+import nanocavity.qutip.operators as qo
 
 
 def current(J, L):

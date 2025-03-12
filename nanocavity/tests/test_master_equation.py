@@ -1,10 +1,11 @@
 import numpy as np
+import pytest
+import secondquant as sq
+from scipy.linalg import eig
+
+import nanocavity.distributions as ndist
 import nanocavity.master_equation as nme
 import nanocavity.operators as no
-from scipy.linalg import eig
-import secondquant as sq
-import pytest
-import nanocavity.distributions as ndist
 
 
 def test_reduced_population():

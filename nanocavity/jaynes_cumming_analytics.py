@@ -1,9 +1,9 @@
 import numpy as np
-import nanocavity.operators as no
-import nanocavity.master_equation as nme
-import nanocavity.tls as tls
-import nanocavity.distributions as ndist
 
+import nanocavity.distributions as ndist
+import nanocavity.master_equation as nme
+import nanocavity.operators as no
+import nanocavity.tls as tls
 
 """
 Generalized Jaynes-Cummings model:

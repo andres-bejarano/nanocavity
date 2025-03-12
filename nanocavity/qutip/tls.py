@@ -1,7 +1,8 @@
 import numpy as np
-import nanocavity.qutip.operators as nqo
-import nanocavity.distributions as ndist
 import qutip as qt
+
+import nanocavity.distributions as ndist
+import nanocavity.qutip.operators as nqo
 
 
 def Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_bosons, rwa=False):

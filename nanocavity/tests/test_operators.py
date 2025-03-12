@@ -1,9 +1,10 @@
 import numpy as np
+import pytest
+import secondquant as sq
+
+import nanocavity.distributions as nd
 import nanocavity.operators as no
 import nanocavity.tls as ntls
-import secondquant as sq
-import pytest
-import nanocavity.distributions as nd
 
 
 def test_liouvillian_basic():

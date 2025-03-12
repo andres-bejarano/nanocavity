@@ -1,9 +1,10 @@
 import numpy as np
-import nanocavity.operators as no
-import nanocavity.tls as ntls
-import nanocavity.qutip.tls as nqtls
-import qutip as qt
 import pytest
+import qutip as qt
+
+import nanocavity.operators as no
+import nanocavity.qutip.tls as nqtls
+import nanocavity.tls as ntls
 
 
 def test_liouvillian_basic():
