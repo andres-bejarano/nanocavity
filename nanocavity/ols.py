@@ -91,4 +91,4 @@ def collapse_electronic(D, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False, cut
     if total:
         c_e = c_pL + c_mL + c_pR + c_mR
         return c_e
-    return [c_pL, c_mL, c_pR, c_mR]
+    return c_pL, c_mL, c_pR, c_mR
