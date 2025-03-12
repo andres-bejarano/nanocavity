@@ -27,11 +27,31 @@ def Hamiltonian(hw_ph, E=1e-12, max_bosons=5):
     return Hs, anni_ops, num_ops
 
 
-def Lang_Firsov_transform(dg, a_ph, g_ph):
+def Lang_Firsov_transform(d, a_ph, g_ph):
+    """
+    Function calculating the Lang-Firsov transform of an electronic annihilation operator
+    Parameters:
+        ----
+        d: secondquant operator
+            electronic annihilation operator
+        a_ph: secondquant operator
+            bosonic annihilation operator
+        g_ph: float
+            coupling strength between electrons and bosons
+
+    Returns:
+        ---
+        D: secondquant operator
+            Lang-Firsov transformed electronic annihilation operator
+        A_ph: secondquant operator
+            Shifted bosonice operator
+
+    """
     x = g_ph * (a_ph - a_ph.d)
     X = sq.operator.Operator(sa.expm(x.toarray()))
-    Dg = dg * X
-    return Dg
+    D = d * X
+    A = a_ph - g_ph * d.d * d
+    return D, A
 
 
 def collapse_electronic(Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False, cutoff=0):
