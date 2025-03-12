@@ -20,8 +20,8 @@ def Hamiltonian(hw_ph, E=1e-12, max_bosons=5):
             number of photons to be considered
 
     """
-    [dg, a_ph], [ng, n_ph] = sq.composite(1, [max_bosons])
-    anni_ops = [dg, a_ph]
+    [d, a_ph], [ng, n_ph] = sq.composite(1, [max_bosons])
+    anni_ops = [d, a_ph]
     num_ops = [ng, n_ph]
     Hs = E * ng + hw_ph * n_ph
     return Hs, anni_ops, num_ops
@@ -54,14 +54,13 @@ def Lang_Firsov_transform(d, a_ph, g_ph):
     return D, A
 
 
-def collapse_electronic(Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False, cutoff=0):
+def collapse_electronic(D, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False, cutoff=0):
     """
         Function to calculate the electronic collapse operators for the OLS.
-    Applies a Lang Firsov transform on the electronic operators
 
     Parameters:
     -----
-    Dg: secondquant operator
+    D: secondquant operator
         electronic annihilation operator AFTER Lang-Firsov transformation
     basis: list
         (E, V) describing the basis for the collapse operators
@@ -84,10 +83,10 @@ def collapse_electronic(Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False, cu
 
     # Electronic collapse operators
     c_pL, c_mL = no.collapses(
-        Dg, basis, kT, "fermionic", Gamma_L, mu=VL, total=False, cutoff=cutoff
+        D, basis, kT, "fermionic", Gamma_L, mu=VL, total=False, cutoff=cutoff
     )
     c_pR, c_mR = no.collapses(
-        Dg, basis, kT, "fermionic", Gamma_R, mu=VR, total=False, cutoff=cutoff
+        D, basis, kT, "fermionic", Gamma_R, mu=VR, total=False, cutoff=cutoff
     )
     if total:
         c_e = c_pL + c_mL + c_pR + c_mR

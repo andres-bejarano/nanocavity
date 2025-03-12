@@ -1,5 +1,6 @@
 import nanocavity.ols as ols
-import secondquant as sq
+from itertools import chain
+from secondquant.operator import Operator
 
 
 def test_hamiltonian():
@@ -16,19 +17,20 @@ def test_hamiltonian():
 def test_lang_firsov_transform():
     hw_ph = 1
     g_ph = 1
-    Hs, [dg, a_ph], [ng, n_ph] = ols.Hamiltonian(hw_ph)
-    Dg = ols.Lang_Firsov_transform(dg, a_ph, g_ph)
-    assert isinstance(Dg, sq.operator.operator.Operator)
+    Hs, [D, a_ph], [ng, n_ph] = ols.Hamiltonian(hw_ph)
+    D, A = ols.Lang_Firsov_transform(D, a_ph, g_ph)
+    assert isinstance(D, Operator)
+    assert isinstance(A, Operator)
 
 
 def test_collapse_electronic():
     hw_ph = 1
     g_ph = 1
-    Hs, [dg, a_ph], [ng, n_ph] = ols.Hamiltonian(hw_ph)
-    Dg = ols.Lang_Firsov_transform(dg, a_ph, g_ph)
+    Hs, [D, a_ph], [ng, n_ph] = ols.Hamiltonian(hw_ph)
+    D, A = ols.Lang_Firsov_transform(D, a_ph, g_ph)
     basis = Hs.eigh()
 
-    coll_list = ols.collapse_electronic(Dg, basis, 1, -1, 1e-4, 5e-4, 1e-3)
+    coll_list = ols.collapse_electronic(D, basis, 1, -1, 1e-4, 5e-4, 1e-3)
     assert isinstance(coll_list, list)
     assert isinstance(coll_list[0], list)
     assert len(coll_list) == 4
