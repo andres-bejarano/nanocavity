@@ -253,7 +253,7 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     frequency : float or ndarray
         Frequencies (energies) to be evaluated
     cutoff : float
-        -´-.the precision of the values to be considered in the 'eigen' method
+        the precision of the values to be considered in the 'eigen' method
     verbose : bool
         print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
     ret_data : bool
