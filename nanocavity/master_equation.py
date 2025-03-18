@@ -288,7 +288,7 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     index = 0
     for k in range(len(E)):
         if abs(M[k]) > cutoff:
-            I += M[k].real * ndist.lorentzian(frequency - E[k].imag, -2 * E[k].real)
+            I += M[k] * ndist.lorentzian(frequency - E[k].imag, -2 * E[k].real)
             index += 1
 
     if ret_data:
