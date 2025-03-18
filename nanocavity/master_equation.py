@@ -285,16 +285,16 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     M = M[idx]
     E = E[idx]
 
-    index = 0
+    # keep only data meeting the cutoff criterium
+    idx  = np.where(np.abs(M) > cutoff)[0]
+    M = M[idx]
+    E = E[idx]
+    
     for k in range(len(E)):
-        if abs(M[k]) > cutoff:
-            I += M[k] * ndist.lorentzian(frequency - E[k].imag, -2 * E[k].real)
-            index += 1
+        I += M[k] * ndist.lorentzian(frequency - E[k].imag, -2 * E[k].real)
 
     if ret_data:
-        if cutoff !=0:
-            # spectrum, weights, eigenvalues
-            return I, M[:index], E[:index]
+        # spectrum, weights, eigenvalues
         return I, M, E
 
     return I
