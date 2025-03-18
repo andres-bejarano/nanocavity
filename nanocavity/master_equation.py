@@ -280,7 +280,7 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     #Focus on real part
     M = M.real
     
-    # sort descending
+    # sort descending after taking real part
     idx = np.argsort(-M)
     M = M[idx]
     E = E[idx]
