@@ -278,7 +278,7 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     I = np.zeros(len(frequency), dtype=np.float64)
 
     for k in range(len(E)):
-        if M[k] > cutoff:
+        if abs(M[k]) > cutoff:
             I += M[k].real * ndist.lorentzian(frequency - E[k].imag, -2 * E[k].real)
 
     if ret_data:
