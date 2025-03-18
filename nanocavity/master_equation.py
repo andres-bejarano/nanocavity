@@ -198,11 +198,12 @@ def regression_theorem(
     M = M[idx]
     E = E[idx]
 
+    if verbose is True:
+        verbose = 10
+
     if verbose:
-        # print up to 10 leading contributions according to magnitude of M[k]
-        idx = np.argsort(-np.abs(M))[:10]
         print(f"{'k':>4} {'Re(Mk)':>16} {'Im(Mk)':>16} {'Re(Ek)':>16} {'Im(Ek)':>16}")
-        for k in idx:
+        for k in range(verbose):
             print(
                 f"{k:4} {M[k].real:16.8e} {M[k].imag:16.8e} {E[k].real:16.8e} {E[k].imag:16.8e}"
             )
@@ -252,7 +253,7 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     frequency : float or ndarray
         Frequencies (energies) to be evaluated
     cutoff : float
-        the precision of the values to be considered in the 'eigen' method
+        -´-.the precision of the values to be considered in the 'eigen' method
     verbose : bool
         print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
     ret_data : bool
