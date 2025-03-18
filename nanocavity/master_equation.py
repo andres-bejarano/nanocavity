@@ -147,7 +147,7 @@ def _operator2super(A, dim):
 
 
 def regression_theorem(
-    A, L, B, rho_st=None, sort=True, avgA=False, avgB=False, verbose=True
+    A, L, B, rho_st=None, avgA=False, avgB=False, verbose=True
 ):
     """Uses the quantum regression theorem to compute two-operator coefficients and L-eigenvalues
 
@@ -193,11 +193,10 @@ def regression_theorem(
     # coefficients M_k = <ALB>_k
     M = (w0A @ vr) * (vl.conj().T @ Brho)
 
-    if sort:
-        # sort descending
-        idx = np.argsort(-np.abs(M))
-        M = M[idx]
-        E = E[idx]
+    # sort descending
+    idx = np.argsort(-np.abs(M))
+    M = M[idx]
+    E = E[idx]
 
     if verbose:
         # print up to 10 leading contributions according to magnitude of M[k]
@@ -272,21 +271,20 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     """
     if verbose:
         print(f"Computing spectrum with cutoff={cutoff}")
-    M, E = regression_theorem(A.d, L, A, rho_st, verbose=verbose, sort=False)
+    M, E = regression_theorem(A.d, L, A, rho_st, verbose=verbose)
 
     # spectrum is a real quantity, so we can skip the imaginary part
-    M = M.real
     frequency = _toarray(frequency)
     I = np.zeros(len(frequency), dtype=np.float64)
 
     for k in range(len(E)):
         if M[k] > cutoff:
-            I += M[k] * ndist.lorentzian(frequency - E[k].imag, -2 * E[k].real)
+            I += M[k].real * ndist.lorentzian(frequency - E[k].imag, -2 * E[k].real)
 
     if ret_data:
         # spectrum, weights, eigenvalues
-        idx = np.argsort(-M)
-        return I, M[idx], E[idx]
+        # sort descending
+        return I, M, E
 
     return I
 
