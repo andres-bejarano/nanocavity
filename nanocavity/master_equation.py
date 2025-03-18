@@ -273,7 +273,6 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
         print(f"Computing spectrum with cutoff={cutoff}")
     M, E = regression_theorem(A.d, L, A, rho_st, verbose=verbose)
 
-    # spectrum is a real quantity, so we can skip the imaginary part
     frequency = _toarray(frequency)
     I = np.zeros(len(frequency), dtype=np.float64)
 
