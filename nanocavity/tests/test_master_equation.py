@@ -208,7 +208,7 @@ def test_spectrum():
     I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True)
     assert np.allclose(I, I2)
     assert np.all(Mk >= -1e-30)  # tolerate tiny negative values?
-    assert np.all(abs(Mk[1:]) <= abs(Mk[:-1]))  # entries sorted descending?
+    assert np.all(Mk[1:] <= Mk[:-1])  # entries sorted descending?
     I3 = nme.spectrum(L, a, frequency, cutoff=10)
     assert np.allclose(I3, 0)
 

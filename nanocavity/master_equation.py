@@ -277,13 +277,24 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     frequency = _toarray(frequency)
     I = np.zeros(len(frequency), dtype=np.float64)
 
+    #Focus on real part
+    M = M.real
+    
+    # sort descending
+    idx = np.argsort(-M)
+    M = M[idx]
+    E = E[idx]
+
+    index = 0
     for k in range(len(E)):
         if abs(M[k]) > cutoff:
             I += M[k].real * ndist.lorentzian(frequency - E[k].imag, -2 * E[k].real)
+            index += 1
 
     if ret_data:
-        # spectrum, weights, eigenvalues
-        # sort descending
+        if cutoff !=0:
+            # spectrum, weights, eigenvalues
+            return I, M[:index], E[:index]
         return I, M, E
 
     return I
