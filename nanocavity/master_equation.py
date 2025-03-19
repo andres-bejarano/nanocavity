@@ -147,8 +147,7 @@ def _operator2super(A, dim):
 
 
 def regression_theorem(
-    A, L, B, rho_st=None, avgA=False, avgB=False, verbose=True
-):
+    A, L, B, rho_st=None, avgA=False, avgB=False, verbose=True, cutoff=0, real=False):
     """Uses the quantum regression theorem to compute two-operator coefficients and L-eigenvalues
 
     Parameters
@@ -194,16 +193,22 @@ def regression_theorem(
     M = (w0A @ vr) * (vl.conj().T @ Brho)
 
     # sort descending
-    idx = np.argsort(-np.abs(M))
+    if real:
+        M = M.real
+    
+    # sort descending after taking real part
+    idx = np.argsort(-M)
     M = M[idx]
     E = E[idx]
 
-    if verbose is True:
-        verbose = 10
+    # keep only data meeting the cutoff criterium
+    idx  = np.where(np.abs(M) > cutoff)[0]
+    M = M[idx]
+    E = E[idx]
 
     if verbose:
         print(f"{'k':>4} {'Re(Mk)':>16} {'Im(Mk)':>16} {'Re(Ek)':>16} {'Im(Ek)':>16}")
-        for k in range(verbose):
+        for k in range(len(E)):
             print(
                 f"{k:4} {M[k].real:16.8e} {M[k].imag:16.8e} {E[k].real:16.8e} {E[k].imag:16.8e}"
             )
@@ -272,24 +277,11 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     """
     if verbose:
         print(f"Computing spectrum with cutoff={cutoff}")
-    M, E = regression_theorem(A.d, L, A, rho_st, verbose=verbose)
+    M, E = regression_theorem(A.d, L, A, rho_st, verbose=verbose, cutoff=cutoff, real=True)
 
     frequency = _toarray(frequency)
     I = np.zeros(len(frequency), dtype=np.float64)
 
-    #Focus on real part
-    M = M.real
-    
-    # sort descending after taking real part
-    idx = np.argsort(-M)
-    M = M[idx]
-    E = E[idx]
-
-    # keep only data meeting the cutoff criterium
-    idx  = np.where(np.abs(M) > cutoff)[0]
-    M = M[idx]
-    E = E[idx]
-    
     for k in range(len(E)):
         I += M[k] * ndist.lorentzian(frequency - E[k].imag, -2 * E[k].real)
 
