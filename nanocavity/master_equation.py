@@ -160,15 +160,16 @@ def regression_theorem(
         operator or superoperator
     rho_st : ndarray
         steady-state density matrix
-    sort : bool
-        whether to sort coefficients according to magnitude |M_k|
     avgA : bool
         whether to return the expectation value <A>
     avgB : bool
         whether to return the expectation value <B>
     verbose : bool
-        print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
-
+        print  all  M_k coefficients and corresponding complex eigenvalues E_k above cutoff
+     cutoff : float
+        the precision of the values to be considered in the M coefficients
+    real : bool
+        whether to keep only the real part of Mk
     Returns
     -------
     Coefficients, Eigenvalues, (<A>), (<B>)
@@ -192,17 +193,16 @@ def regression_theorem(
     # coefficients M_k = <ALB>_k
     M = (w0A @ vr) * (vl.conj().T @ Brho)
 
-    # sort descending
     if real:
         M = M.real
     
-    # sort descending after taking real part
+    # sort descending 
     idx = np.argsort(-M)
     M = M[idx]
     E = E[idx]
 
     # keep only data meeting the cutoff criterium
-    idx  = np.where(np.abs(M) > cutoff)[0]
+    idx  = np.where(np.abs(M) >= cutoff)[0]
     M = M[idx]
     E = E[idx]
 
@@ -257,9 +257,9 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     frequency : float or ndarray
         Frequencies (energies) to be evaluated
     cutoff : float
-        the precision of the values to be considered in the 'eigen' method
+        the precision of the values to be considered in the M coefficients coming from regression_theorem
     verbose : bool
-        print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
+        print  all  M_k coefficients and corresponding complex eigenvalues E_k above cutoff
     ret_data : bool
         whether to return also G1, M_k, and E_k
     rho_st : ndarray
@@ -320,9 +320,9 @@ def g2(
     method : str
         'eigen' to expand in eigenvalues of L or 'direct' to calculate the trace of all the operators involved
     cutoff : float
-        the precision of the values to be considered in the 'eigen' method
+        the precision of the values to be considered in the 'eigen' method for M coefficients coming from regression_theorem
     verbose : bool
-        print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
+        print  all  M_k coefficients and corresponding complex eigenvalues E_k above cutoff
     ret_data : bool
         whether to return also G1, M_k, and E_k
     rho_st : ndarray
