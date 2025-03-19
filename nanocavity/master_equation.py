@@ -195,7 +195,7 @@ def regression_theorem(
 
     if real:
         M = M.real
-         # sort descending 
+        # sort descending 
         idx = np.argsort(-M)
         M = M[idx]
         E = E[idx]
