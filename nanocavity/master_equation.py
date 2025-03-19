@@ -201,7 +201,7 @@ def regression_theorem(
         E = E[idx]
 
     # keep only data meeting the cutoff criterium
-    idx  = np.where(np.abs(M) >= cutoff)[0]
+    idx = np.where(np.abs(M) >= cutoff)[0]
     M = M[idx]
     E = E[idx]
 
