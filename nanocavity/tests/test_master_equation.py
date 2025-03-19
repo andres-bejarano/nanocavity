@@ -206,7 +206,7 @@ def test_regression_theorem():
     M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=True)
     assert np.all(np.isreal(M)) #check real
     assert np.all(M[1:] <= M[:-1])  # if is real is sorted
-    E, M = nme.regression_theorem(a, L, a.d, cutoff=0, real=False)
+    M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=False)
     assert np.all(np.iscomplex(M)) #check complex
 
 def test_spectrum():
