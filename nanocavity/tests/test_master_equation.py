@@ -227,7 +227,8 @@ def test_spectrum():
     frequency = np.arange(1, 10)
     I = nme.spectrum(L, a, frequency, verbose=False)
     I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True)
-    assert not np.allclose(E.imag, 0)  # could have complex values
+    assert len(Mk) == len(E) == len(L) # If we do not discard, the dimensions are maintained
+    assert not np.allclose(E.imag, 0)  # some entries should have imaginary part
     assert np.all(np.isreal(I))  # must be real
     assert np.all(np.isreal(I2))  # must be real
     assert np.all(np.isreal(Mk))  # must be real
@@ -249,6 +250,9 @@ def test_spectrum():
     I6 = nme.spectrum(L, a, [1, 2], verbose=False)
     assert np.allclose(I[:2], I6)
 
+    # cutoff
+    I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True, cutoff=1e-8)
+    assert len(Mk) == len(E) == 6 # With this cut we know that only 6 value are maintained
 
 def test_g2():
     # just a single harmonic oscillator, H = a.d * a, coupled to bath
