@@ -258,7 +258,7 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     cutoff : float
         the precision of the values to be considered in the M coefficients coming from regression_theorem
     verbose : bool
-        print  all  M_k coefficients and corresponding complex eigenvalues E_k above cutoff
+        print all M_k coefficients and corresponding complex eigenvalues E_k above cutoff
     ret_data : bool
         whether to return also G1, M_k, and E_k
     rho_st : ndarray
@@ -321,7 +321,7 @@ def g2(
     cutoff : float
         the precision of the values to be considered in the 'eigen' method for M coefficients coming from regression_theorem
     verbose : bool
-        print  all  M_k coefficients and corresponding complex eigenvalues E_k above cutoff
+        print all M_k coefficients and corresponding complex eigenvalues E_k above cutoff
     ret_data : bool
         whether to return also G1, M_k, and E_k
     rho_st : ndarray
