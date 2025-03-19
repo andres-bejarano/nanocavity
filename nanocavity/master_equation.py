@@ -208,9 +208,9 @@ def regression_theorem(
 
     if verbose:
         print(f"{'k':>4} {'Re(Mk)':>16} {'Im(Mk)':>16} {'Re(Ek)':>16} {'Im(Ek)':>16}")
-        for k in range(len(E)):
+        for k, Ek in enumerate(E):
             print(
-                f"{k:4} {M[k].real:16.8e} {M[k].imag:16.8e} {E[k].real:16.8e} {E[k].imag:16.8e}"
+                f"{k:4} {M[k].real:16.8e} {M[k].imag:16.8e} {Ek.real:16.8e} {Ek.imag:16.8e}"
             )
 
     # compute also expectation values?
@@ -233,9 +233,9 @@ def correlation_AB(
     # correlation function S is generally complex
     time_delay = _toarray(time_delay)
     S = np.zeros(len(time_delay), dtype=np.complex128)
-
-    for k in range(len(E)):
-        S += M[k] * np.exp(E[k] * time_delay)
+    
+    for k, Ek in enumerate(E):
+        S += M[k] * np.exp(Ek * time_delay)
 
     if ret_data:
         # S, weights, eigenvalues
@@ -281,8 +281,8 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     frequency = _toarray(frequency)
     I = np.zeros(len(frequency), dtype=np.float64)
 
-    for k in range(len(E)):
-        I += M[k] * ndist.lorentzian(frequency - E[k].imag, -2 * E[k].real)
+    for k, Ek in enumerate(E):
+        I += M[k] * ndist.lorentzian(frequency - Ek.imag, -2 * Ek.real)
 
     if ret_data:
         # spectrum, weights, eigenvalues
@@ -351,8 +351,8 @@ def g2(
     if method == "eigen":
         M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True, cutoff=cutoff)
 
-        for k in range(len(E)):
-            G2 += M[k] * np.exp(E[k] * time_delay)
+        for k, Ek in enumerate(E):
+            G2 += M[k] * np.exp(Ek * time_delay)
 
     elif method == "direct":
 
