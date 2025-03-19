@@ -195,11 +195,10 @@ def regression_theorem(
 
     if real:
         M = M.real
-    
-    # sort descending 
-    idx = np.argsort(-M)
-    M = M[idx]
-    E = E[idx]
+         # sort descending 
+        idx = np.argsort(-M)
+        M = M[idx]
+        E = E[idx]
 
     # keep only data meeting the cutoff criterium
     idx  = np.where(np.abs(M) >= cutoff)[0]
