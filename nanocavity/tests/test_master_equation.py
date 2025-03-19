@@ -203,7 +203,8 @@ def test_regression_theorem():
     c_ops = no.collapses(c, basis, kT, "fermionic", rate)
     a_ops = no.collapses(a, basis, kT, "bosonic", rate)
     L = no.liouvillian(H, c_ops + a_ops)
-    M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=True)
+    M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=True) 
+    assert not np.allclose(E.imag, 0)  # could have complex values
     assert np.all(np.isreal(M)) #check real
     assert np.all(M[1:] <= M[:-1])  # if is real is sorted
     M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=False)
@@ -223,6 +224,7 @@ def test_spectrum():
     frequency = np.arange(1, 10)
     I = nme.spectrum(L, a, frequency, verbose=False)
     I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True)
+    assert not np.allclose(E.imag, 0)  # could have complex values
     assert np.all(np.isreal(I))  # must be real
     assert np.all(np.isreal(I2))  # must be real
     assert np.all(np.isreal(Mk))  # must be real
