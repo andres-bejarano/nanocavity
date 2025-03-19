@@ -166,7 +166,7 @@ def regression_theorem(
         whether to return the expectation value <B>
     verbose : bool
         print  all  M_k coefficients and corresponding complex eigenvalues E_k above cutoff
-     cutoff : float
+    cutoff : float
         the precision of the values to be considered in the M coefficients
     real : bool
         whether to keep only the real part of Mk
