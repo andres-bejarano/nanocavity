@@ -207,8 +207,10 @@ def test_regression_theorem():
     assert np.all(np.isreal(M)) #check real
     assert np.all(M[1:] <= M[:-1])  # if is real is sorted
     M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=False)
-    assert np.all(np.iscomplex(M)) #check complex
-
+    assert np.all(np.any(np.iscomplex(M))) #check complex
+    M, E = nme.regression_theorem(a, L, a.d, cutoff=10, real=True)
+    assert len(M)==0
+test_regression_theorem()
 def test_spectrum():
     [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=2)
     H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
