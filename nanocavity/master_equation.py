@@ -349,7 +349,7 @@ def g2(
         print(f"Computing g2 with cutoff={cutoff} and method={method}")
 
     if method == "eigen":
-        M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True, cutoff=cutoff)
+        M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True, cutoff=cutoff, real=False)
 
         for k, Ek in enumerate(E):
             G2 += M[k] * np.exp(Ek * time_delay)
