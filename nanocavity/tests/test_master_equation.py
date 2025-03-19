@@ -204,13 +204,16 @@ def test_regression_theorem():
     a_ops = no.collapses(a, basis, kT, "bosonic", rate)
     L = no.liouvillian(H, c_ops + a_ops)
     M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=True) 
-    assert not np.allclose(E.imag, 0)  # could have complex values
-    assert np.all(np.isreal(M)) #check real
+    assert len(M) == len(E) == len(L) # If we do not discard, the dimensions are maintained
+    assert not np.allclose(E.imag, 0)  # some entries should have imaginary part
+    assert np.all(np.isreal(M)) # check real
     assert np.all(M[1:] <= M[:-1])  # if is real is sorted
     M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=False)
     assert np.all(np.any(np.iscomplex(M))) #check complex
     M, E = nme.regression_theorem(a, L, a.d, cutoff=10, real=True)
     assert len(M)==0
+    M, E = nme.regression_theorem(a, L, a.d, cutoff=1e-8)
+    assert len(M) == len(E) == 4 # With this cut we know that only 4 value are maintained
 
 def test_spectrum():
     [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=2)
