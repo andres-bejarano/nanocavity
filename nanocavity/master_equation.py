@@ -226,17 +226,16 @@ def regression_theorem(
 
 def correlation_AB(
     A, L, B, time_delay, cutoff=0, verbose=True, ret_data=False, rho_st=None
-):
+, real=False):
 
-    M, E = regression_theorem(A, L, B, rho_st, verbose=verbose)
+    M, E = regression_theorem(A, L, B, rho_st, verbose=verbose, cutoff=cutoff, real=real)
 
     # correlation function S is generally complex
     time_delay = _toarray(time_delay)
     S = np.zeros(len(time_delay), dtype=np.complex128)
 
     for k in range(len(E)):
-        if abs(M[k]) > cutoff:
-            S += M[k] * np.exp(E[k] * time_delay)
+        S += M[k] * np.exp(E[k] * time_delay)
 
     if ret_data:
         # S, weights, eigenvalues
@@ -350,11 +349,10 @@ def g2(
         print(f"Computing g2 with cutoff={cutoff} and method={method}")
 
     if method == "eigen":
-        M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True)
+        M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True, cutoff=cutoff)
 
         for k in range(len(E)):
-            if abs(M[k]) > cutoff:
-                G2 += M[k] * np.exp(E[k] * time_delay)
+            G2 += M[k] * np.exp(E[k] * time_delay)
 
     elif method == "direct":
 
