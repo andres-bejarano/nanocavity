@@ -203,17 +203,22 @@ def test_regression_theorem():
     c_ops = no.collapses(c, basis, kT, "fermionic", rate)
     a_ops = no.collapses(a, basis, kT, "bosonic", rate)
     L = no.liouvillian(H, c_ops + a_ops)
-    M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=True) 
-    assert len(M) == len(E) == len(L) # If we do not discard, the dimensions are maintained
+    M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=True)
+    assert (
+        len(M) == len(E) == len(L)
+    )  # If we do not discard, the dimensions are maintained
     assert not np.allclose(E.imag, 0)  # some entries should have imaginary part
-    assert np.all(np.isreal(M)) # check real
+    assert np.all(np.isreal(M))  # check real
     assert np.all(M[1:] <= M[:-1])  # if is real is sorted
     M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=False)
-    assert np.all(np.any(np.iscomplex(M))) #check complex
+    assert np.all(np.any(np.iscomplex(M)))  # check complex
     M, E = nme.regression_theorem(a, L, a.d, cutoff=10, real=True)
-    assert len(M)==0
+    assert len(M) == 0
     M, E = nme.regression_theorem(a, L, a.d, cutoff=1e-8)
-    assert len(M) == len(E) == 4 # With this cut we know that only 4 value are maintained
+    assert (
+        len(M) == len(E) == 4
+    )  # With this cut we know that only 4 value are maintained
+
 
 def test_spectrum():
     [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=2)
@@ -227,7 +232,9 @@ def test_spectrum():
     frequency = np.arange(1, 10)
     I = nme.spectrum(L, a, frequency, verbose=False)
     I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True)
-    assert len(Mk) == len(E) == len(L) # If we do not discard, the dimensions are maintained
+    assert (
+        len(Mk) == len(E) == len(L)
+    )  # If we do not discard, the dimensions are maintained
     assert not np.allclose(E.imag, 0)  # some entries should have imaginary part
     assert np.all(np.isreal(I))  # must be real
     assert np.all(np.isreal(I2))  # must be real
@@ -252,7 +259,10 @@ def test_spectrum():
 
     # cutoff
     I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True, cutoff=1e-8)
-    assert len(Mk) == len(E) == 6 # With this cut we know that only 6 value are maintained
+    assert (
+        len(Mk) == len(E) == 6
+    )  # With this cut we know that only 6 value are maintained
+
 
 def test_g2():
     # just a single harmonic oscillator, H = a.d * a, coupled to bath

@@ -147,7 +147,8 @@ def _operator2super(A, dim):
 
 
 def regression_theorem(
-    A, L, B, rho_st=None, avgA=False, avgB=False, verbose=True, cutoff=0, real=False):
+    A, L, B, rho_st=None, avgA=False, avgB=False, verbose=True, cutoff=0, real=False
+):
     """Uses the quantum regression theorem to compute two-operator coefficients and L-eigenvalues
 
     Parameters
@@ -195,7 +196,7 @@ def regression_theorem(
 
     if real:
         M = M.real
-        # sort descending 
+        # sort descending
         idx = np.argsort(-M)
         M = M[idx]
         E = E[idx]
@@ -224,15 +225,17 @@ def regression_theorem(
 
 
 def correlation_AB(
-    A, L, B, time_delay, cutoff=0, verbose=True, ret_data=False, rho_st=None
-, real=False):
+    A, L, B, time_delay, cutoff=0, verbose=True, ret_data=False, rho_st=None, real=False
+):
 
-    M, E = regression_theorem(A, L, B, rho_st, verbose=verbose, cutoff=cutoff, real=real)
+    M, E = regression_theorem(
+        A, L, B, rho_st, verbose=verbose, cutoff=cutoff, real=real
+    )
 
     # correlation function S is generally complex
     time_delay = _toarray(time_delay)
     S = np.zeros(len(time_delay), dtype=np.complex128)
-    
+
     for k, Ek in enumerate(E):
         S += M[k] * np.exp(Ek * time_delay)
 
@@ -275,7 +278,9 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     """
     if verbose:
         print(f"Computing spectrum with cutoff={cutoff}")
-    M, E = regression_theorem(A.d, L, A, rho_st, verbose=verbose, cutoff=cutoff, real=True)
+    M, E = regression_theorem(
+        A.d, L, A, rho_st, verbose=verbose, cutoff=cutoff, real=True
+    )
 
     frequency = _toarray(frequency)
     I = np.zeros(len(frequency), dtype=np.float64)
@@ -348,7 +353,9 @@ def g2(
         print(f"Computing g2 with cutoff={cutoff} and method={method}")
 
     if method == "eigen":
-        M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True, cutoff=cutoff, real=False)
+        M, E, G1 = regression_theorem(
+            J, L, J, rho_st, verbose=verbose, avgA=True, cutoff=cutoff, real=False
+        )
 
         for k, Ek in enumerate(E):
             G2 += M[k] * np.exp(Ek * time_delay)
