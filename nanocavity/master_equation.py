@@ -147,7 +147,7 @@ def _operator2super(A, dim):
 
 
 def regression_theorem(
-    A, L, B, rho_st=None, sort=True, avgA=False, avgB=False, verbose=True
+    A, L, B, rho_st=None, avgA=False, avgB=False, verbose=True, cutoff=0, real=False
 ):
     """Uses the quantum regression theorem to compute two-operator coefficients and L-eigenvalues
 
@@ -161,15 +161,16 @@ def regression_theorem(
         operator or superoperator
     rho_st : ndarray
         steady-state density matrix
-    sort : bool
-        whether to sort coefficients according to magnitude |M_k|
     avgA : bool
         whether to return the expectation value <A>
     avgB : bool
         whether to return the expectation value <B>
     verbose : bool
-        print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
-
+        print all M_k coefficients and corresponding complex eigenvalues E_k above cutoff
+    cutoff : float
+        the precision of the values to be considered in the M coefficients
+    real : bool
+        whether to keep only the real part of Mk
     Returns
     -------
     Coefficients, Eigenvalues, (<A>), (<B>)
@@ -193,19 +194,23 @@ def regression_theorem(
     # coefficients M_k = <ALB>_k
     M = (w0A @ vr) * (vl.conj().T @ Brho)
 
-    if sort:
+    if real:
+        M = M.real
         # sort descending
-        idx = np.argsort(-np.abs(M))
+        idx = np.argsort(-M)
         M = M[idx]
         E = E[idx]
 
+    # keep only data meeting the cutoff criterium
+    idx = np.where(np.abs(M) >= cutoff)[0]
+    M = M[idx]
+    E = E[idx]
+
     if verbose:
-        # print up to 10 leading contributions according to magnitude of M[k]
-        idx = np.argsort(-np.abs(M))[:10]
         print(f"{'k':>4} {'Re(Mk)':>16} {'Im(Mk)':>16} {'Re(Ek)':>16} {'Im(Ek)':>16}")
-        for k in idx:
+        for k, Ek in enumerate(E):
             print(
-                f"{k:4} {M[k].real:16.8e} {M[k].imag:16.8e} {E[k].real:16.8e} {E[k].imag:16.8e}"
+                f"{k:4} {M[k].real:16.8e} {M[k].imag:16.8e} {Ek.real:16.8e} {Ek.imag:16.8e}"
             )
 
     # compute also expectation values?
@@ -220,18 +225,19 @@ def regression_theorem(
 
 
 def correlation_AB(
-    A, L, B, time_delay, cutoff=0, verbose=True, ret_data=False, rho_st=None
+    A, L, B, time_delay, cutoff=0, verbose=True, ret_data=False, rho_st=None, real=False
 ):
 
-    M, E = regression_theorem(A, L, B, rho_st, verbose=verbose)
+    M, E = regression_theorem(
+        A, L, B, rho_st, verbose=verbose, cutoff=cutoff, real=real
+    )
 
     # correlation function S is generally complex
     time_delay = _toarray(time_delay)
     S = np.zeros(len(time_delay), dtype=np.complex128)
 
-    for k in range(len(E)):
-        if abs(M[k]) > cutoff:
-            S += M[k] * np.exp(E[k] * time_delay)
+    for k, Ek in enumerate(E):
+        S += M[k] * np.exp(Ek * time_delay)
 
     if ret_data:
         # S, weights, eigenvalues
@@ -253,9 +259,9 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     frequency : float or ndarray
         Frequencies (energies) to be evaluated
     cutoff : float
-        the precision of the values to be considered in the 'eigen' method
+        the precision of the values to be considered in the M coefficients coming from regression_theorem
     verbose : bool
-        print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
+        print all M_k coefficients and corresponding complex eigenvalues E_k above cutoff
     ret_data : bool
         whether to return also G1, M_k, and E_k
     rho_st : ndarray
@@ -272,21 +278,19 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     """
     if verbose:
         print(f"Computing spectrum with cutoff={cutoff}")
-    M, E = regression_theorem(A.d, L, A, rho_st, verbose=verbose, sort=False)
+    M, E = regression_theorem(
+        A.d, L, A, rho_st, verbose=verbose, cutoff=cutoff, real=True
+    )
 
-    # spectrum is a real quantity, so we can skip the imaginary part
-    M = M.real
     frequency = _toarray(frequency)
     I = np.zeros(len(frequency), dtype=np.float64)
 
-    for k in range(len(E)):
-        if M[k] > cutoff:
-            I += M[k] * ndist.lorentzian(frequency - E[k].imag, -2 * E[k].real)
+    for k, Ek in enumerate(E):
+        I += M[k] * ndist.lorentzian(frequency - Ek.imag, -2 * Ek.real)
 
     if ret_data:
         # spectrum, weights, eigenvalues
-        idx = np.argsort(-M)
-        return I, M[idx], E[idx]
+        return I, M, E
 
     return I
 
@@ -320,9 +324,9 @@ def g2(
     method : str
         'eigen' to expand in eigenvalues of L or 'direct' to calculate the trace of all the operators involved
     cutoff : float
-        the precision of the values to be considered in the 'eigen' method
+        the precision of the values to be considered in the 'eigen' method for M coefficients coming from regression_theorem
     verbose : bool
-        print 10 dominant coefficients |M_k| and corresponding complex eigenvalues E_k
+        print all M_k coefficients and corresponding complex eigenvalues E_k above cutoff
     ret_data : bool
         whether to return also G1, M_k, and E_k
     rho_st : ndarray
@@ -349,11 +353,12 @@ def g2(
         print(f"Computing g2 with cutoff={cutoff} and method={method}")
 
     if method == "eigen":
-        M, E, G1 = regression_theorem(J, L, J, rho_st, verbose=verbose, avgA=True)
+        M, E, G1 = regression_theorem(
+            J, L, J, rho_st, verbose=verbose, avgA=True, cutoff=cutoff, real=False
+        )
 
-        for k in range(len(E)):
-            if abs(M[k]) > cutoff:
-                G2 += M[k] * np.exp(E[k] * time_delay)
+        for k, Ek in enumerate(E):
+            G2 += M[k] * np.exp(Ek * time_delay)
 
     elif method == "direct":
 

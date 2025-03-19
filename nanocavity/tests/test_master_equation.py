@@ -194,6 +194,32 @@ def test_stationary_single_cavity_mode():
     assert np.allclose(n_average, n_average_a)
 
 
+def test_regression_theorem():
+    [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=2)
+    H = Nf + 2 * Nb + 0.1 * (c.d * a + a.d * c)
+    kT = 0.1
+    rate = 1e-3
+    basis = H.eigh()
+    c_ops = no.collapses(c, basis, kT, "fermionic", rate)
+    a_ops = no.collapses(a, basis, kT, "bosonic", rate)
+    L = no.liouvillian(H, c_ops + a_ops)
+    M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=True)
+    assert (
+        len(M) == len(E) == len(L)
+    )  # If we do not discard, the dimensions are maintained
+    assert not np.allclose(E.imag, 0)  # some entries should have imaginary part
+    assert np.all(np.isreal(M))  # check real
+    assert np.all(M[1:] <= M[:-1])  # if is real is sorted
+    M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=False)
+    assert np.all(np.any(np.iscomplex(M)))  # check complex
+    M, E = nme.regression_theorem(a, L, a.d, cutoff=10, real=True)
+    assert len(M) == 0
+    M, E = nme.regression_theorem(a, L, a.d, cutoff=1e-8)
+    assert (
+        len(M) == len(E) == 4
+    )  # With this cut we know that only 4 value are maintained
+
+
 def test_spectrum():
     [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=2)
     H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
@@ -206,6 +232,13 @@ def test_spectrum():
     frequency = np.arange(1, 10)
     I = nme.spectrum(L, a, frequency, verbose=False)
     I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True)
+    assert (
+        len(Mk) == len(E) == len(L)
+    )  # If we do not discard, the dimensions are maintained
+    assert not np.allclose(E.imag, 0)  # some entries should have imaginary part
+    assert np.all(np.isreal(I))  # must be real
+    assert np.all(np.isreal(I2))  # must be real
+    assert np.all(np.isreal(Mk))  # must be real
     assert np.allclose(I, I2)
     assert np.all(Mk >= -1e-30)  # tolerate tiny negative values?
     assert np.all(Mk[1:] <= Mk[:-1])  # entries sorted descending?
@@ -223,6 +256,12 @@ def test_spectrum():
     # test list
     I6 = nme.spectrum(L, a, [1, 2], verbose=False)
     assert np.allclose(I[:2], I6)
+
+    # cutoff
+    I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True, cutoff=1e-8)
+    assert (
+        len(Mk) == len(E) == 6
+    )  # With this cut we know that only 6 value are maintained
 
 
 def test_g2():
