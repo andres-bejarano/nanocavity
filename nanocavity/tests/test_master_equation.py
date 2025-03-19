@@ -194,6 +194,22 @@ def test_stationary_single_cavity_mode():
     assert np.allclose(n_average, n_average_a)
 
 
+def regression_theorem():
+    [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=2)
+    H = Nf + 2 * Nb + 0.1 * (c.d * a + a.d * c)
+    kT = 0.1
+    rate = 1e-3
+    basis = H.eigh()
+    c_ops = no.collapses(c, basis, kT, "fermionic", rate)
+    a_ops = no.collapses(a, basis, kT, "bosonic", rate)
+    L = no.liouvillian(H, c_ops + a_ops)
+    E, M  = nme.regression_theorem(a, L, a.d, cutoff=0, real=True)
+    assert np.all(np.isreal(M)) #check real
+    assert np.all(M[1:] <= M[:-1])  # if is real is sorted
+
+    E, M  = nme.regression_theorem(a, L, a.d, cutoff=0, real=False)
+    assert np.all(np.iscomlex(M)) #check complex
+
 def test_spectrum():
     [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=2)
     H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
@@ -206,6 +222,9 @@ def test_spectrum():
     frequency = np.arange(1, 10)
     I = nme.spectrum(L, a, frequency, verbose=False)
     I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True)
+    assert np.all(np.isreal(I))  # must be real
+    assert np.all(np.isreal(I2))  # must be real
+    assert np.all(np.isreal(Mk))  # must be real
     assert np.allclose(I, I2)
     assert np.all(Mk >= -1e-30)  # tolerate tiny negative values?
     assert np.all(Mk[1:] <= Mk[:-1])  # entries sorted descending?
