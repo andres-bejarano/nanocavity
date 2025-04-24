@@ -1,6 +1,7 @@
 import nanocavity.operators as no
 import secondquant as sq
 import scipy.linalg as sa
+import numpy as np
 
 
 def Hamiltonian(hw_ph, E=1e-12, max_bosons=5):
@@ -91,3 +92,33 @@ def collapse_electronic(D, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False, cut
     if total:
         return c_pL + c_mL + c_pR + c_mR
     return c_pL, c_mL, c_pR, c_mR
+
+
+def collapse_dephasing(N_op, basis, kappa, g_ph):
+    """
+        Function to calculate the dephasing collapse operators for the OLS.
+
+    Parameters:
+    -----
+    N_op: secondquant operator
+        electronic number operator
+    basis: list
+        (E, V) describing the basis for the collapse operators
+    kappa: float
+        cavity damping rate
+    g_ph: float
+        electron-photon coupling strength
+
+    Returns:
+    -----
+        List of collapse operators for dephasing
+    """
+    E, V = basis
+    M_fi = N_op.inner(V)
+    dim = N_op.shape[0]
+    c_n = []
+    for f in range(dim):
+        for i in range(dim):
+            P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
+            c_n.append(np.sqrt(kappa * g_ph / 2) * P)
+    return c_n
