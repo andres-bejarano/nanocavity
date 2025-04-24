@@ -125,7 +125,7 @@ def collapse_dephasing(N_op, basis, kappa, g_ph):
 
 
 def liouvillian_ols(
-    dg, a_ph, Hs, g_ph, VL, VT, Gamma_L, Gamma_R, kappa, kT, cond=False
+    dg, a_ph, Hs, g_ph, VL, VR, Gamma_L, Gamma_R, kappa, kT, cond=False
 ):
     """
         Function to build the Liouvillian for the one level system coupled to a cavity
@@ -164,7 +164,7 @@ def liouvillian_ols(
     ng = dg.d * dg
     Dg, A = Lang_Firsov_transform(dg, a_ph, g_ph)
     ca = no.collapses(a_ph, basis, kT, "bosonic", kappa, 0, total=True)
-    ce = collapse_electronic(Dg, basis, Vs, Vt, Gamma_s, Gamma_t, kT, total=True)
+    ce = collapse_electronic(Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=True)
     cn = collapse_dephasing(ng, basis, kappa, g_ph)
     c_ops = ce + ca + cn
     L = no.liouvillian(Hs, c_ops, cond=cond)
