@@ -122,3 +122,50 @@ def collapse_dephasing(N_op, basis, kappa, g_ph):
             P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
             c_n.append(np.sqrt(kappa * g_ph / 2) * P)
     return c_n
+
+
+def liouvillian_ols(
+    dg, a_ph, Hs, g_ph, VL, VT, Gamma_L, Gamma_R, kappa, kT, cond=False
+):
+    """
+        Function to build the Liouvillian for the one level system coupled to a cavity
+
+    Parameters:
+    ----
+    dg: secondquant operator
+        electronic annihilation operator Before Lang-Firsov transformation
+    a_ph: secondquant operator
+        photonic annihilation operator
+    Hs: secondquant operator
+        Hamiltonian of the system
+    g_ph: float
+        electron-photon coupling strength
+    VL: float
+        bias at left lead
+    VR: float
+        bias at right lead
+    Gamma_L: float
+        tunneling rate at the left lead
+    Gamma_R: float
+        tunneling rate at the right lead
+    kappa: float
+        cavity damping rate
+    kT: float
+        temperature
+
+    Returns:
+    ----
+    L: 2d-np.array
+        Liouvillian of the system
+
+
+    """
+    basis = Hs.eigh()
+    ng = dg.d * dg
+    Dg, A = Lang_Firsov_transform(dg, a_ph, g_ph)
+    ca = no.collapses(a_ph, basis, kT, "bosonic", kappa, 0, total=True)
+    ce = collapse_electronic(Dg, basis, Vs, Vt, Gamma_s, Gamma_t, kT, total=True)
+    cn = collapse_dephasing(ng, basis, kappa, g_ph)
+    c_ops = ce + ca + cn
+    L = no.liouvillian(Hs, c_ops, cond=cond)
+    return L
