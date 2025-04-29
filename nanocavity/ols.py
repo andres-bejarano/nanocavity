@@ -1,5 +1,6 @@
 import nanocavity.operators as no
 import secondquant as sq
+from secondquant.operator import Operator
 import scipy.linalg as sa
 import numpy as np
 
@@ -122,6 +123,31 @@ def collapse_dephasing(N_op, basis, kappa, g_ph):
             P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
             c_n.append(np.sqrt(kappa * g_ph / 2) * P)
     return c_n
+
+
+def dissipator_ols(c_ops, method="kron"):
+    if not isinstance(c_ops, list):
+        raise TypeError("c_ops must be a list")
+    dim = c_ops[0].shape[0]
+    Id = np.eye(dim)
+    # Look https://arxiv.org/pdf/1504.05266
+    # Attention: The paper uses column stacking
+    # This function uses row stacking
+    D = 0
+    for c1 in c_ops:
+        for c2 in c_ops:
+            cdc = c1.conj().T @ c2
+            if method == "einsum":
+                D += np.einsum("ik,jl->ijkl", c1, c2.conj())
+                D -= 0.5 * np.einsum("ik,jl->ijkl", Id, cdc)
+                D -= 0.5 * np.einsum("ik,jl->ijkl", cdc.conj(), Id)
+            elif method == "kron":
+                D += np.kron(c1, c2.conj())
+                D -= 0.5 * np.kron(Id, cdc)
+                D -= 0.5 * np.kron(cdc.conj(), Id)
+    if method == "einsum":
+        D = D.reshape((dim**2, dim**2))
+    return D
 
 
 def liouvillian_ols(
