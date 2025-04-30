@@ -189,7 +189,7 @@ def liouvillian_ols(
     basis = Hs.eigh()
     ng = dg.d * dg
     Dg, A = Lang_Firsov_transform(dg, a_ph, g_ph)
-    ca = no.collapses(a_ph, basis, kT, "bosonic", kappa, 0, total=True)
+    ca = [np.sqrt(kappa) * a_ph.toarray()]
     ce = collapse_electronic(Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=True)
     cn = collapse_dephasing(ng, basis, kappa, g_ph)
     c_ops = ce + ca + cn
@@ -208,7 +208,7 @@ def liouvillian_ols(
         L = 1j * (np.kron(Id, Hs) - np.kron(Hs, Id))
 
     L += dissipator_ols(ce, method)
-    L += dissipator(ca + cn, method)
+    L += no.dissipator(cn + ca, method)
 
     if cond:
         c = la.cond(L)
