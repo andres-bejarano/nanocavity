@@ -125,7 +125,7 @@ def collapse_dephasing(N_op, basis, kappa, g_ph):
     return c_n
 
 
-def dissipator_ols(c_ops, method="kron"):
+def dissipator(c_ops, method="kron"):
     if not isinstance(c_ops, list):
         raise TypeError("c_ops must be a list")
     dim = c_ops[0].shape[0]
@@ -150,7 +150,7 @@ def dissipator_ols(c_ops, method="kron"):
     return D
 
 
-def liouvillian_ols(
+def liouvillian(
     dg, a_ph, Hs, g_ph, VL, VR, Gamma_L, Gamma_R, kappa, kT, cond=False, method="kron"
 ):
     """
@@ -207,7 +207,7 @@ def liouvillian_ols(
     elif method == "kron":
         L = 1j * (np.kron(Id, Hs) - np.kron(Hs, Id))
 
-    L += dissipator_ols(ce, method)
+    L += dissipator(ce, method)
     L += no.dissipator(cn + ca, method)
 
     if cond:
