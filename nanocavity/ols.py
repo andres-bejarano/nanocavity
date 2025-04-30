@@ -178,6 +178,11 @@ def liouvillian(
         cavity damping rate
     kT: float
         temperature
+    cond: logical
+        Defaults to True
+    method: string
+        method on how to build the Liouvillian
+        defaults to "kron"
 
     Returns:
     ----
