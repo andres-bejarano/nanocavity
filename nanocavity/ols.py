@@ -157,7 +157,7 @@ def liouvillian(
     elif method == "kron":
         L = 1j * (np.kron(Id, Hs) - np.kron(Hs, Id))
 
-    L += no.dissipator(ce, method, coherences=True)
+    L += no.dissipator(ce, method, diagonal_form=False)
     L += no.dissipator(cn + ca, method)
 
     if cond:

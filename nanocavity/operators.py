@@ -96,7 +96,7 @@ def jump(c_ops):
     return J
 
 
-def dissipator(c_ops, method="kron", coherences=False):
+def dissipator(c_ops, method="kron", diagonal_form=True):
     """
     Function to build the Dissipator with respect to given collapse operators
 
@@ -106,8 +106,9 @@ def dissipator(c_ops, method="kron", coherences=False):
         list of collapse operators
     method: string
         Can be "kron" or "einsum"
-    coherences: Boolean
-        Wether or not to keep coherences between different collapse operators
+    diagonal_for: logical
+        Keep the diagonal form of the Liouvillian or not.
+        Defaults to True
     """
     if not isinstance(c_ops, list):
         raise TypeError("c_ops must be a list")
@@ -117,7 +118,7 @@ def dissipator(c_ops, method="kron", coherences=False):
     # Attention: The paper uses column stacking
     # This function uses row stacking
     D = 0
-    if coherences:
+    if not diagonal_form:
         for c1 in c_ops:
             for c2 in c_ops:
                 cdc = c1.conj().T @ c2
@@ -145,7 +146,7 @@ def dissipator(c_ops, method="kron", coherences=False):
     return D
 
 
-def liouvillian(H, c_ops=None, method="kron", cond=True, coherences=False):
+def liouvillian(H, c_ops=None, method="kron", cond=True, diagonal_form=False):
     """
     Function calculating the Liouvillian for a central system coupled to baths
     Uses row stacking in the superspace.
@@ -162,8 +163,9 @@ def liouvillian(H, c_ops=None, method="kron", cond=True, coherences=False):
         defaults to "kron"
     cond: logical
         Defaults to True
-    coherences: logical
-        Wether to keep extra coherences when building the dissipator
+    diagonal_for: logical
+        Keep the diagonal form of the Liouvillian or not.
+        Defaults to True
     """
     if isinstance(H, Operator):
         H = H.toarray()
@@ -180,7 +182,7 @@ def liouvillian(H, c_ops=None, method="kron", cond=True, coherences=False):
         L = 1j * (np.kron(Id, H) - np.kron(H, Id))
 
     if c_ops is not None:
-        L += dissipator(c_ops, method, coherences)
+        L += dissipator(c_ops, method, diagonal_form)
 
     if cond:
         c = la.cond(L)
