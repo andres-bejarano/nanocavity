@@ -135,7 +135,7 @@ def dissipator(c_ops, method="kron", diagonal_form=True):
     return D
 
 
-def liouvillian(H, c_ops=None, method="kron", cond=True, diagonal_form=False):
+def liouvillian(H, c_ops=None, method="kron", cond=True, diagonal_form=True):
     """
     Function calculating the Liouvillian for a central system coupled to baths
     Uses row stacking in the superspace.
