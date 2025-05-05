@@ -145,7 +145,7 @@ def dissipator(c_ops, method="kron", coherences=False):
     return D
 
 
-def liouvillian(H, c_ops=None, method="kron", cond=True):
+def liouvillian(H, c_ops=None, method="kron", cond=True, coherences=False):
     """
     Function calculating the Liouvillian for a central system coupled to baths
     Uses row stacking in the superspace.
@@ -162,6 +162,8 @@ def liouvillian(H, c_ops=None, method="kron", cond=True):
         defaults to "kron"
     cond: logical
         Defaults to True
+    coherences: logical
+        Wether to keep extra coherences when building the dissipator
     """
     if isinstance(H, Operator):
         H = H.toarray()
@@ -178,7 +180,7 @@ def liouvillian(H, c_ops=None, method="kron", cond=True):
         L = 1j * (np.kron(Id, H) - np.kron(H, Id))
 
     if c_ops is not None:
-        L += dissipator(c_ops, method)
+        L += dissipator(c_ops, method, coherences)
 
     if cond:
         c = la.cond(L)
