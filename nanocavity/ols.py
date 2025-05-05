@@ -141,7 +141,7 @@ def liouvillian(
     Dg, A = Lang_Firsov_transform(dg, a_ph, g_ph)
     ca = [np.sqrt(kappa) * a_ph.toarray()]
     ce = collapse_electronic(Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=True)
-    cn = collapse_dephasing(ng, basis, kappa, g_ph)
+    cn = [np.sqrt(kappa * g_ph**2 / 2) * ng.toarray()]
     c_ops = ce + ca + cn
     if isinstance(Hs, Operator):
         Hs = Hs.toarray()
