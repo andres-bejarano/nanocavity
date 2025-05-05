@@ -43,7 +43,7 @@ def test_collapse_electronic():
 
 def test_liouvillian():
     hw_ph = 1
-    Hs, [dg, a_ph], [ng, n_ph] = ols.Hamiltonian(hw_ph, max_bosons=5)
+    Hs, [dg, a_ph], [ng, n_ph] = ols.Hamiltonian(hw_ph, max_bosons=2)
 
     Gamma_s = 5e-4
     Gamma_t = 1e-4
