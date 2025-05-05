@@ -142,7 +142,6 @@ def liouvillian(
     ca = [np.sqrt(kappa) * a_ph.toarray()]
     ce = collapse_electronic(Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=True)
     cn = [np.sqrt(kappa * g_ph**2 / 2) * ng.toarray()]
-    c_ops = ce + ca + cn
 
     L = no.liouvillian(Hs, cn + ca, method=method, cond=cond, diagonal_form=True)
     L += no.dissipator(ce, method, diagonal_form=False)
