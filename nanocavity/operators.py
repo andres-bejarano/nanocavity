@@ -155,6 +155,8 @@ def liouvillian(H, c_ops=None, method="kron", cond=True, diagonal_form=True):
     diagonal_for: logical
         Keep the diagonal form of the Liouvillian or not.
         Defaults to True
+        The diagonal form is the standard form.
+        For the one level system we use the non-diagonal form because when performing the secular approximation one also has to keep coherences between different photon numbers when calculating the electronic dissipator
     """
     if isinstance(H, Operator):
         H = H.toarray()
