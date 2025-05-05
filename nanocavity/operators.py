@@ -118,27 +118,16 @@ def dissipator(c_ops, method="kron", diagonal_form=True):
     # Attention: The paper uses column stacking
     # This function uses row stacking
     D = 0
-    if not diagonal_form:
-        for c1 in c_ops:
-            for c2 in c_ops:
-                cdc = c1.conj().T @ c2
-                if method == "einsum":
-                    D += np.einsum("ik,jl->ijkl", c1, c2.conj())
-                    D -= 0.5 * np.einsum("ik,jl->ijkl", Id, cdc)
-                    D -= 0.5 * np.einsum("ik,jl->ijkl", cdc.conj(), Id)
-                elif method == "kron":
-                    D += np.kron(c1, c2.conj())
-                    D -= 0.5 * np.kron(Id, cdc)
-                    D -= 0.5 * np.kron(cdc.conj(), Id)
-    else:
-        for c in c_ops:
-            cdc = c.conj().T @ c
+    for c1 in c_ops:
+        c_ops2 = [c1] if diagonal_form else c_ops
+        for c2 in c_ops2:
+            cdc = c1.conj().T @ c2
             if method == "einsum":
-                D += np.einsum("ik,jl->ijkl", c, c.conj())
+                D += np.einsum("ik,jl->ijkl", c1, c2.conj())
                 D -= 0.5 * np.einsum("ik,jl->ijkl", Id, cdc)
                 D -= 0.5 * np.einsum("ik,jl->ijkl", cdc.conj(), Id)
             elif method == "kron":
-                D += np.kron(c, c.conj())
+                D += np.kron(c1, c2.conj())
                 D -= 0.5 * np.kron(Id, cdc)
                 D -= 0.5 * np.kron(cdc.conj(), Id)
     if method == "einsum":
