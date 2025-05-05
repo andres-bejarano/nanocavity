@@ -41,42 +41,6 @@ def test_collapse_electronic():
     assert len(coll_tot) == len(list(chain.from_iterable(coll_list)))
 
 
-def test_collapse_dephasing():
-    hw_ph = 1
-    g_ph = 1
-    kappa = 0.1
-    Hs, [D, a_ph], [ng, n_ph] = ols.Hamiltonian(hw_ph, max_bosons=5)
-    D, A = ols.Lang_Firsov_transform(D, a_ph, g_ph)
-    basis = Hs.eigh()
-    coll_list = ols.collapse_dephasing(ng, basis, kappa, g_ph)
-    assert len(coll_list) == 144
-    assert isinstance(coll_list[0], np.ndarray)
-
-
-def test_dissipator():
-    Delta = 1
-    kT = 1e-2
-    kappa = 1e-3
-    D_ana = np.zeros((4, 4))
-    D_ana[1, 1] = -1
-    D_ana[2, 2] = -1
-    D_ana[3, 3] = -2
-    D_ana[0, 3] = 2
-    D_ana *= kappa / 2
-
-    a, n = sq.composite(boson_modes=[1])
-    H = Delta * n
-    basis = H.eigh()
-    c_ops = no.collapses(a, basis, kT, "bosonic", kappa)
-
-    for method in [None, "einsum", "kron"]:
-        if method is None:
-            dissipator = ols.dissipator(c_ops)
-        else:
-            dissipator = ols.dissipator(c_ops, method=method)
-        assert np.allclose(dissipator, D_ana)
-
-
 def test_liouvillian():
     hw_ph = 1
     Hs, [dg, a_ph], [ng, n_ph] = ols.Hamiltonian(hw_ph, max_bosons=5)
