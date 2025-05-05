@@ -143,25 +143,8 @@ def liouvillian(
     ce = collapse_electronic(Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=True)
     cn = [np.sqrt(kappa * g_ph**2 / 2) * ng.toarray()]
     c_ops = ce + ca + cn
-    if isinstance(Hs, Operator):
-        Hs = Hs.toarray()
 
-    dim = Hs.shape[0]
-    Id = np.eye(Hs.shape[0])
-
-    # Writing the coherent evolution
-    if method == "einsum":
-        L = 1j * (
-            np.einsum("ik,jl->ijkl", Id, Hs) - np.einsum("ik,jl->ijkl", Hs, Id)
-        ).reshape((dim**2, dim**2))
-    elif method == "kron":
-        L = 1j * (np.kron(Id, Hs) - np.kron(Hs, Id))
-
+    L = no.liouvillian(Hs, cn + ca, method=method, cond=cond, diagonal_form=True)
     L += no.dissipator(ce, method, diagonal_form=False)
-    L += no.dissipator(cn + ca, method)
-
-    if cond:
-        c = la.cond(L)
-        print("Condition number of Liouvillian: ", c)
 
     return L
