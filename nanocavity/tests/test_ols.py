@@ -43,7 +43,7 @@ def test_collapse_electronic():
 
 def test_liouvillian():
     hw_ph = 1
-    Hs, [dg, a_ph], [ng, n_ph] = nols.Hamiltonian(hw_ph, max_bosons=2)
+    Hs, [dg, a_ph], [ng, n_ph] = nols.Hamiltonian(hw_ph, max_bosons=1)
 
     Gamma_s = 5e-4
     Gamma_t = 1e-4
@@ -57,3 +57,4 @@ def test_liouvillian():
 
     assert np.allclose(L.shape[0], Hs.toarray().shape[0] ** 2)
     assert np.allclose(L.shape[1], Hs.toarray().shape[1] ** 2)
+    assert np.allclose(L[0, 5], kappa)
