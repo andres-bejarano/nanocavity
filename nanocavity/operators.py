@@ -96,7 +96,20 @@ def jump(c_ops):
     return J
 
 
-def dissipator(c_ops, method="kron"):
+def dissipator(c_ops, method="kron", diagonal_form=True):
+    """
+    Function to build the Dissipator with respect to given collapse operators
+
+    Parameters:
+    ----
+    c_ops: list
+        list of collapse operators
+    method: string
+        Can be "kron" or "einsum"
+    diagonal_for: logical
+        Keep the diagonal form of the Liouvillian or not.
+        Defaults to True
+    """
     if not isinstance(c_ops, list):
         raise TypeError("c_ops must be a list")
     dim = c_ops[0].shape[0]
@@ -105,22 +118,24 @@ def dissipator(c_ops, method="kron"):
     # Attention: The paper uses column stacking
     # This function uses row stacking
     D = 0
-    for c in c_ops:
-        cdc = c.conj().T @ c
-        if method == "einsum":
-            D += np.einsum("ik,jl->ijkl", c, c.conj())
-            D -= 0.5 * np.einsum("ik,jl->ijkl", Id, cdc)
-            D -= 0.5 * np.einsum("ik,jl->ijkl", cdc.conj(), Id)
-        elif method == "kron":
-            D += np.kron(c, c.conj())
-            D -= 0.5 * np.kron(Id, cdc)
-            D -= 0.5 * np.kron(cdc.conj(), Id)
+    for c1 in c_ops:
+        c_ops2 = [c1] if diagonal_form else c_ops
+        for c2 in c_ops2:
+            cdc = c1.conj().T @ c2
+            if method == "einsum":
+                D += np.einsum("ik,jl->ijkl", c1, c2.conj())
+                D -= 0.5 * np.einsum("ik,jl->ijkl", Id, cdc)
+                D -= 0.5 * np.einsum("ik,jl->ijkl", cdc.conj(), Id)
+            elif method == "kron":
+                D += np.kron(c1, c2.conj())
+                D -= 0.5 * np.kron(Id, cdc)
+                D -= 0.5 * np.kron(cdc.conj(), Id)
     if method == "einsum":
         D = D.reshape((dim**2, dim**2))
     return D
 
 
-def liouvillian(H, c_ops=None, method="kron", cond=True):
+def liouvillian(H, c_ops=None, method="kron", cond=True, diagonal_form=True):
     """
     Function calculating the Liouvillian for a central system coupled to baths
     Uses row stacking in the superspace.
@@ -137,6 +152,11 @@ def liouvillian(H, c_ops=None, method="kron", cond=True):
         defaults to "kron"
     cond: logical
         Defaults to True
+    diagonal_for: logical
+        Keep the diagonal form of the Liouvillian or not.
+        Defaults to True
+        The diagonal form is the standard form.
+        For the one level system we use the non-diagonal form because when performing the secular approximation one also has to keep coherences between different photon numbers when calculating the electronic dissipator
     """
     if isinstance(H, Operator):
         H = H.toarray()
@@ -153,7 +173,7 @@ def liouvillian(H, c_ops=None, method="kron", cond=True):
         L = 1j * (np.kron(Id, H) - np.kron(H, Id))
 
     if c_ops is not None:
-        L += dissipator(c_ops, method)
+        L += dissipator(c_ops, method, diagonal_form)
 
     if cond:
         c = la.cond(L)

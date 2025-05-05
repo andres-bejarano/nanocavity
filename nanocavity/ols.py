@@ -1,6 +1,8 @@
 import nanocavity.operators as no
 import secondquant as sq
+from secondquant.operator import Operator
 import scipy.linalg as sa
+import numpy as np
 
 
 def Hamiltonian(hw_ph, E=1e-12, max_bosons=5):
@@ -91,3 +93,57 @@ def collapse_electronic(D, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False, cut
     if total:
         return c_pL + c_mL + c_pR + c_mR
     return c_pL, c_mL, c_pR, c_mR
+
+
+def liouvillian(
+    dg, a_ph, Hs, g_ph, VL, VR, Gamma_L, Gamma_R, kappa, kT, cond=False, method="kron"
+):
+    """
+        Function to build the Liouvillian for the one level system coupled to a cavity
+
+    Parameters:
+    ----
+    dg: secondquant operator
+        electronic annihilation operator Before Lang-Firsov transformation
+    a_ph: secondquant operator
+        photonic annihilation operator
+    Hs: secondquant operator
+        Hamiltonian of the system
+    g_ph: float
+        electron-photon coupling strength
+    VL: float
+        bias at left lead
+    VR: float
+        bias at right lead
+    Gamma_L: float
+        tunneling rate at the left lead
+    Gamma_R: float
+        tunneling rate at the right lead
+    kappa: float
+        cavity damping rate
+    kT: float
+        temperature
+    cond: logical
+        Defaults to True
+    method: string
+        method on how to build the Liouvillian
+        defaults to "kron"
+
+    Returns:
+    ----
+    L: 2d-np.array
+        Liouvillian of the system
+
+
+    """
+    basis = Hs.eigh()
+    ng = dg.d * dg
+    Dg, A = Lang_Firsov_transform(dg, a_ph, g_ph)
+    ca = [np.sqrt(kappa) * a_ph.toarray()]
+    ce = collapse_electronic(Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=True)
+    cn = [np.sqrt(kappa * g_ph**2 / 2) * ng.toarray()]
+
+    L = no.liouvillian(Hs, cn + ca, method=method, cond=cond, diagonal_form=True)
+    L += no.dissipator(ce, method, diagonal_form=False)
+
+    return L
