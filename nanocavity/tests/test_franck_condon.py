@@ -39,7 +39,7 @@ def test_franck_condon():
         assert np.allclose(FC_21(g), FC_mat[2, 1])
         assert np.allclose(FC_22(g), FC_mat[2, 2])
         assert np.allclose(FC_mat, FC_mat.T)
-        # assert np.allclose(FC_vec, FC_vec2)
+        assert np.allclose(FC_vec, FC_vec2)
 
 
 def test_franck_condon_square():
