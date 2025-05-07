@@ -27,6 +27,24 @@ def FC_22(g):
 def test_franck_condon():
     g_vec = [0.1, 0.5, 1, 1.5, 2]
     for g in g_vec:
+        FC_mat = nfc.FC(np.arange(6), np.arange(6), g)
+        FC_vec = nfc.FC(np.arange(6), 0, g)
+        FC_vec2 = nfc.FC(0, np.arange(6), g)
+        assert np.allclose(FC_0n(0, g), FC_mat[0, 0])
+        assert np.allclose(FC_0n(0, g), FC_vec[0])
+        assert np.allclose(FC_0n(1, g), FC_mat[0, 1])
+        assert np.allclose(FC_0n(1, g), FC_vec[1])
+        assert np.allclose(FC_0n(1, g), nfc.FC(0, 1, g))
+        assert np.allclose(FC_11(g), FC_mat[1, 1])
+        assert np.allclose(FC_21(g), FC_mat[2, 1])
+        assert np.allclose(FC_22(g), FC_mat[2, 2])
+        assert np.allclose(FC_mat, FC_mat.T)
+        # assert np.allclose(FC_vec, FC_vec2)
+
+
+def test_franck_condon_square():
+    g_vec = [0.1, 0.5, 1, 1.5, 2]
+    for g in g_vec:
         FC_mat = nfc.FC2(np.arange(6), np.arange(6), g)
         FC_vec = nfc.FC2(np.arange(6), 0, g)
         FC_vec2 = nfc.FC2(0, np.arange(6), g)
