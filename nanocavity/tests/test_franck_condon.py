@@ -44,3 +44,11 @@ def test_franck_condon():
         assert not np.allclose(FC_vec, FC_vec2)
         assert np.allclose(FC_mat**2, FC_mat.T**2)
         assert np.allclose(FC_vec**2, FC_vec2**2)
+
+
+def test_probabilities():
+    n = np.arange(25)
+    m = np.arange(3)
+    M = nfc.FC(n, m, 1.5)
+    s = np.sum(M**2, axis=0)
+    assert np.allclose(s, 1)
