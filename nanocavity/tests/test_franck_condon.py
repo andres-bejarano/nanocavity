@@ -30,8 +30,6 @@ def test_franck_condon():
         FC_mat = nfc.FC(np.arange(6), np.arange(6), g)
         FC_vec = nfc.FC(np.arange(6), 0, g)
         FC_vec2 = nfc.FC(0, np.arange(6), g)
-        print("g", g, FC_mat[1, 0], FC_mat[0, 1])
-        print(FC_0n(1, g))
         assert np.isclose(FC_0n(0, g), FC_mat[0, 0])
         assert np.isclose(FC_0n(0, g), FC_vec[0])
         assert np.isclose(FC_0n(1, g) ** 2, FC_mat[1, 0] ** 2)
@@ -55,9 +53,6 @@ def compare_koch_yar():
         FC_yar = nfc.FC(np.arange(6), 0, g, method="Yar")
 
         assert np.allclose(FC_koch, FC_yar)
-
-
-compare_koch_yar()
 
 
 def test_probabilities():
