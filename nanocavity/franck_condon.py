@@ -2,19 +2,22 @@ import numpy as np
 import scipy.special as sp
 
 
-def FC(a, b, g):
+def FC(q1, q2, g, method="Koch"):
     """
-    Franck-Condon matrix element
-
-    See Eq. A(2) in:
-    A. Yar, A. Donarini, S. Koller and M. Grifoni
-    Dynamical symmetry breaking in vibration-assisted transport through nanostructures
-    Phys. Rev. B 84, 115432 (2011)
+    This function calculates the Franck-Condon matrix element which is:
+        $\langle q2 | exp(-g (\op{b}^\dag - \op{b})) | q1 \rangle$.
+        q1 and q2 are bosonic states and \op{b} is the bosonic annihilation operator
 
     See Eq. B(3) in:
     J. Koch, F. von Oppen, Y. Oreg and E. Sela
     Thermopower of single-molecule devices
     Phys. Rev. B 70, 195107 (2004)
+
+    As another reference see Eq. A(2) in:
+    A. Yar, A. Donarini, S. Koller and M. Grifoni
+    Dynamical symmetry breaking in vibration-assisted transport through nanostructures
+    Phys. Rev. B 84, 115432 (2011)
+
 
     Parameters
     ----------
@@ -31,20 +34,29 @@ def FC(a, b, g):
        Franck-Condon matrix element(s)
     """
 
-    n, m = np.meshgrid(a, b, indexing="ij")
+    n, m = np.meshgrid(q1, q2, indexing="ij")
     q = np.minimum(n, m)
     Q = np.maximum(n, m)
     fq = sp.factorial(q)
     fQ = sp.factorial(Q)
-    L = sp.eval_genlaguerre(q, Q - q, g**2)
 
-    H = np.ones(n.shape)
-    exp_arr = m - n
-    H[exp_arr > 0] = (-1) ** exp_arr[exp_arr > 0]
-    M = H * np.sqrt(fq / fQ) * np.exp(-(g**2) / 2) * g ** (Q - q) * L
+    if method == "Koch":
+        L = sp.eval_genlaguerre(q, Q - q, g**2)
+        H = np.ones(n.shape)
+        exp_arr = m - n
+        H[exp_arr > 0] = (-1) ** exp_arr[exp_arr > 0]
+        M = H * np.sqrt(fq / fQ) * np.exp(-(g**2) / 2) * g ** (Q - q) * L
+    elif method == "Yar":
+        L = sp.eval_genlaguerre(q, Q - q, -(g**2))
+        pre = np.heaviside(m - n, 0.5) * g ** (m - n) + np.heaviside(n - m, 0.5) * (
+            -np.conj(g)
+        ) ** (n - m)
+        M = pre * np.sqrt(fq / fQ) * np.exp(-(g**2) / 2) * L
+    else:
+        raise Exception("Need to provide a valid method.")
 
-    if np.isscalar(a) and np.isscalar(b):
+    if np.isscalar(q1) and np.isscalar(q2):
         return M[0].item()
-    elif np.isscalar(a) or np.isscalar(b):
+    elif np.isscalar(q1) or np.isscalar(q2):
         return M.ravel()
     return M
