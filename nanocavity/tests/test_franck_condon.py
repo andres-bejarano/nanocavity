@@ -30,20 +30,36 @@ def test_franck_condon():
         FC_mat = nfc.FC(np.arange(6), np.arange(6), g)
         FC_vec = nfc.FC(np.arange(6), 0, g)
         FC_vec2 = nfc.FC(0, np.arange(6), g)
-        assert np.allclose(FC_0n(0, g), FC_mat[0, 0])
-        assert np.allclose(FC_0n(0, g), FC_vec[0])
-        assert np.allclose(FC_0n(1, g) ** 2, FC_mat[1, 0] ** 2)
-        assert np.allclose(FC_0n(1, g), FC_mat[1, 0])
-        assert not np.allclose(FC_0n(1, g), FC_mat[0, 1])
-        assert np.allclose(FC_0n(1, g), FC_vec[1])
-        assert np.allclose(FC_0n(1, g), nfc.FC(1, 0, g))
-        assert np.allclose(FC_11(g), FC_mat[1, 1])
-        assert np.allclose(FC_21(g), FC_mat[2, 1])
-        assert np.allclose(FC_22(g), FC_mat[2, 2])
+        print("g", g, FC_mat[1, 0], FC_mat[0, 1])
+        print(FC_0n(1, g))
+        assert np.isclose(FC_0n(0, g), FC_mat[0, 0])
+        assert np.isclose(FC_0n(0, g), FC_vec[0])
+        assert np.isclose(FC_0n(1, g) ** 2, FC_mat[1, 0] ** 2)
+        assert np.isclose(FC_0n(1, g), FC_mat[1, 0])
+        assert np.isclose(FC_0n(1, g), -FC_mat[0, 1])
+        assert np.isclose(FC_0n(1, g), FC_vec[1])
+        assert np.isclose(FC_0n(1, g), nfc.FC(1, 0, g))
+        assert np.isclose(FC_11(g), FC_mat[1, 1])
+        assert np.isclose(FC_21(g), FC_mat[2, 1])
+        assert np.isclose(FC_22(g), FC_mat[2, 2])
         assert not np.allclose(FC_mat, FC_mat.T)
         assert not np.allclose(FC_vec, FC_vec2)
         assert np.allclose(FC_mat**2, FC_mat.T**2)
         assert np.allclose(FC_vec**2, FC_vec2**2)
+
+
+def compare_koch_yar():
+    g_vec = [0.1]
+    for g in g_vec:
+        FC_koch = nfc.FC(np.arange(6), np.arange(6), g)
+        FC_yar = nfc.FC(np.arange(6), np.arange(6), g, method="Yar")
+
+        print(FC_koch)
+        print(FC_yar)
+        # assert np.allclose(FC_koch, FC_yar)
+
+
+compare_koch_yar()
 
 
 def test_probabilities():
