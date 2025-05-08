@@ -40,7 +40,7 @@ def FC(q1, q2, g, method="Koch"):
     fq = sp.factorial(q)
     fQ = sp.factorial(Q)
     L = sp.eval_genlaguerre(q, Q - q, g**2)
-    common = np.sqrt(fq / fQ) * np.exp(-(g**2) / 2)
+    common = np.sqrt(fq / fQ) * np.exp(-(g**2) / 2) * L
 
     if method == "Koch":
         assert np.imag(g) == 0  # this formula assumes a real valued coupling
