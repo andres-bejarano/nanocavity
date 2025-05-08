@@ -5,7 +5,7 @@ import scipy.special as sp
 def FC(q1, q2, g, method="Koch"):
     """
     This function calculates the Franck-Condon matrix element which is:
-        $\langle q2 | exp(-g (\op{b}^\dag - \op{b})) | q1 \rangle$.
+        $\langle q1 | \exp[-g (\op{b}^\dagger - \op{b})] | q2 \rangle$.
         q1 and q2 are bosonic states and \op{b} is the bosonic annihilation operator
 
     See Eq. B(3) in:
@@ -34,24 +34,25 @@ def FC(q1, q2, g, method="Koch"):
        Franck-Condon matrix element(s)
     """
 
-    n, m = np.meshgrid(q1, q2, indexing="ij")
+    n, m = np.meshgrid(q2, q1, indexing="ij")
     q = np.minimum(n, m)
     Q = np.maximum(n, m)
     fq = sp.factorial(q)
     fQ = sp.factorial(Q)
+    L = sp.eval_genlaguerre(q, Q - q, g**2)
+    common = np.sqrt(fq / fQ) * np.exp(-(g**2) / 2)
 
     if method == "Koch":
-        L = sp.eval_genlaguerre(q, Q - q, g**2)
+        assert np.imag(g) == 0  # this formula assumes a real valued coupling
         H = np.ones(n.shape)
         exp_arr = m - n
         H[exp_arr > 0] = (-1) ** exp_arr[exp_arr > 0]
-        M = H * np.sqrt(fq / fQ) * np.exp(-(g**2) / 2) * g ** (Q - q) * L
+        M = H * g ** (Q - q) * common
     elif method == "Yar":
-        L = sp.eval_genlaguerre(q, Q - q, -(g**2))
-        pre = np.heaviside(m - n, 0.5) * g ** (m - n) + np.heaviside(n - m, 0.5) * (
+        pre = np.heaviside(n - m, 0.5) * g ** (n - m) + np.heaviside(m - n, 0.5) * (
             -np.conj(g)
-        ) ** (n - m)
-        M = pre * np.sqrt(fq / fQ) * np.exp(-(g**2) / 2) * L
+        ) ** (m - n)
+        M = pre * common
     else:
         raise Exception("Need to provide a valid method.")
 
