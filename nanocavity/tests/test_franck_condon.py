@@ -46,12 +46,11 @@ def test_franck_condon():
         assert np.allclose(FC_vec**2, FC_vec2**2)
 
 
-def compare_koch_yar():
-    g_vec = [0.1]
+def test_compare_koch_yar():
+    g_vec = [0.1, 0.5, 1, 1.5, 2]
     for g in g_vec:
-        FC_koch = nfc.FC(0, np.arange(6), g)
-        FC_yar = nfc.FC(np.arange(6), 0, g, method="Yar")
-
+        FC_koch = nfc.FC(np.arange(6), np.arange(6), g)
+        FC_yar = nfc.FC(np.arange(6), np.arange(6), g, method="Yar")
         assert np.allclose(FC_koch, FC_yar)
 
 
