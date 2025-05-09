@@ -54,6 +54,13 @@ def test_compare_koch_yar():
         assert np.allclose(FC_koch, FC_yar)
 
 
+def test_sign_FC():
+    g = 0.01  # weak coupling limit, expand the matrixelement
+    for i in range(5):
+        assert nfc.FC(i, i + 1, g) > 0
+        assert nfc.FC(i + 1, i, g) < 0
+
+
 def test_probabilities():
     n = np.arange(25)
     m = np.arange(3)
