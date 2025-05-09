@@ -34,6 +34,9 @@ def FC(q1, q2, g, method="Koch"):
        Franck-Condon matrix element(s)
     """
 
+    if isinstance(g, int):
+        g = float(g)
+
     n, m = np.meshgrid(q2, q1, indexing="ij")
     q = np.minimum(n, m)
     Q = np.maximum(n, m)
@@ -49,9 +52,9 @@ def FC(q1, q2, g, method="Koch"):
         H[exp_arr > 0] = (-1) ** exp_arr[exp_arr > 0]
         M = H * g ** (Q - q) * common
     elif method == "Yar":
-        pre = np.heaviside(n - m, 0.5) * float(g) ** (n - m) + np.heaviside(
-            m - n, 0.5
-        ) * float(-np.conj(g)) ** (m - n)
+        pre = np.heaviside(n - m, 0.5) * g ** (n - m) + np.heaviside(m - n, 0.5) * (
+            -np.conj(g)
+        ) ** (m - n)
         M = pre * common
     else:
         raise Exception("Need to provide a valid method.")
