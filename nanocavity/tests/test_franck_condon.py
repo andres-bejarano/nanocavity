@@ -56,9 +56,23 @@ def test_compare_koch_yar():
 
 def test_sign_FC():
     g = 0.01  # weak coupling limit, expand the matrixelement
+    methods = ["Koch", "Yar"]
     for i in range(5):
-        assert nfc.FC(i, i + 1, g) > 0
-        assert nfc.FC(i + 1, i, g) < 0
+        for m in methods:
+            assert nfc.FC(i, i + 1, g, method=m) > 0
+            assert nfc.FC(i + 1, i, g, method=m) < 0
+
+
+def test_g_imag():
+    g = 0.3 + 0.4j
+    with pytest.raises(Exception):
+        nfc.FC(1, 1, g, method="Koch")
+    nfc.FC(1, 1, g, method="Yar")
+
+
+def test_fc_method():
+    with pytest.raises(Exception):
+        nfc.FC(1, 1, 0.5, method="no valid method")
 
 
 def test_probabilities():
