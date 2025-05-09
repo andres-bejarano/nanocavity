@@ -27,16 +27,43 @@ def FC_22(g):
 def test_franck_condon():
     g_vec = [0.1, 0.5, 1, 1.5, 2]
     for g in g_vec:
-        FC_mat = nfc.FC2(np.arange(6), np.arange(6), g)
-        FC_vec = nfc.FC2(np.arange(6), 0, g)
-        FC_vec2 = nfc.FC2(0, np.arange(6), g)
-        assert np.allclose(FC_0n(0, g) ** 2, FC_mat[0, 0])
-        assert np.allclose(FC_0n(0, g) ** 2, FC_vec[0])
-        assert np.allclose(FC_0n(1, g) ** 2, FC_mat[0, 1])
-        assert np.allclose(FC_0n(1, g) ** 2, FC_vec[1])
-        assert np.allclose(FC_0n(1, g) ** 2, nfc.FC2(0, 1, g))
-        assert np.allclose(FC_11(g) ** 2, FC_mat[1, 1])
-        assert np.allclose(FC_21(g) ** 2, FC_mat[2, 1])
-        assert np.allclose(FC_22(g) ** 2, FC_mat[2, 2])
-        assert np.allclose(FC_mat, FC_mat.T)
-        assert np.allclose(FC_vec, FC_vec2)
+        FC_mat = nfc.FC(np.arange(6), np.arange(6), g)
+        FC_vec = nfc.FC(np.arange(6), 0, g)
+        FC_vec2 = nfc.FC(0, np.arange(6), g)
+        assert np.isclose(FC_0n(0, g), FC_mat[0, 0])
+        assert np.isclose(FC_0n(0, g), FC_vec[0])
+        assert np.isclose(FC_0n(1, g) ** 2, FC_mat[1, 0] ** 2)
+        assert np.isclose(FC_0n(1, g), FC_mat[1, 0])
+        assert np.isclose(FC_0n(1, g), -FC_mat[0, 1])
+        assert np.isclose(FC_0n(1, g), -FC_vec[1])
+        assert np.isclose(FC_0n(1, g), -nfc.FC(1, 0, g))
+        assert np.isclose(FC_11(g), FC_mat[1, 1])
+        assert np.isclose(FC_21(g), FC_mat[2, 1])
+        assert np.isclose(FC_22(g), FC_mat[2, 2])
+        assert not np.allclose(FC_mat, FC_mat.T)
+        assert not np.allclose(FC_vec, FC_vec2)
+        assert np.allclose(FC_mat**2, FC_mat.T**2)
+        assert np.allclose(FC_vec**2, FC_vec2**2)
+
+
+def test_compare_koch_yar():
+    g_vec = [0.1, 0.5, 1, 1.5, 2]
+    for g in g_vec:
+        FC_koch = nfc.FC(np.arange(6), np.arange(6), g)
+        FC_yar = nfc.FC(np.arange(6), np.arange(6), g, method="Yar")
+        assert np.allclose(FC_koch, FC_yar)
+
+
+def test_sign_FC():
+    g = 0.01  # weak coupling limit, expand the matrixelement
+    for i in range(5):
+        assert nfc.FC(i, i + 1, g) > 0
+        assert nfc.FC(i + 1, i, g) < 0
+
+
+def test_probabilities():
+    n = np.arange(25)
+    m = np.arange(3)
+    M = nfc.FC(m, n, 1.5)
+    s = np.sum(M**2, axis=0)
+    assert np.allclose(s, 1)
