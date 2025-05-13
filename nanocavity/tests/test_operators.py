@@ -5,6 +5,7 @@ import secondquant as sq
 import nanocavity.distributions as nd
 import nanocavity.operators as no
 import nanocavity.tls as ntls
+import nanocavity.ols as nols
 
 
 def test_liouvillian_basic():
@@ -191,3 +192,65 @@ def test_jump():
     for op in (a, a.toarray()):
         J1 = kappa * no.jump(op)
         assert np.allclose(J1, J_ana)
+
+
+def eigenstate_decomp(D, basis):
+    """
+        Function to calculate the electronic collapse operators for the OLS.
+
+    Parameters:
+    -----
+    D: secondquant operator
+        electronic annihilation operator AFTER Lang-Firsov transformation
+    basis: list
+        (E, V) describing the basis for the collapse operators
+    """
+
+    # Electronic collapse operators
+    E, V = basis
+    M_fi = D.inner(V)
+    dim = D.shape[0]
+
+    cp, cm = [], []
+
+    for f in range(dim):
+        for i in range(dim):
+            P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
+            cp.append(P.conj().T)
+            cm.append(P)
+
+    return cp, cm
+
+
+def test_full_diss():
+    hw_ph = 1
+    g_ph = 0.1
+    Hs, [dg, a_ph], [ng, n_ph] = nols.Hamiltonian(hw_ph, max_bosons=1)
+    basis = Hs.eigh()
+    ng = dg.d * dg
+    Dg, A = nols.Lang_Firsov_transform(dg, a_ph, g_ph)
+    cp, cm = eigenstate_decomp(Dg, basis)
+    c_decomp_dag = np.zeros(cp[0].shape)
+    c_decomp = np.zeros(cm[0].shape)
+    for c in cp:
+        c_decomp_dag += c
+    for c in cm:
+        c_decomp += c
+
+    assert np.allclose(Dg.toarray(), c_decomp)
+    assert np.allclose(Dg.d.toarray(), c_decomp_dag)
+
+    # diss_eigen = no.dissipator(cp, diagonal_form=False)
+    diss_eigen = no.dissipator(cp, diagonal_form=False)
+    diss_eigen += no.dissipator(cm, diagonal_form=False)
+
+    # c_full = [Dg.d.toarray()]
+    c_full = [Dg.toarray(), Dg.d.toarray()]
+    diss_full = no.dissipator(c_full, diagonal_form=True)
+
+    assert np.allclose(diss_eigen, diss_full)
+    # print(diss_eigen - diss_full)
+    # print(diss_full)
+
+
+test_full_diss()
