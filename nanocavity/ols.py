@@ -143,12 +143,12 @@ def liouvillian(
     c_pL, c_mL, c_pR, c_mR = collapse_electronic(
         Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False
     )
-    cp = c_pL + c_pR
-    cm = c_mL + c_mR
     cn = [np.sqrt(kappa * g_ph**2 / 2) * ng.toarray()]
 
     L = no.liouvillian(Hs, cn + ca, method=method, cond=cond, diagonal_form=True)
-    L += no.dissipator(cp, method, diagonal_form=False)
-    L += no.dissipator(cm, method, diagonal_form=False)
+    L += no.dissipator(c_pL, method, diagonal_form=False)
+    L += no.dissipator(c_mL, method, diagonal_form=False)
+    L += no.dissipator(c_pR, method, diagonal_form=False)
+    L += no.dissipator(c_mR, method, diagonal_form=False)
 
     return L
