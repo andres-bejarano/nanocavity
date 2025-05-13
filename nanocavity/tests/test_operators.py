@@ -240,17 +240,10 @@ def test_full_diss():
     assert np.allclose(Dg.toarray(), c_decomp)
     assert np.allclose(Dg.d.toarray(), c_decomp_dag)
 
-    # diss_eigen = no.dissipator(cp, diagonal_form=False)
     diss_eigen = no.dissipator(cp, diagonal_form=False)
     diss_eigen += no.dissipator(cm, diagonal_form=False)
 
-    # c_full = [Dg.d.toarray()]
     c_full = [Dg.toarray(), Dg.d.toarray()]
     diss_full = no.dissipator(c_full, diagonal_form=True)
 
     assert np.allclose(diss_eigen, diss_full)
-    # print(diss_eigen - diss_full)
-    # print(diss_full)
-
-
-test_full_diss()
