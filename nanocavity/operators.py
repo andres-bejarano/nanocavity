@@ -5,7 +5,7 @@ from secondquant.operator import Operator
 import nanocavity.distributions as ndist
 
 
-def collapses(A_op, basis, kT, bath, rate, mu=0, total=True, cutoff=1e-12):
+def collapses(A_op, basis, kT, bath, rate, mu=0, total=True, cutoff=0):
     """
     Function to calculate the collapse operators which are needed to
     build a Liouvillian with secondquant operators
