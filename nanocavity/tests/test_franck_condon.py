@@ -54,19 +54,68 @@ def test_compare_koch_yar():
         assert np.allclose(FC_koch, FC_yar)
 
 
-def test_sign_FC():
+def test_sign_FC(method):
     g = 0.01  # weak coupling limit, expand the matrixelement
-    methods = ["Koch", "Yar"]
     for i in range(5):
-        for m in methods:
-            assert nfc.FC(i, i + 1, g, method=m) > 0
-            assert nfc.FC(i + 1, i, g, method=m) < 0
+        if method == None:
+            assert nfc.FC(i, i + 1, g) > 0
+            assert nfc.FC(i + 1, i, g) < 0
+        else:
+            assert nfc.FC(i, i + 1, g, method=method) > 0
+            assert nfc.FC(i + 1, i, g, method=method) < 0
+
+
+@pytest.fixture(scope="module", params=[None, "Koch", "Yar"])
+def method(request):
+    return request.param
+
+
+def test_negative_input(method):
+    g = 1
+    with pytest.raises(Exception):
+        if method == None:
+            nfc.FC(1, -1, g)
+            nfc.FC(-1, 1, g)
+            nfc.FC(-1, -1, g)
+        else:
+            nfc.FC(1, -1, g, method=method)
+            nfc.FC(-1, 1, g, method=method)
+            nfc.FC(-1, -1, g, method=method)
+
+
+def test_array_input(method):
+    g = 1
+    n = np.arange(5)
+    if method == None:
+        assert len(nfc.FC(n, n, g).shape) == 2
+        assert len(nfc.FC(1, n, g).shape) == 1
+        with pytest.raises(Exception):
+            nfc.FC(1, 1, g).shape
+    else:
+        assert len(nfc.FC(n, n, g, method=method).shape) == 2
+        assert len(nfc.FC(1, n, g, method=method).shape) == 1
+        with pytest.raises(Exception):
+            nfc.FC(1, 1, g, method=method).shape
+
+
+def test_float_input(method):
+    g = 0.01
+    with pytest.raises(Exception):
+        if method == None:
+            nfc.FC(1.3, 1, g)
+            nfc.FC(1, 1.3, g)
+            nfc.FC(1.3, 1.3, g)
+        else:
+            nfc.FC(1.3, 1, g, method=method)
+            nfc.FC(1, 1.3, g, method=method)
+            nfc.FC(1.3, 1.3, g, method=method)
 
 
 def test_g_imag():
     g = 0.3 + 0.4j
     with pytest.raises(Exception):
         nfc.FC(1, 1, g, method="Koch")
+        nfc.FC(1, 1, g)
     nfc.FC(1, 1, g, method="Yar")
 
 
@@ -81,3 +130,10 @@ def test_probabilities():
     M = nfc.FC(m, n, 1.5)
     s = np.sum(M**2, axis=0)
     assert np.allclose(s, 1)
+
+
+def test_transpose():
+    n = np.arange(10)
+    X = nfc.FC(n, n, -0.01)
+    Y = nfc.FC(n, n, 0.01)
+    assert np.allclose(X, Y.T)

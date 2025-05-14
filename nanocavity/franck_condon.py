@@ -33,6 +33,27 @@ def FC(q1, q2, g, method="Koch"):
     M : np.array or float
        Franck-Condon matrix element(s)
     """
+    if isinstance(q1, float) or isinstance(q2, float):
+        raise TypeError("q1 and q2 need to be integers")
+
+    if (isinstance(q1, list) or isinstance(q1, np.ndarray)) and (
+        isinstance(q2, list) or isinstance(q2, np.ndarray)
+    ):
+        if q1.any() < 0 or q2.any() < 0:
+            raise ValueError("q1 and q2 must be >= 0!")
+    elif (isinstance(q1, list) or isinstance(q1, np.ndarray)) and (
+        not isinstance(q2, list) and not isinstance(q2, np.ndarray)
+    ):
+        if q1.any() < 0 or q2 < 0:
+            raise ValueError("q1 and q2 must be >= 0!")
+    elif (not isinstance(q1, list) and not isinstance(q1, np.ndarray)) and (
+        isinstance(q2, list) or isinstance(q2, np.ndarray)
+    ):
+        if q1 < 0 or q2.any() < 0:
+            raise ValueError("q1 and q2 must be >= 0!")
+    else:
+        if q1 < 0 or q2 < 0:
+            raise ValueError("q1 and q2 must be >= 0!")
 
     if isinstance(g, int):
         g = float(g)
