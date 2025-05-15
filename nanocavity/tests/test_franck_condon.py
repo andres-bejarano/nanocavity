@@ -87,15 +87,13 @@ def test_array_input(method):
     g = 1
     n = np.arange(5)
     if method == None:
-        assert len(nfc.FC(n, n, g).shape) == 2
-        assert len(nfc.FC(1, n, g).shape) == 1
-        with pytest.raises(Exception):
-            nfc.FC(1, 1, g).shape
+        assert nfc.FC(n, n, g).shape == (5, 5)
+        assert nfc.FC(1, n, g).shape == (5,)
+        assert not isinstance(nfc.FC(1, 1, g), (list, np.ndarray))
     else:
-        assert len(nfc.FC(n, n, g, method=method).shape) == 2
-        assert len(nfc.FC(1, n, g, method=method).shape) == 1
-        with pytest.raises(Exception):
-            nfc.FC(1, 1, g, method=method).shape
+        assert nfc.FC(n, n, g, method=method).shape == (5, 5)
+        assert nfc.FC(1, n, g, method=method).shape == (5,)
+        assert not isinstance(nfc.FC(1, 1, g, method=method), (list, np.ndarray))
 
 
 def test_float_input(method):
