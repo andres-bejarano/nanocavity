@@ -134,7 +134,7 @@ def test_probabilities():
     assert np.allclose(s, 1)
 
 
-def test_transpose():
+def test_negative_coupling():
     n = np.arange(10)
     X = nfc.FC(n, n, -0.01)
     Y = nfc.FC(n, n, 0.01)
