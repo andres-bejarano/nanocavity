@@ -39,14 +39,10 @@ def FC(q1, q2, g, method="Koch"):
     for q in (q1, q2):
         if isinstance(q, (list, np.ndarray)):
             q = np.array(q)
-            if q.dtype != np.int64:
+            if q.dtype != np.int64 or (q < 0).any():
                 raise TypeError(err_string)
-            elif (q < 0).any():
-                raise ValueError(err_string)
-        elif not isinstance(q, int):
+        elif not isinstance(q, int) or q < 0:
             raise TypeError(err_string)
-        elif q < 0:
-            raise ValueError(err_string)
 
     if isinstance(g, int):
         g = float(g)
