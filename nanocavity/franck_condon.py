@@ -33,6 +33,16 @@ def FC(q1, q2, g, method="Koch"):
     M : np.array or float
        Franck-Condon matrix element(s)
     """
+    err_string = (
+        "q1 and q2 must be nonnegative integers or lists of nonnegative integers."
+    )
+    for q in (q1, q2):
+        if isinstance(q, (list, np.ndarray)):
+            q = np.array(q)
+            if q.dtype != np.int64 or (q < 0).any():
+                raise TypeError(err_string)
+        elif not isinstance(q, int) or q < 0:
+            raise TypeError(err_string)
 
     if isinstance(g, int):
         g = float(g)
