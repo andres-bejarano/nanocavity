@@ -38,9 +38,10 @@ def FC(q1, q2, g, method="Koch"):
     )
     for q in (q1, q2):
         if isinstance(q, (list, np.ndarray)):
-            if not isinstance(all(q), int):
+
+            if not isinstance(np.ndarray(q).all(), int):
                 raise TypeError(err_string)
-            elif any(q) < 0:
+            elif np.ndarray(q).any < 0:
                 raise ValueError(err_string)
         elif not isinstance(q, int):
             raise TypeError(err_string)
