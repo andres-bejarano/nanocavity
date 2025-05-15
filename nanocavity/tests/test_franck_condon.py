@@ -109,12 +109,16 @@ def test_float_input(method):
             nfc.FC(1.3, 1.3, g, method=method)
 
 
-def test_g_imag():
+def test_g_imag(method):
     g = 0.3 + 0.4j
-    with pytest.raises(Exception):
-        nfc.FC(1, 1, g, method="Koch")
-        nfc.FC(1, 1, g)
-    nfc.FC(1, 1, g, method="Yar")
+    if method == None:
+        with pytest.raises(Exception):
+            nfc.FC(1, 1, g)
+    elif method in ["Koch"]:
+        with pytest.raises(Exception):
+            nfc.FC(1, 1, g, method=method)
+    else:
+        nfc.FC(1, 1, g, method=method)
 
 
 def test_fc_method():
