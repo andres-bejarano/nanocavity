@@ -33,24 +33,19 @@ def FC(q1, q2, g, method="Koch"):
     M : np.array or float
        Franck-Condon matrix element(s)
     """
+    err_string = (
+        "q1 and q2 must be nonnegative integers or lists of nonnegative integers."
+    )
     for q in (q1, q2):
         if isinstance(q, (list, np.ndarray)):
             if not isinstance(all(q), int):
-                raise TypeError(
-                    "q1 and q2 must be integers or lists of integers bigger than zero."
-                )
+                raise TypeError(err_string)
             elif not any(q) > 0:
-                raise ValueError(
-                    "q1 and q2 must be integers or lists of integers bigger than zero."
-                )
+                raise ValueError(err_string)
         elif not isinstance(q, int):
-            raise TypeError(
-                "q1 and q2 must be integers or lists of integers bigger than zero."
-            )
+            raise TypeError(err_string)
         elif q < 0:
-            raise ValueError(
-                "q1 and q2 must be integers or lists of integers bigger than zero."
-            )
+            raise ValueError(err_string)
 
     if isinstance(g, int):
         g = float(g)
