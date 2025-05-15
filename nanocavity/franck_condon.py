@@ -33,27 +33,24 @@ def FC(q1, q2, g, method="Koch"):
     M : np.array or float
        Franck-Condon matrix element(s)
     """
-    if isinstance(q1, float) or isinstance(q2, float):
-        raise TypeError("q1 and q2 need to be integers")
-
-    if (isinstance(q1, list) or isinstance(q1, np.ndarray)) and (
-        isinstance(q2, list) or isinstance(q2, np.ndarray)
-    ):
-        if q1.any() < 0 or q2.any() < 0:
-            raise ValueError("q1 and q2 must be >= 0!")
-    elif (isinstance(q1, list) or isinstance(q1, np.ndarray)) and (
-        not isinstance(q2, list) and not isinstance(q2, np.ndarray)
-    ):
-        if q1.any() < 0 or q2 < 0:
-            raise ValueError("q1 and q2 must be >= 0!")
-    elif (not isinstance(q1, list) and not isinstance(q1, np.ndarray)) and (
-        isinstance(q2, list) or isinstance(q2, np.ndarray)
-    ):
-        if q1 < 0 or q2.any() < 0:
-            raise ValueError("q1 and q2 must be >= 0!")
-    else:
-        if q1 < 0 or q2 < 0:
-            raise ValueError("q1 and q2 must be >= 0!")
+    for q in (q1, q2):
+        if isinstance(q, (list, np.ndarray)):
+            if not isinstance(all(q), int):
+                raise TypeError(
+                    "q1 and q2 must be integers or lists of integers bigger than zero."
+                )
+            elif not any(q) > 0:
+                raise ValueError(
+                    "q1 and q2 must be integers or lists of integers bigger than zero."
+                )
+        elif not isinstance(q, int):
+            raise TypeError(
+                "q1 and q2 must be integers or lists of integers bigger than zero."
+            )
+        elif q < 0:
+            raise ValueError(
+                "q1 and q2 must be integers or lists of integers bigger than zero."
+            )
 
     if isinstance(g, int):
         g = float(g)
