@@ -194,32 +194,6 @@ def test_jump():
         assert np.allclose(J1, J_ana)
 
 
-def eigenstate_decomp(D, basis):
-    """
-        Function to calculate the electronic collapse operators for the OLS.
-
-    Parameters:
-    -----
-    D: secondquant operator
-        electronic annihilation operator AFTER Lang-Firsov transformation
-    basis: list
-        (E, V) describing the basis for the collapse operators
-    """
-
-    # Electronic collapse operators
-    E, V = basis
-    M_fi = D.inner(V)
-    dim = D.shape[0]
-
-    cp, cm = [], []
-
-    for f in range(dim):
-        for i in range(dim):
-            P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
-            cp.append(P.conj().T)
-            cm.append(P)
-
-    return cp, cm
 
 
 def test_full_diss():
