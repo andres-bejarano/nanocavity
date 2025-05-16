@@ -194,6 +194,20 @@ def test_jump():
         assert np.allclose(J1, J_ana)
 
 
+def test_eigenstate_decomp():
+    hw_ph = 1
+    g_ph = 0.1
+    Hs, [dg, a_ph], [ng, n_ph] = nols.Hamiltonian(hw_ph, max_bosons=1)
+    basis = Hs.eigh()
+    Dg, A = nols.Lang_Firsov_transform(dg, a_ph, g_ph)
+
+    Dg_comp = no.eigenstate_decomp(Dg, basis)
+    A_comp = no.eigenstate_decomp(A, basis)
+    DgA_comp = no.eigenstate_decomp(Dg + A, basis)
+
+    assert Dg.allclose(sum(Dg_comp))
+    assert A.allclose(sum(A_comp))
+    assert (Dg + A).allclose(sum(DgA_comp))
 
 
 def test_full_diss():
