@@ -215,18 +215,14 @@ def test_full_diss():
     g_ph = 0.1
     Hs, [dg, a_ph], [ng, n_ph] = nols.Hamiltonian(hw_ph, max_bosons=1)
     basis = Hs.eigh()
-    ng = dg.d * dg
     Dg, A = nols.Lang_Firsov_transform(dg, a_ph, g_ph)
-    cp, cm = eigenstate_decomp(Dg, basis)
-    c_decomp_dag = np.zeros(cp[0].shape)
-    c_decomp = np.zeros(cm[0].shape)
-    for c in cp:
-        c_decomp_dag += c
-    for c in cm:
-        c_decomp += c
+    cp = no.eigenstate_decomp(Dg.d, basis)
+    cm = no.eigenstate_decomp(Dg, basis)
+    c_decomp_dag = sum(cp)
+    c_decomp = sum(cm)
 
-    assert np.allclose(Dg.toarray(), c_decomp)
-    assert np.allclose(Dg.d.toarray(), c_decomp_dag)
+    assert Dg.allclose(c_decomp)
+    assert Dg.d.allclose(c_decomp_dag)
 
     diss_eigen = no.dissipator(cp, diagonal_form=False)
     diss_eigen += no.dissipator(cm, diagonal_form=False)
