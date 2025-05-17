@@ -5,6 +5,7 @@ import secondquant as sq
 import nanocavity.distributions as nd
 import nanocavity.operators as no
 import nanocavity.tls as ntls
+import nanocavity.ols as nols
 
 
 def test_liouvillian_basic():
@@ -191,3 +192,42 @@ def test_jump():
     for op in (a, a.toarray()):
         J1 = kappa * no.jump(op)
         assert np.allclose(J1, J_ana)
+
+
+def test_eigenstate_decomp():
+    hw_ph = 1
+    g_ph = 0.1
+    Hs, [dg, a_ph], [ng, n_ph] = nols.Hamiltonian(hw_ph, max_bosons=1)
+    basis = Hs.eigh()
+    Dg, A = nols.Lang_Firsov_transform(dg, a_ph, g_ph)
+
+    Dg_comp = no.eigenstate_decomp(Dg, basis)
+    A_comp = no.eigenstate_decomp(A, basis)
+    DgA_comp = no.eigenstate_decomp(Dg + A, basis)
+
+    assert Dg.allclose(sum(Dg_comp))
+    assert A.allclose(sum(A_comp))
+    assert (Dg + A).allclose(sum(DgA_comp))
+
+
+def test_full_diss():
+    hw_ph = 1
+    g_ph = 0.1
+    Hs, [dg, a_ph], [ng, n_ph] = nols.Hamiltonian(hw_ph, max_bosons=1)
+    basis = Hs.eigh()
+    Dg, A = nols.Lang_Firsov_transform(dg, a_ph, g_ph)
+    cp = no.eigenstate_decomp(Dg.d, basis)
+    cm = no.eigenstate_decomp(Dg, basis)
+    c_decomp_dag = sum(cp)
+    c_decomp = sum(cm)
+
+    assert Dg.allclose(c_decomp)
+    assert Dg.d.allclose(c_decomp_dag)
+
+    diss_eigen = no.dissipator(cp, diagonal_form=False)
+    diss_eigen += no.dissipator(cm, diagonal_form=False)
+
+    c_full = [Dg.toarray(), Dg.d.toarray()]
+    diss_full = no.dissipator(c_full, diagonal_form=True)
+
+    assert np.allclose(diss_eigen, diss_full)
