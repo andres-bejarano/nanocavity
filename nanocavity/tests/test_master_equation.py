@@ -200,9 +200,6 @@ def test_stationary_single_cavity_mode():
     assert np.allclose(n_average, n_average_a)
 
 
-test_stationary_single_cavity_mode()
-
-
 def test_regression_theorem():
     [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=2)
     H = Nf + 2 * Nb + 0.1 * (c.d * a + a.d * c)

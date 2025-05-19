@@ -6,8 +6,6 @@ import nanocavity.master_equation as nme
 import nanocavity.operators as no
 import nanocavity.tls as ntls
 
-from itertools import chain
-
 
 # the angle of each branch in Jaynes-Cummings model
 # \ket{+}_n = \cos{\theta_n}\ket{ng}-i \sin{\theta_n}\ket{n-1,e}
