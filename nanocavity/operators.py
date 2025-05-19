@@ -1,6 +1,7 @@
 import numpy as np
 import numpy.linalg as la
 from secondquant.operator import Operator
+from collections import defaultdict
 
 import nanocavity.distributions as ndist
 
@@ -60,18 +61,24 @@ def collapses(A_op, basis, kT, bath, rate, mu=0, cutoff=0):
         M_fi = (M_fi + M_fi.T) * np.sqrt(pos_bath_energy)
         print("building collapses with X+")
 
-    cp, cm = [], []
+    cp, cm = defaultdict(list), defaultdict(list)
     for f in range(dim):
         for i in range(dim):
             if abs(M_fi[f, i]) > cutoff:
+                deltaE = E[f] - E[i]
+                deltaE_bin = np.round(deltaE / bin_width) * bin_width
                 P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
                 if "bosonic" in bath:
-                    cp.append(np.sqrt(rate * nb_fi_p.T[f, i]) * P.conj().T)
-                    cm.append(np.sqrt(rate * nb_fi_m[f, i]) * P)
+                    cp[deltaE_bin].append(np.sqrt(rate * nb_fi_p.T[f, i]) * P.conj().T)
+                    cm[deltaE_bin].append(np.sqrt(rate * nb_fi_m[f, i]) * P)
 
                 elif bath == "fermionic":
-                    cp.append(np.sqrt(rate * fd_fi_p.T[f, i]) * P.conj().T)
-                    cm.append(np.sqrt(rate * fd_fi_m[f, i]) * P)
+                    cp[deltaE_bin].append(np.sqrt(rate * fd_fi_p.T[f, i]) * P.conj().T)
+                    cm[deltaE_bin].append(np.sqrt(rate * fd_fi_m[f, i]) * P)
+    cp = list(cp.values())
+    cm = list(cm.values())
+    if total:
+        return cp + cm
     return cp, cm
 
 
@@ -83,12 +90,40 @@ def jump(c_ops):
     if not isinstance(c_ops, list):
         raise TypeError("c_ops must be a single operator or a list of them")
     J = 0
+
     for c in c_ops:
-        J += np.kron(c, c.conj())
+        for op in c:
+            J += np.kron(op, op.conj())
     return J
 
 
-def dissipator(c_ops, method="kron", diagonal_form=True):
+def eigenstate_decomp(op, basis):
+    """
+        Function that calculates the eigenstate decomposition of a given operator
+
+    Parameters:
+    -----
+    op: secondquant operator
+    basis: list
+        (E, V) describing the basis for the decomposition
+    """
+
+    # Electronic collapse operators
+    E, V = basis
+    M_fi = op.inner(V)
+    dim = op.shape[0]
+
+    op_decomp = []
+
+    for f in range(dim):
+        for i in range(dim):
+            P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
+            op_decomp.append(P)
+
+    return op_decomp
+
+
+def dissipator(c_ops, method="kron", diagonal_form=False):
     """
     Function to build the Dissipator with respect to given collapse operators
 
@@ -165,7 +200,8 @@ def liouvillian(H, c_ops=None, method="kron", cond=True, diagonal_form=True):
         L = 1j * (np.kron(Id, H) - np.kron(H, Id))
 
     if c_ops is not None:
-        L += dissipator(c_ops, method, diagonal_form)
+        for collapses in c_ops:
+            L += dissipator(collapses, method, diagonal_form)
 
     if cond:
         c = la.cond(L)
