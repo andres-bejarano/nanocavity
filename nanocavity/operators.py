@@ -6,7 +6,7 @@ from collections import defaultdict
 import nanocavity.distributions as ndist
 
 
-def collapses(A_op, basis, kT, bath, rate, mu=0, cutoff=0):
+def collapses(A_op, basis, kT, bath, rate, bin_width, mu=0, cutoff=0):
     """
     Function to calculate the collapse operators which are needed to
     build a Liouvillian with secondquant operators
@@ -75,10 +75,6 @@ def collapses(A_op, basis, kT, bath, rate, mu=0, cutoff=0):
                 elif bath == "fermionic":
                     cp[deltaE_bin].append(np.sqrt(rate * fd_fi_p.T[f, i]) * P.conj().T)
                     cm[deltaE_bin].append(np.sqrt(rate * fd_fi_m[f, i]) * P)
-    cp = list(cp.values())
-    cm = list(cm.values())
-    if total:
-        return cp + cm
     return cp, cm
 
 
@@ -91,13 +87,14 @@ def jump(c_ops):
         raise TypeError("c_ops must be a single operator or a list of them")
     J = 0
 
-    for c in c_ops:
-        for op in c:
-            J += np.kron(op, op.conj())
+    for op in c_ops:
+        print(op)
+        J += np.kron(op, op.conj())
+    print(J.shape)
     return J
 
 
-def eigenstate_decomp(op, basis):
+def eigenstate_decomp(op, basis, bin_width):
     """
         Function that calculates the eigenstate decomposition of a given operator
 
@@ -113,17 +110,19 @@ def eigenstate_decomp(op, basis):
     M_fi = op.inner(V)
     dim = op.shape[0]
 
-    op_decomp = []
+    op_decomp = defaultdict(list)
 
     for f in range(dim):
         for i in range(dim):
+            deltaE = E[f] - E[i]
+            deltaE_bin = np.round(deltaE / bin_width) * bin_width
             P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
-            op_decomp.append(P)
+            op_decomp[deltaE_bin].append(P)
 
     return op_decomp
 
 
-def dissipator(c_ops, method="kron", diagonal_form=False):
+def dissipator(c_ops, method="kron"):
     """
     Function to build the Dissipator with respect to given collapse operators
 
@@ -146,8 +145,7 @@ def dissipator(c_ops, method="kron", diagonal_form=False):
     # This function uses row stacking
     D = 0
     for c1 in c_ops:
-        c_ops2 = [c1] if diagonal_form else c_ops
-        for c2 in c_ops2:
+        for c2 in c_ops:
             cdc = c1.conj().T @ c2
             if method == "einsum":
                 D += np.einsum("ik,jl->ijkl", c1, c2.conj())
@@ -162,7 +160,7 @@ def dissipator(c_ops, method="kron", diagonal_form=False):
     return D
 
 
-def liouvillian(H, c_ops=None, method="kron", cond=True, diagonal_form=True):
+def liouvillian(H, c_ops=None, method="kron", cond=True):
     """
     Function calculating the Liouvillian for a central system coupled to baths
     Uses row stacking in the superspace.
@@ -200,8 +198,9 @@ def liouvillian(H, c_ops=None, method="kron", cond=True, diagonal_form=True):
         L = 1j * (np.kron(Id, H) - np.kron(H, Id))
 
     if c_ops is not None:
-        for collapses in c_ops:
-            L += dissipator(collapses, method, diagonal_form)
+        for c in c_ops:
+            for collapses in c.values():
+                L += dissipator(collapses, method)
 
     if cond:
         c = la.cond(L)
