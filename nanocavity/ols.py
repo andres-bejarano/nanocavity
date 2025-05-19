@@ -86,7 +86,7 @@ def collapse_electronic(D, basis, VL, VR, Gamma_L, Gamma_R, kT, cutoff=0):
     # Electronic collapse operators
     c_pL, c_mL = no.collapses(D, basis, kT, "fermionic", Gamma_L, mu=VL, cutoff=cutoff)
     c_pR, c_mR = no.collapses(D, basis, kT, "fermionic", Gamma_R, mu=VR, cutoff=cutoff)
-    return c_pL, c_mL, c_pR, c_mR
+    return [c_pL, c_pR], [c_mL, c_mR]
 
 
 def liouvillian(
@@ -134,7 +134,7 @@ def liouvillian(
     ng = dg.d * dg
     Dg, A = Lang_Firsov_transform(dg, a_ph, g_ph)
     ca = [np.sqrt(kappa) * a_ph.toarray()]
-    c_pL, c_mL, c_pR, c_mR = collapse_electronic(
+    [c_pL, c_pR], [c_mL, c_mR] = collapse_electronic(
         Dg, basis, VL, VR, Gamma_L, Gamma_R, kT
     )
     cn = [np.sqrt(kappa * g_ph**2 / 2) * ng.toarray()]
