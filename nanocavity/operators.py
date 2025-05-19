@@ -5,7 +5,7 @@ from secondquant.operator import Operator
 import nanocavity.distributions as ndist
 
 
-def collapses(A_op, basis, kT, bath, rate, mu=0, total=True, cutoff=0):
+def collapses(A_op, basis, kT, bath, rate, mu=0, cutoff=0):
     """
     Function to calculate the collapse operators which are needed to
     build a Liouvillian with secondquant operators
@@ -78,8 +78,6 @@ def collapses(A_op, basis, kT, bath, rate, mu=0, total=True, cutoff=0):
                 elif bath == "fermionic":
                     cp.append(np.sqrt(rate * fd_fi_p.T[f, i]) * P.conj().T)
                     cm.append(np.sqrt(rate * fd_fi_m[f, i]) * P)
-    if total:
-        return cp + cm
     return cp, cm
 
 

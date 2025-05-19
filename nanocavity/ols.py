@@ -56,7 +56,7 @@ def Lang_Firsov_transform(d, a_ph, g_ph):
     return D, A
 
 
-def collapse_electronic(D, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False, cutoff=0):
+def collapse_electronic(D, basis, VL, VR, Gamma_L, Gamma_R, kT, cutoff=0):
     """
         Function to calculate the electronic collapse operators for the OLS.
 
@@ -84,14 +84,8 @@ def collapse_electronic(D, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False, cut
     """
 
     # Electronic collapse operators
-    c_pL, c_mL = no.collapses(
-        D, basis, kT, "fermionic", Gamma_L, mu=VL, total=False, cutoff=cutoff
-    )
-    c_pR, c_mR = no.collapses(
-        D, basis, kT, "fermionic", Gamma_R, mu=VR, total=False, cutoff=cutoff
-    )
-    if total:
-        return c_pL + c_mL + c_pR + c_mR
+    c_pL, c_mL = no.collapses(D, basis, kT, "fermionic", Gamma_L, mu=VL, cutoff=cutoff)
+    c_pR, c_mR = no.collapses(D, basis, kT, "fermionic", Gamma_R, mu=VR, cutoff=cutoff)
     return c_pL, c_mL, c_pR, c_mR
 
 
@@ -141,7 +135,7 @@ def liouvillian(
     Dg, A = Lang_Firsov_transform(dg, a_ph, g_ph)
     ca = [np.sqrt(kappa) * a_ph.toarray()]
     c_pL, c_mL, c_pR, c_mR = collapse_electronic(
-        Dg, basis, VL, VR, Gamma_L, Gamma_R, kT, total=False
+        Dg, basis, VL, VR, Gamma_L, Gamma_R, kT
     )
     cn = [np.sqrt(kappa * g_ph**2 / 2) * ng.toarray()]
 

@@ -37,8 +37,6 @@ def test_collapse_electronic():
     assert isinstance(coll_list[0], list)
     assert isinstance(coll_list, tuple)
     assert len(coll_list) == 4
-    coll_tot = nols.collapse_electronic(D, basis, 1, -1, 1e-4, 5e-4, 1e-3, total=True)
-    assert len(coll_tot) == len(list(chain.from_iterable(coll_list)))
 
 
 def test_liouvillian():
