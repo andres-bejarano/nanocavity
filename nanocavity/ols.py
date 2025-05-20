@@ -76,9 +76,6 @@ def collapse_electronic(D, basis, VL, VR, Gamma_L, Gamma_R, kT, cutoff=0):
         tunneling rate at the right lead
     kT: float
         temperature
-    total: logical
-        Switch wether to return the sum of collapse operators or
-        the individual opperators
     cutoff: float
         cutoff for the considered transition matrix elements
     """

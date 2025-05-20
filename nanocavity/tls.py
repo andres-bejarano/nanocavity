@@ -25,11 +25,11 @@ def Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_bosons, rwa=False, ret_nop=False)
     U: Float
         Coulomb repulsion
     max_bosons: int
-            total number of photons
+        total number of photons
     rwa: logical
         Switch if rotating wave should be applied or not. Defaults to false
     ret_nop: logical
-            Switch if number operators should be returned. Defaults to False.
+        Switch if number operators should be returned. Defaults to False.
 
     Returns:
     ------
@@ -148,12 +148,10 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, cutoff=0):
 
     Returns:
     -----
-    c_ops: List
-        containing all collapses. If total True returns 2 lists. First all collapses for creation an excitation
-    Plus: List
-        In case total=True returns [c_gpL, c_epL, c_gpR, c_epR,  c_ap] list of collapses for creation of electrons/photons, each element is a list
-    Minus: List
-        In case total=True returns [c_gmL, c_emL, c_gmR, c_emR,  c_am] list of collapses for creation of electrons/photons, each element is a list
+    Plus: List of lists
+        [c_gpL, c_epL, c_gpR, c_epR,  c_ap] collapses for creation of electrons/photons
+    Minus: List of lists
+        [c_gmL, c_emL, c_gmR, c_emR,  c_am] collapses for creation of electrons/photons
     """
 
     [dg, de, a] = ops
@@ -178,7 +176,7 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, cutoff=0):
     )
 
     # cavity mode
-    # c_ap, c_am = no.collapses(a, basis, kT, "bosonic", kappa, total=False, cutoff=cutoff)
+    # c_ap, c_am = no.collapses(a, basis, kT, "bosonic", kappa, cutoff=cutoff)
     # we need to use the full cavity dissipator (see eq 6.37 in D.F.Walls and Gererd J. Milburn -  Quantum Optics).
     nb_p = ndist.bose_einstein(hw_ph, kT)
     nb_m = 1 + nb_p
