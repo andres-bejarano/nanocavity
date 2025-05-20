@@ -81,8 +81,12 @@ def collapse_electronic(D, basis, VL, VR, Gamma_L, Gamma_R, kT, cutoff=0):
     """
 
     # Electronic collapse operators
-    c_pL, c_mL = no.collapses(D, basis, kT, "fermionic", Gamma_L, mu=VL, cutoff=cutoff)
-    c_pR, c_mR = no.collapses(D, basis, kT, "fermionic", Gamma_R, mu=VR, cutoff=cutoff)
+    c_pL, c_mL = no.collapses(
+        D, basis, kT, "fermionic", Gamma_L, 1e-6, mu=VL, cutoff=cutoff
+    )
+    c_pR, c_mR = no.collapses(
+        D, basis, kT, "fermionic", Gamma_R, 1e-6, mu=VR, cutoff=cutoff
+    )
     return [c_pL, c_pR], [c_mL, c_mR]
 
 
@@ -130,16 +134,17 @@ def liouvillian(
     basis = Hs.eigh()
     ng = dg.d * dg
     Dg, A = Lang_Firsov_transform(dg, a_ph, g_ph)
-    ca = [np.sqrt(kappa) * a_ph.toarray()]
+    ca = {"f": [np.sqrt(kappa) * a_ph.toarray()]}
     [c_pL, c_pR], [c_mL, c_mR] = collapse_electronic(
         Dg, basis, VL, VR, Gamma_L, Gamma_R, kT
     )
-    cn = [np.sqrt(kappa * g_ph**2 / 2) * ng.toarray()]
+    cn = {"f": [np.sqrt(kappa * g_ph**2 / 2) * ng.toarray()]}
+    cops = [c_pL, c_pR, c_mL, c_mR, cn, ca]
 
-    L = no.liouvillian(Hs, cn + ca, method=method, cond=cond, diagonal_form=True)
-    L += no.dissipator(c_pL, method, diagonal_form=False)
-    L += no.dissipator(c_mL, method, diagonal_form=False)
-    L += no.dissipator(c_pR, method, diagonal_form=False)
-    L += no.dissipator(c_mR, method, diagonal_form=False)
+    L = no.liouvillian(Hs, cops, method=method, cond=cond)
+    # L += no.dissipator(c_pL, method, diagonal_form=False)
+    # L += no.dissipator(c_mL, method, diagonal_form=False)
+    # L += no.dissipator(c_pR, method, diagonal_form=False)
+    # L += no.dissipator(c_mR, method, diagonal_form=False)
 
     return L
