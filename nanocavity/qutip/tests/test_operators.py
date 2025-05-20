@@ -24,6 +24,3 @@ def test_liouvillian_basic():
         L_qt = qt.liouvillian(Hqt0 + c * Hqt1, []).full()
         assert np.allclose(L_nc, L_qt.reshape(d4, order="F"))
         assert not np.allclose(L_nc, L_qt.reshape(d4, order="C"))
-
-
-test_liouvillian_basic()
