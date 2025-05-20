@@ -88,9 +88,7 @@ def jump(c_ops):
     J = 0
 
     for op in c_ops:
-        print(op)
         J += np.kron(op, op.conj())
-    print(J.shape)
     return J
 
 
