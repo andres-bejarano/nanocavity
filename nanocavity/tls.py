@@ -180,8 +180,8 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, cutoff=0):
     # we need to use the full cavity dissipator (see eq 6.37 in D.F.Walls and Gererd J. Milburn -  Quantum Optics).
     nb_p = ndist.bose_einstein(hw_ph, kT)
     nb_m = 1 + nb_p
-    c_ap = {"f": [np.sqrt(kappa * nb_p) * a.d.toarray()]}
-    c_am = {"f": [np.sqrt(kappa * nb_m) * a.toarray()]}
+    c_ap = {"full": [np.sqrt(kappa * nb_p) * a.d.toarray()]}
+    c_am = {"full": [np.sqrt(kappa * nb_m) * a.toarray()]}
 
     Plus = [c_gpL, c_epL, c_gpR, c_epR, c_ap]
     Minus = [c_gmL, c_emL, c_gmR, c_emR, c_am]
