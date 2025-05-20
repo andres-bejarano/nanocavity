@@ -81,15 +81,30 @@ def test_collapses():
     Hnc = Hnc0 + Hnc1
     Hqt = Hqt0 + Hqt1
     for VL, VR in [[-3, 3], [-1, 3], [0, 3], [1, 3]]:
-        Cqt = nqtls.collapses(
-            Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
+        Cqtp, Cqtm = nqtls.collapses(
+            Hqt,
+            [dg_qt, de_qt, a_qt],
+            VL,
+            VR,
+            kappa,
+            Gamma_L,
+            Gamma_R,
+            kT,
+            hw_ph,
+            total=False,
         )
-        Cnc = ntls.collapses(
+        Cqtp = [c for sub in Cqtp for c in sub]
+        Cqtm = [c for sub in Cqtm for c in sub]
+        Cncp, Cncm = ntls.collapses(
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
+        Cncp = [c for sub in Cncp for c in sub]
+        Cncm = [c for sub in Cncm for c in sub]
 
-        for i in range(len(Cnc)):
-            assert np.allclose(Cnc[i], Cqt[i].full())
+        for i in range(len(Cncp)):
+            assert np.allclose(Cncp[i], Cqtp[i].full())
+        for i in range(len(Cncm)):
+            assert np.allclose(Cncm[i], Cqtm[i].full())
 
 
 def test_jump_operator():
@@ -116,9 +131,11 @@ def test_jump_operator():
         c_qt = nqtls.collapses(
             Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
-        c_nc = ntls.collapses(
+        cp_nc, cm_nc = ntls.collapses(
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
+        c_nc = cp_nc + cm_nc
+        c_nc = [c for sub in c_nc for c in sub]
 
         Jqt = nqo.jump(c_qt)
         Jnc = no.jump(c_nc)
@@ -157,11 +174,16 @@ def test_dissipators():
                 Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
             )
         )
-        c_ops_nc = ntls.collapses(
+        c_opsp_nc, c_opsm_nc = ntls.collapses(
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
 
-        Dnc = no.dissipator(c_ops_nc)
+        Dnc = 0
+        for c in c_opsp_nc:
+            Dnc += no.dissipator(c)
+        for c in c_opsm_nc:
+            Dnc += no.dissipator(c)
+
         Dqo = nqo.dissipator(c_ops_qt)
         Dqt = nqo.dissipator(c_ops_qt, lindblad=True)
         assert np.allclose(Dqo.full(), Dqt.full())
@@ -199,9 +221,11 @@ def test_liouvillian():
         )
         Lqt = nqo.liouvillian(Hqt, c_ops_qt)
 
-        c_ops_nc = ntls.collapses(
+        c_opsp_nc, c_opsm_nc = ntls.collapses(
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
+        c_ops_nc = c_opsp_nc + c_opsm_nc
+        c_ops_nc = [c for sub in c_ops_nc for c in sub]
         Lnc = no.liouvillian(Hnc, c_ops_nc)
         assert np.allclose(Lnc, Lqt.full())
 
@@ -220,9 +244,11 @@ def test_stationary():
         H0, Hint, [dg, de, a] = ntls.Hamiltonian(Eg, Delta, hw_ph, g_ph, U, max_bosons)
         H = H0 + Hint
 
-        c_ops = ntls.collapses(
+        c_opsp, c_opsm = ntls.collapses(
             H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
+        c_ops = c_opsp + c_opsm
+        c_ops = [c for sub in c_ops for c in sub]
         L = no.liouvillian(H, c_ops)
         Pme = nme.stationary(L)
 
@@ -260,9 +286,11 @@ def test_correlation_AB():
         else:
             Hnc = Hnc0 + Hnc1
             Hqt = Hqt0 + Hqt1
-        c_nc = ntls.collapses(
+        c_ncp, c_ncm = ntls.collapses(
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
+        c_nc = c_ncp + c_ncm
+        c_nc = [c for sub in c_nc for c in sub]
         L = no.liouvillian(Hnc0 + Hnc1, c_nc)
         Snc = nme.correlation_AB(a_nc.d, L, a_nc, tlist)
 
@@ -319,7 +347,6 @@ def test_spectrum_g2():
         Gamma_R,
         kT,
         hw_ph,
-        total=False,
     )
     [c_gpL, c_epL, c_gpR, c_epR, c_ap] = c_nc_p
     [c_gmL, c_emL, c_gmR, c_emR, c_am] = c_nc_m
@@ -327,7 +354,7 @@ def test_spectrum_g2():
     L = no.liouvillian(Hnc, c_nc)
     Inc = kappa * nme.spectrum(L, a_nc, wlist)
     basis = Hnc.eigh()
-    _, c_am = no.collapses(a_nc, basis, kT, bath="bosonic", rate=kappa, total=False)
+    _, c_am = no.collapses(a_nc, basis, kT, bath="bosonic", rate=kappa)
     g2nc = nme.g2(L, a_nc, tlist)
 
     c_qt = nqtls.collapses(
