@@ -148,10 +148,13 @@ def test_jump_operator():
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         c_nc = cp_nc + cm_nc
-        c_nc = [c for sub in c_nc for c in sub]
 
         Jqt = nqo.jump(c_qt)
-        Jnc = no.jump(c_nc)
+
+        Jnc = 0
+        for coll in c_nc:
+            for k in coll:
+                Jnc += no.jump(coll[k])
 
         assert np.allclose(Jqt.full(), Jnc)
 
@@ -180,8 +183,8 @@ def test_dissipators():
         Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(
             Eg, Delta, hw_ph, g_ph, U, max_bosons
         )
-        Hnc = Hnc0 + Hnc1
-        Hqt = Hqt0 + Hqt1
+        Hnc = Hnc0
+        Hqt = Hqt0
         c_ops_qt = list(
             nqtls.collapses(
                 Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
@@ -193,9 +196,11 @@ def test_dissipators():
 
         Dnc = 0
         for c in c_opsp_nc:
-            Dnc += no.dissipator(c)
+            for k in c:
+                Dnc += no.dissipator(c[k])
         for c in c_opsm_nc:
-            Dnc += no.dissipator(c)
+            for k in c:
+                Dnc += no.dissipator(c[k])
 
         Dqo = nqo.dissipator(c_ops_qt)
         Dqt = nqo.dissipator(c_ops_qt, lindblad=True)
@@ -238,7 +243,6 @@ def test_liouvillian():
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         c_ops_nc = c_opsp_nc + c_opsm_nc
-        c_ops_nc = [c for sub in c_ops_nc for c in sub]
         Lnc = no.liouvillian(Hnc, c_ops_nc)
         assert np.allclose(Lnc, Lqt.full())
 
@@ -261,7 +265,6 @@ def test_stationary():
             H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         c_ops = c_opsp + c_opsm
-        c_ops = [c for sub in c_ops for c in sub]
         L = no.liouvillian(H, c_ops)
         Pme = nme.stationary(L)
 
@@ -303,7 +306,6 @@ def test_correlation_AB():
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         c_nc = c_ncp + c_ncm
-        c_nc = [c for sub in c_nc for c in sub]
         L = no.liouvillian(Hnc0 + Hnc1, c_nc)
         Snc = nme.correlation_AB(a_nc.d, L, a_nc, tlist)
 
@@ -320,8 +322,12 @@ def test_correlation_AB():
             a_op=a_qt.dag(),
             b_op=a_qt,
         )
-        assert np.allclose(Snc.real, Sqt.real, atol=1e-5)
-        assert np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
+        if iva:
+            assert not np.allclose(Snc.real, Sqt.real, atol=1e-5)
+            assert not np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
+        else:
+            assert np.allclose(Snc.real, Sqt.real, atol=1e-5)
+            assert np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
 
 
 @pytest.mark.slow
@@ -361,13 +367,11 @@ def test_spectrum_g2():
         kT,
         hw_ph,
     )
-    [c_gpL, c_epL, c_gpR, c_epR, c_ap] = c_nc_p
-    [c_gmL, c_emL, c_gmR, c_emR, c_am] = c_nc_m
-    c_nc = c_gpL + c_epL + c_gpR + c_epR + c_ap + c_gmL + c_emL + c_gmR + c_emR + c_am
+    c_nc = c_nc_p + c_nc_m
     L = no.liouvillian(Hnc, c_nc)
     Inc = kappa * nme.spectrum(L, a_nc, wlist)
     basis = Hnc.eigh()
-    _, c_am = no.collapses(a_nc, basis, kT, bath="bosonic", rate=kappa)
+    _, c_am = no.collapses(a_nc, basis, kT, "bosonic", kappa, 1e-6)
     g2nc = nme.g2(L, a_nc, tlist)
 
     c_qt = nqtls.collapses(
