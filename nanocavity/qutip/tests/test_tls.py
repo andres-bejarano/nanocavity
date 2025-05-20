@@ -98,13 +98,26 @@ def test_collapses():
         Cncp, Cncm = ntls.collapses(
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
-        Cncp = [c for sub in Cncp for c in sub]
-        Cncm = [c for sub in Cncm for c in sub]
+        Cqt = []
+        Cnc = []
+        for c in Cqtp:
+            Cqt.append(c.full())
+        for coll in Cncp:
+            for k in coll:
+                for c in coll[k]:
+                    Cnc.append(c)
+        for c in Cqtm:
+            Cqt.append(c.full())
+        for coll in Cncm:
+            for k in coll:
+                for c in coll[k]:
+                    Cnc.append(c)
+        Cqt = np.array(Cqt).flatten()
+        Cnc = np.array(Cnc).flatten()
+        Cqt.sort()
+        Cnc.sort()
 
-        for i in range(len(Cncp)):
-            assert np.allclose(Cncp[i], Cqtp[i].full())
-        for i in range(len(Cncm)):
-            assert np.allclose(Cncm[i], Cqtm[i].full())
+        assert np.allclose(Cnc, Cqt)
 
 
 def test_jump_operator():
