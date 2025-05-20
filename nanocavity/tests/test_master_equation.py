@@ -113,11 +113,12 @@ def test_liouvillian(kT, bosons, rate):
     [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=bosons)
     H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
     basis = H.eigh()
-    c_opsp, c_opsm = no.collapses(c, basis, kT, "fermionic", rate)
-    c_ops = c_opsp + c_opsm
-    a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate)
-    a_ops = a_opsp + a_opsm
-    for ops in (c_ops, a_ops, c_ops + a_ops):
+    c_opsp, c_opsm = no.collapses(c, basis, kT, "fermionic", rate, 1e-6)
+    c_ops = [c_opsp, c_opsm]
+    a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate, 1e-6)
+    a_ops = [a_opsp, a_opsm]
+    c_comb = [c_opsp, c_opsm, a_opsp, a_opsm]
+    for ops in (c_ops, a_ops, c_comb):
         L = no.liouvillian(H, ops)
         # check determinant of L is zero
         assert np.isclose(np.linalg.det(L), 0)
@@ -142,11 +143,10 @@ def test_stationary(kT, bosons, rate, method):
     [c, a], [Nf, Nb] = sq.composite(fermion_modes=1, boson_modes=1, max_bosons=bosons)
     H = Nf + 0.1 * Nb + 0.01 * (c.d * a + a.d * c)
     basis = H.eigh()
-    c_opsp, c_opsm = no.collapses(c, basis, kT, "fermionic", rate)
-    c_ops = c_opsp + c_opsm
-    a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate)
-    a_ops = a_opsp + a_opsm
-    L = no.liouvillian(H, c_ops + a_ops)
+    c_opsp, c_opsm = no.collapses(c, basis, kT, "fermionic", rate, 1e-6)
+    a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate, 1e-6)
+    c_ops = [c_opsp, c_opsm, a_opsp, a_opsm]
+    L = no.liouvillian(H, c_ops)
     rho = nme.stationary(L, method=method, check=True, tol=-1e8)
 
 
@@ -156,11 +156,10 @@ def test_stationary_solve(row, scale):
     rate = 0.1
     kT = 0.01
     basis = H.eigh()
-    c_opsp, c_opsm = no.collapses(c, basis, kT, "fermionic", rate)
-    c_ops = c_opsp + c_opsm
-    a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate)
-    a_ops = a_opsp + a_opsm
-    L = no.liouvillian(H, c_ops + a_ops)
+    c_opsp, c_opsm = no.collapses(c, basis, kT, "fermionic", rate, 1e-6)
+    a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate, 1e-6)
+    c_ops = [c_opsp, c_opsm, a_opsp, a_opsm]
+    L = no.liouvillian(H, c_ops)
     rho = nme.stationary(L, method="solve", row=row, scale=scale, check=True, tol=-1e8)
 
 
@@ -176,14 +175,19 @@ def test_stationary_single_cavity_mode():
     H = hw_ph * Nb
     basis = H.eigh()
     # numerics
-    cp, cm = no.collapses(a, basis, kT, "bosonic", kappa)
-    L = no.liouvillian(H, cp + cm)
+    cp, cm = no.collapses(a, basis, kT, "bosonic", kappa, 1e-6)
+    L = no.liouvillian(H, [cp, cm])
     rho_st = nme.stationary(L)
     Pn = rho_st.diagonal()
 
     # photons coming out
-    In = nme.average(no.jump(cm) - no.jump(cp), rho_st)
-    n_average = nme.average(no.jump(cm), rho_st)
+    Jp, Jm = 0, 0
+    for c in cp.values():
+        Jp += no.jump(c)
+    for c in cm.values():
+        Jm += no.jump(c)
+    In = nme.average(Jm - Jp, rho_st)
+    n_average = nme.average(Jm, rho_st)
 
     # analytics
     Gup = kappa * ndist.bose_einstein(hw_ph, kT)
@@ -206,11 +210,10 @@ def test_regression_theorem():
     kT = 0.1
     rate = 1e-3
     basis = H.eigh()
-    c_opsp, c_opsm = no.collapses(c, basis, kT, "fermionic", rate)
-    c_ops = c_opsp + c_opsm
-    a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate)
-    a_ops = a_opsp + a_opsm
-    L = no.liouvillian(H, c_ops + a_ops)
+    c_opsp, c_opsm = no.collapses(c, basis, kT, "fermionic", rate, 1e-6)
+    a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate, 1e-6)
+    c_ops = [c_opsp, c_opsm, a_opsp, a_opsm]
+    L = no.liouvillian(H, c_ops)
     M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=True)
     assert (
         len(M) == len(E) == len(L)
@@ -234,11 +237,10 @@ def test_spectrum():
     kT = 0.1
     rate = 1e-3
     basis = H.eigh()
-    c_opsp, c_opsm = no.collapses(c, basis, kT, "fermionic", rate)
-    c_ops = c_opsp + c_opsm
-    a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate)
-    a_ops = a_opsp + a_opsm
-    L = no.liouvillian(H, c_ops + a_ops)
+    c_opsp, c_opsm = no.collapses(c, basis, kT, "fermionic", rate, 1e-6)
+    a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate, 1e-6)
+    c_ops = [c_opsp, c_opsm, a_opsp, a_opsm]
+    L = no.liouvillian(H, c_ops)
     frequency = np.arange(1, 10)
     I = nme.spectrum(L, a, frequency, verbose=False)
     I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True)
@@ -278,8 +280,8 @@ def test_g2():
     # just a single harmonic oscillator, H = a.d * a, coupled to bath
     a, H = sq.composite(fermion_modes=0, boson_modes=1, max_bosons=6)
     basis = H.eigh()
-    ap, am = no.collapses(a, basis, 0.1, "bosonic", 0.1)
-    L = no.liouvillian(H, ap + am)
+    ap, am = no.collapses(a, basis, 0.1, "bosonic", 0.1, 1e-6)
+    L = no.liouvillian(H, [ap, am])
     time_delay = np.linspace(0, 200, 2)
     for method in ["eigen", "direct"]:
         g2, G1, M, E = nme.g2(L, a, time_delay, method, ret_data=True)
