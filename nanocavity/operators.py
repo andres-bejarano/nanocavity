@@ -92,34 +92,6 @@ def jump(c_ops):
     return J
 
 
-def eigenstate_decomp(op, basis, bin_width):
-    """
-        Function that calculates the eigenstate decomposition of a given operator
-
-    Parameters:
-    -----
-    op: secondquant operator
-    basis: list
-        (E, V) describing the basis for the decomposition
-    """
-
-    # Electronic collapse operators
-    E, V = basis
-    M_fi = op.inner(V)
-    dim = op.shape[0]
-
-    op_decomp = defaultdict(list)
-
-    for f in range(dim):
-        for i in range(dim):
-            deltaE = E[f] - E[i]
-            deltaE_bin = np.round(deltaE / bin_width) * bin_width
-            P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
-            op_decomp[deltaE_bin].append(P)
-
-    return op_decomp
-
-
 def dissipator(c_ops, method="kron"):
     """
     Function to build the Dissipator with respect to given collapse operators
