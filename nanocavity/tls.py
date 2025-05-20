@@ -120,7 +120,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     return H, H0, Hint, anni_ops, num_ops
 
 
-def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, total=True, cutoff=0):
+def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, cutoff=0):
     """
     Function to calculate the collapse operators with secondquant operators
 
@@ -145,9 +145,6 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, total=True, cu
         Temperature
     hw_ph: float
         energy of the cavity (photon) mode
-    total: Logic
-        By default True, returns a list with all the collapses,
-        if False it returns the collapses for creation (Plus) and elimination of particles (Minus).
 
     Returns:
     -----
@@ -166,18 +163,18 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, total=True, cu
 
     # left electrode
     c_gpL, c_gmL = no.collapses(
-        dg, basis, kT, "fermionic", Gamma_L, mu=VL, total=False, cutoff=cutoff
+        dg, basis, kT, "fermionic", Gamma_L, mu=VL, cutoff=cutoff
     )
     c_epL, c_emL = no.collapses(
-        de, basis, kT, "fermionic", Gamma_L, mu=VL, total=False, cutoff=cutoff
+        de, basis, kT, "fermionic", Gamma_L, mu=VL, cutoff=cutoff
     )
 
     # right electrode
     c_gpR, c_gmR = no.collapses(
-        dg, basis, kT, "fermionic", Gamma_R, mu=VR, total=False, cutoff=cutoff
+        dg, basis, kT, "fermionic", Gamma_R, mu=VR, cutoff=cutoff
     )
     c_epR, c_emR = no.collapses(
-        de, basis, kT, "fermionic", Gamma_R, mu=VR, total=False, cutoff=cutoff
+        de, basis, kT, "fermionic", Gamma_R, mu=VR, cutoff=cutoff
     )
 
     # cavity mode
@@ -188,15 +185,9 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, total=True, cu
     c_ap = [np.sqrt(kappa * nb_p) * a.d.toarray()]
     c_am = [np.sqrt(kappa * nb_m) * a.toarray()]
 
-    if total:
-        CL = c_gpL + c_epL + c_gmL + c_emL
-        CR = c_gpR + c_epR + c_gmR + c_emR
-        CA = c_ap + c_am
-        return CL + CR + CA
-    else:
-        Plus = [c_gpL, c_epL, c_gpR, c_epR, c_ap]
-        Minus = [c_gmL, c_emL, c_gmR, c_emR, c_am]
-        return Plus, Minus
+    Plus = [c_gpL, c_epL, c_gpR, c_epR, c_ap]
+    Minus = [c_gmL, c_emL, c_gmR, c_emR, c_am]
+    return Plus, Minus
 
 
 def rate_matrix(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, total=True):

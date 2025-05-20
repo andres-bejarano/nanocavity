@@ -171,7 +171,9 @@ def rho_arranged(H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, iva):
         H = H0
     else:
         H = H0 + Hint
-    c_ops = tls.collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph)
+    c_opsp, c_opsm = tls.collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph)
+    c_ops = c_opsp + c_opsm
+    c_ops = [c for sub in c_ops for c in sub]
 
     # density matrix
     L = no.liouvillian(H0 + Hint, list(c_ops))

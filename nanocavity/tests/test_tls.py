@@ -57,7 +57,11 @@ def test_populations():
     H_parameters = Eg, Delta, hw_ph, g_ph, U, max_bosons
     H0, Hint, [dg, de, a] = ntls.Hamiltonian(*H_parameters)
     H = H0 + Hint
-    c_ops = ntls.collapses(H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph)
+    c_opsp, c_opsm = ntls.collapses(
+        H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
+    )
+    c_ops = c_opsp + c_opsm
+    c_ops = [c for sub in c_ops for c in sub]
     L = no.liouvillian(H, c_ops)
     rho = nme.stationary(L)
     # rho is written in the basis without interaction
@@ -94,9 +98,11 @@ def test_spectrum_analytics():
             H = H0
         else:
             H = H0 + Hint
-        c_ops = ntls.collapses(
+        c_opsp, c_opsm = ntls.collapses(
             H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
+        c_ops = c_opsp + c_opsm
+        c_ops = [c for sub in c_ops for c in sub]
         L = no.liouvillian(H0 + Hint, c_ops)
         Inc = kappa * nme.spectrum(L, a, wlist)
         Ianalytics = jc.spectrum(
