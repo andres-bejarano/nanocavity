@@ -22,6 +22,8 @@ def collapses(A_op, basis, kT, bath, rate, bin_width, mu=0, cutoff=0):
             Either 'fermionic' or 'bosonic/bosonicX+'
         rate: float
             coupling strength
+        bin_width: flot >= 0
+            The energy window tolerance used to combine different collapse operators
         mu: float
             chemical potential
         cutoff: float
@@ -29,7 +31,9 @@ def collapses(A_op, basis, kT, bath, rate, bin_width, mu=0, cutoff=0):
 
     Returns
     -------
-        two lists of collapse operators for adding or removing particles
+        Two dictonaries one for adding and one for removing particles.
+        The keys give the energy difference of the connected states.
+        The values are lists of collapse operators corresponding to the energy differnce.
     """
     if bin_width < 0:
         raise ValueError("bin_width needs to be >= 0!")
@@ -108,9 +112,10 @@ def dissipator(c_ops, method="kron"):
         list of collapse operators
     method: string
         Can be "kron" or "einsum"
-    diagonal_for: logical
-        Keep the diagonal form of the Liouvillian or not.
-        Defaults to True
+    
+    Returns:
+    ----
+    A np.ndarray containing the dissipator specified by the collapse operators
     """
     if not isinstance(c_ops, list):
         raise TypeError("c_ops must be a list")
@@ -153,11 +158,10 @@ def liouvillian(H, c_ops=None, method="kron", cond=True):
         defaults to "kron"
     cond: logical
         Defaults to True
-    diagonal_for: logical
-        Keep the diagonal form of the Liouvillian or not.
-        Defaults to True
-        The diagonal form is the standard form.
-        For the one level system we use the non-diagonal form because when performing the secular approximation one also has to keep coherences between different photon numbers when calculating the electronic dissipator
+    
+    Returns:
+    ----
+    Returns the Liouvillian determined by the provided Hamiltonian and the collapse operators.
     """
     if isinstance(H, Operator):
         H = H.toarray()

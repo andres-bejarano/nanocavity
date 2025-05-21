@@ -120,7 +120,8 @@ def liouvillian(
     kT: float
         temperature
     cond: logical
-        Defaults to True
+        If True show the condition number of the Liouvillian
+        Defaults to False
     method: string
         method on how to build the Liouvillian
         defaults to "kron"
