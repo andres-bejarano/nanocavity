@@ -31,7 +31,7 @@ def test_g2():
     )
     c_ops_nc = c_opsp_nc + c_opsm_nc
     basis = H0_nc.eigh()
-    _, c_am = no.collapses(a_ph_nc, basis, kT, "bosonic", kappa, 1e-6)
+    _, c_am = no.collapses(a_ph_nc, basis, kT, "bosonic", kappa, bin_width=1e-6)
 
     L_nc = no.liouvillian(H0_nc + Hint_nc, c_ops_nc)
     rho_st = nme.stationary(L_nc)
