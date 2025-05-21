@@ -59,6 +59,13 @@ def test_Htls_nc_QuTiP():
 
 
 def test_collapses():
+    """
+    Due to the change in the nanocavity collapses which we have not yet applied to the qt operators it's not so easy to compare them directly.
+    Thus I opted for taking all operators nc and qt seperately into respective lists.
+    Then these lists are flattened and sorted.
+    The final check is then to compare the flattened and sorted lists.
+    In principal they could be the same for different collapse operators but this should be quite unlikely.
+    """
     Eg = 0.4
     Delta = 0.9
     hw_ph = 1
@@ -98,13 +105,21 @@ def test_collapses():
         Cncp, Cncm = ntls.collapses(
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
-        Cncp = [c for sub in Cncp for c in sub]
-        Cncm = [c for sub in Cncm for c in sub]
+        Cqt = []
+        Cnc = []
+        for CncX, CqtX in [(Cncp, Cqtp), (Cncm, Cqtm)]:
+            for c in CqtX:
+                Cqt.append(c.full())
+            for coll in CncX:
+                for k in coll.keys():
+                    for c in coll[k]:
+                        Cnc.append(c)
+        Cqt = np.array(Cqt).flatten()
+        Cnc = np.array(Cnc).flatten()
+        Cqt.sort()
+        Cnc.sort()
 
-        for i in range(len(Cncp)):
-            assert np.allclose(Cncp[i], Cqtp[i].full())
-        for i in range(len(Cncm)):
-            assert np.allclose(Cncm[i], Cqtm[i].full())
+        assert np.allclose(Cnc, Cqt)
 
 
 def test_jump_operator():
@@ -135,12 +150,17 @@ def test_jump_operator():
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         c_nc = cp_nc + cm_nc
-        c_nc = [c for sub in c_nc for c in sub]
 
         Jqt = nqo.jump(c_qt)
-        Jnc = no.jump(c_nc)
 
-        assert np.allclose(Jqt.full(), Jnc)
+        Jnc = 0
+        for coll in c_nc:
+            for k in coll:
+                Jnc += no.jump(coll[k])
+
+        # Different implementations at the moment between nc and qt
+        # See Issue #422
+        assert not np.allclose(Jqt.full(), Jnc)
 
 
 @pytest.mark.slow
@@ -167,27 +187,31 @@ def test_dissipators():
         Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(
             Eg, Delta, hw_ph, g_ph, U, max_bosons
         )
-        Hnc = Hnc0 + Hnc1
-        Hqt = Hqt0 + Hqt1
         c_ops_qt = list(
             nqtls.collapses(
-                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
+                Hqt0, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
             )
         )
         c_opsp_nc, c_opsm_nc = ntls.collapses(
-            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
+            Hnc0, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
 
         Dnc = 0
         for c in c_opsp_nc:
-            Dnc += no.dissipator(c)
+            for k in c.keys():
+                Dnc += no.dissipator(c[k])
         for c in c_opsm_nc:
-            Dnc += no.dissipator(c)
+            for k in c.keys():
+                Dnc += no.dissipator(c[k])
 
         Dqo = nqo.dissipator(c_ops_qt)
         Dqt = nqo.dissipator(c_ops_qt, lindblad=True)
         assert np.allclose(Dqo.full(), Dqt.full())
-        assert np.allclose(Dnc, Dqt.full())
+        # Different implementations at the moment between nc and qt
+        # only the diagonal part should match at the moment
+        # See Issue #422
+        assert not np.allclose(Dnc, Dqt.full())
+        assert np.allclose(np.diag(Dnc), np.diag(Dqt.full()))
 
 
 def test_liouvillian():
@@ -225,9 +249,12 @@ def test_liouvillian():
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         c_ops_nc = c_opsp_nc + c_opsm_nc
-        c_ops_nc = [c for sub in c_ops_nc for c in sub]
         Lnc = no.liouvillian(Hnc, c_ops_nc)
-        assert np.allclose(Lnc, Lqt.full())
+        # Different implementations at the moment between nc and qt
+        # only the diagonal part should match at the moment
+        # See Issue #422
+        assert not np.allclose(Lnc, Lqt.full())
+        assert np.allclose(np.diag(Lnc), np.diag(Lqt.full()))
 
 
 def test_stationary():
@@ -248,7 +275,6 @@ def test_stationary():
             H, [dg, de, a], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         c_ops = c_opsp + c_opsm
-        c_ops = [c for sub in c_ops for c in sub]
         L = no.liouvillian(H, c_ops)
         Pme = nme.stationary(L)
 
@@ -290,7 +316,6 @@ def test_correlation_AB():
             Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
         c_nc = c_ncp + c_ncm
-        c_nc = [c for sub in c_nc for c in sub]
         L = no.liouvillian(Hnc0 + Hnc1, c_nc)
         Snc = nme.correlation_AB(a_nc.d, L, a_nc, tlist)
 
@@ -307,8 +332,12 @@ def test_correlation_AB():
             a_op=a_qt.dag(),
             b_op=a_qt,
         )
-        assert np.allclose(Snc.real, Sqt.real, atol=1e-5)
-        assert np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
+        if iva:
+            assert not np.allclose(Snc.real, Sqt.real, atol=1e-5)
+            assert not np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
+        else:
+            assert np.allclose(Snc.real, Sqt.real, atol=1e-5)
+            assert np.allclose(Snc.imag, Sqt.imag, atol=1e-5)
 
 
 @pytest.mark.slow
@@ -348,13 +377,11 @@ def test_spectrum_g2():
         kT,
         hw_ph,
     )
-    [c_gpL, c_epL, c_gpR, c_epR, c_ap] = c_nc_p
-    [c_gmL, c_emL, c_gmR, c_emR, c_am] = c_nc_m
-    c_nc = c_gpL + c_epL + c_gpR + c_epR + c_ap + c_gmL + c_emL + c_gmR + c_emR + c_am
+    c_nc = c_nc_p + c_nc_m
     L = no.liouvillian(Hnc, c_nc)
     Inc = kappa * nme.spectrum(L, a_nc, wlist)
     basis = Hnc.eigh()
-    _, c_am = no.collapses(a_nc, basis, kT, bath="bosonic", rate=kappa)
+    _, c_am = no.collapses(a_nc, basis, kT, "bosonic", kappa, bin_width=1e-6)
     g2nc = nme.g2(L, a_nc, tlist)
 
     c_qt = nqtls.collapses(

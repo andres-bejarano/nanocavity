@@ -80,9 +80,14 @@ def collapse_electronic(D, basis, VL, VR, Gamma_L, Gamma_R, kT, cutoff=0):
         cutoff for the considered transition matrix elements
     """
 
+    bin_width = 1e-6
     # Electronic collapse operators
-    c_pL, c_mL = no.collapses(D, basis, kT, "fermionic", Gamma_L, mu=VL, cutoff=cutoff)
-    c_pR, c_mR = no.collapses(D, basis, kT, "fermionic", Gamma_R, mu=VR, cutoff=cutoff)
+    c_pL, c_mL = no.collapses(
+        D, basis, kT, "fermionic", Gamma_L, bin_width, mu=VL, cutoff=cutoff
+    )
+    c_pR, c_mR = no.collapses(
+        D, basis, kT, "fermionic", Gamma_R, bin_width, mu=VR, cutoff=cutoff
+    )
     return [c_pL, c_pR], [c_mL, c_mR]
 
 
@@ -115,7 +120,8 @@ def liouvillian(
     kT: float
         temperature
     cond: logical
-        Defaults to True
+        If True show the condition number of the Liouvillian
+        Defaults to False
     method: string
         method on how to build the Liouvillian
         defaults to "kron"
@@ -130,16 +136,13 @@ def liouvillian(
     basis = Hs.eigh()
     ng = dg.d * dg
     Dg, A = Lang_Firsov_transform(dg, a_ph, g_ph)
-    ca = [np.sqrt(kappa) * a_ph.toarray()]
+    ca = {"full": [np.sqrt(kappa) * a_ph.toarray()]}
     [c_pL, c_pR], [c_mL, c_mR] = collapse_electronic(
         Dg, basis, VL, VR, Gamma_L, Gamma_R, kT
     )
-    cn = [np.sqrt(kappa * g_ph**2 / 2) * ng.toarray()]
+    cn = {"full": [np.sqrt(kappa * g_ph**2 / 2) * ng.toarray()]}
+    cops = [c_pL, c_pR, c_mL, c_mR, cn, ca]
 
-    L = no.liouvillian(Hs, cn + ca, method=method, cond=cond, diagonal_form=True)
-    L += no.dissipator(c_pL, method, diagonal_form=False)
-    L += no.dissipator(c_mL, method, diagonal_form=False)
-    L += no.dissipator(c_pR, method, diagonal_form=False)
-    L += no.dissipator(c_mR, method, diagonal_form=False)
+    L = no.liouvillian(Hs, cops, method=method, cond=cond)
 
     return L
