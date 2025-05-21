@@ -69,17 +69,17 @@ def collapses(A_op, basis, kT, bath, rate, bin_width, mu=0, cutoff=0):
             if abs(M_fi[f, i]) > cutoff:
                 deltaE = E[f] - E[i]
                 if bin_width > 0:
-                    deltaE_bin = np.round(deltaE / bin_width) * bin_width
+                    deltaE = np.round(deltaE / bin_width) * bin_width
                 else:
                     print("Warning: With bin_width=0 you may be relying on the equality of floats!")
                 P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
                 if "bosonic" in bath:
-                    cp[deltaE_bin].append(np.sqrt(rate * nb_fi_p.T[f, i]) * P.conj().T)
-                    cm[deltaE_bin].append(np.sqrt(rate * nb_fi_m[f, i]) * P)
+                    cp[deltaE].append(np.sqrt(rate * nb_fi_p.T[f, i]) * P.conj().T)
+                    cm[deltaE].append(np.sqrt(rate * nb_fi_m[f, i]) * P)
 
                 elif bath == "fermionic":
-                    cp[deltaE_bin].append(np.sqrt(rate * fd_fi_p.T[f, i]) * P.conj().T)
-                    cm[deltaE_bin].append(np.sqrt(rate * fd_fi_m[f, i]) * P)
+                    cp[deltaE].append(np.sqrt(rate * fd_fi_p.T[f, i]) * P.conj().T)
+                    cm[deltaE].append(np.sqrt(rate * fd_fi_m[f, i]) * P)
     return cp, cm
 
 
