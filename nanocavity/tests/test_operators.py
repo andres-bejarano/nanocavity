@@ -186,7 +186,7 @@ def test_dissipator():
     c_ops = [c_opsp, c_opsm]
 
     for method in [None, "einsum", "kron"]:
-        dissipator = np.zeros((4, 4))
+        dissipator = 0
         if method is None:
             for c in c_ops:
                 for k in c:
@@ -212,7 +212,6 @@ def test_jump():
     J = np.zeros((dim**2, dim**2))
     for c_dict in c_ops:
         for k in c_dict:
-            print(c_dict[k])
             J += no.jump(c_dict[k])
     J_ana = np.zeros((4, 4))
     J_ana[0, 3] = kappa
