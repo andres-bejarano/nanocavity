@@ -75,7 +75,9 @@ def collapses(A_op, basis, kT, bath, rate, bin_width, mu=0, cutoff=0):
                 if bin_width > 0:
                     deltaE = np.round(deltaE / bin_width) * bin_width
                 else:
-                    print(f"Warning: With bin_width={bin_width} you may be relying on the equality of floats!")
+                    print(
+                        f"Warning: With bin_width={bin_width} you may be relying on the equality of floats!"
+                    )
                 P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
                 if "bosonic" in bath:
                     cp[deltaE].append(np.sqrt(rate * nb_fi_p.T[f, i]) * P.conj().T)
@@ -112,7 +114,7 @@ def dissipator(c_ops, method="kron"):
         list of collapse operators
     method: string
         Can be "kron" or "einsum"
-    
+
     Returns:
     ----
     A np.ndarray containing the dissipator specified by the collapse operators
@@ -158,7 +160,7 @@ def liouvillian(H, c_ops=None, method="kron", cond=True):
         defaults to "kron"
     cond: logical
         Defaults to True
-    
+
     Returns:
     ----
     Returns the Liouvillian determined by the provided Hamiltonian and the collapse operators.
