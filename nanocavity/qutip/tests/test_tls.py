@@ -157,6 +157,7 @@ def test_jump_operator():
                 Jnc += no.jump(coll[k])
 
         # Different implementations at the moment between nc and qt
+        # See Issue #422
         assert not np.allclose(Jqt.full(), Jnc)
 
 
@@ -208,6 +209,7 @@ def test_dissipators():
         assert np.allclose(Dqo.full(), Dqt.full())
         # Different implementations at the moment between nc and qt
         # only the diagonal part should match at the moment
+        # See Issue #422
         assert not np.allclose(Dnc, Dqt.full())
         assert np.allclose(np.diag(Dnc), np.diag(Dqt.full()))
 
@@ -250,6 +252,7 @@ def test_liouvillian():
         Lnc = no.liouvillian(Hnc, c_ops_nc)
         # Different implementations at the moment between nc and qt
         # only the diagonal part should match at the moment
+        # See Issue #422
         assert not np.allclose(Lnc, Lqt.full())
         assert np.allclose(np.diag(Lnc), np.diag(Lqt.full()))
 
