@@ -43,8 +43,8 @@ def test_einsum():
     kT = 0.01
     basis = H.eigh()
     bin_width = 1e-6
-    cp, cm = no.collapses(c, basis, kT, "fermionic", rate, bin_widt)
-    ap, am = no.collapses(a, basis, kT, "bosonic", rate, bin_widt)
+    cp, cm = no.collapses(c, basis, kT, "fermionic", rate, bin_width)
+    ap, am = no.collapses(a, basis, kT, "bosonic", rate, bin_width)
     collapse_ops = [cp, cm, ap, am]
     for c_ops in collapse_ops:
         for ops in c_ops.values():
