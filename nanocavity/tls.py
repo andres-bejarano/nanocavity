@@ -159,20 +159,21 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, cutoff=0):
     # we only diagonalize once, and keep the state ordering fixed
     basis = H.eigh()
 
+    bin_width = 1e-6
     # left electrode
     c_gpL, c_gmL = no.collapses(
-        dg, basis, kT, "fermionic", Gamma_L, 1e-6, mu=VL, cutoff=cutoff
+        dg, basis, kT, "fermionic", Gamma_L, bin_width, mu=VL, cutoff=cutoff
     )
     c_epL, c_emL = no.collapses(
-        de, basis, kT, "fermionic", Gamma_L, 1e-6, mu=VL, cutoff=cutoff
+        de, basis, kT, "fermionic", Gamma_L, bin_width, mu=VL, cutoff=cutoff
     )
 
     # right electrode
     c_gpR, c_gmR = no.collapses(
-        dg, basis, kT, "fermionic", Gamma_R, 1e-6, mu=VR, cutoff=cutoff
+        dg, basis, kT, "fermionic", Gamma_R, bin_width, mu=VR, cutoff=cutoff
     )
     c_epR, c_emR = no.collapses(
-        de, basis, kT, "fermionic", Gamma_R, 1e-6, mu=VR, cutoff=cutoff
+        de, basis, kT, "fermionic", Gamma_R, bin_width, mu=VR, cutoff=cutoff
     )
 
     # cavity mode

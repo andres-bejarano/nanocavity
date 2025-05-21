@@ -80,12 +80,13 @@ def collapse_electronic(D, basis, VL, VR, Gamma_L, Gamma_R, kT, cutoff=0):
         cutoff for the considered transition matrix elements
     """
 
+    bin_width = 1e-6
     # Electronic collapse operators
     c_pL, c_mL = no.collapses(
-        D, basis, kT, "fermionic", Gamma_L, 1e-6, mu=VL, cutoff=cutoff
+        D, basis, kT, "fermionic", Gamma_L, bin_width, mu=VL, cutoff=cutoff
     )
     c_pR, c_mR = no.collapses(
-        D, basis, kT, "fermionic", Gamma_R, 1e-6, mu=VR, cutoff=cutoff
+        D, basis, kT, "fermionic", Gamma_R, bin_width, mu=VR, cutoff=cutoff
     )
     return [c_pL, c_pR], [c_mL, c_mR]
 
