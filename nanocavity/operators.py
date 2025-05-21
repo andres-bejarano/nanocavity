@@ -31,6 +31,8 @@ def collapses(A_op, basis, kT, bath, rate, bin_width, mu=0, cutoff=0):
     -------
         two lists of collapse operators for adding or removing particles
     """
+    if bin_width < 0:
+        raise ValueError("bin_width needs to be >= 0!")
     E, V = basis
 
     # Transition matrix elements between final (f) and initial (i) states
