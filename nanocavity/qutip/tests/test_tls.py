@@ -59,6 +59,13 @@ def test_Htls_nc_QuTiP():
 
 
 def test_collapses():
+    """
+    Due to the change in the nanocavity collapses which we have not yet applied to the qt operators it's not so easy to compare them directly.
+    Thus I opted for taking all operators nc and qt seperately into respective lists.
+    Then these lists are flattened and sorted.
+    The final check is then to compare the flattened and sorted lists.
+    In principal they could be the same for different collapse operators but this should be quite unlikely.
+    """
     Eg = 0.4
     Delta = 0.9
     hw_ph = 1
@@ -100,18 +107,13 @@ def test_collapses():
         )
         Cqt = []
         Cnc = []
-        for c in Cqtp:
-            Cqt.append(c.full())
-        for coll in Cncp:
-            for k in coll:
-                for c in coll[k]:
-                    Cnc.append(c)
-        for c in Cqtm:
-            Cqt.append(c.full())
-        for coll in Cncm:
-            for k in coll:
-                for c in coll[k]:
-                    Cnc.append(c)
+        for CncX, CqtX in [(Cncp, Cqtp), (Cncm, Cqtm)]:
+            for c in CqtX:
+                Cqt.append(c.full())
+            for coll in CncX:
+                for k in coll.keys():
+                    for c in coll[k]:
+                        Cnc.append(c)
         Cqt = np.array(Cqt).flatten()
         Cnc = np.array(Cnc).flatten()
         Cqt.sort()
