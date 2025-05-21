@@ -381,7 +381,7 @@ def test_spectrum_g2():
     L = no.liouvillian(Hnc, c_nc)
     Inc = kappa * nme.spectrum(L, a_nc, wlist)
     basis = Hnc.eigh()
-    _, c_am = no.collapses(a_nc, basis, kT, "bosonic", kappa, 1e-6)
+    _, c_am = no.collapses(a_nc, basis, kT, "bosonic", kappa, bin_width=1e-6)
     g2nc = nme.g2(L, a_nc, tlist)
 
     c_qt = nqtls.collapses(
