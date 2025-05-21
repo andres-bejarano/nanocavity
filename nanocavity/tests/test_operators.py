@@ -189,11 +189,11 @@ def test_dissipator():
         dissipator = 0
         if method is None:
             for c in c_ops:
-                for k in c:
+                for k in c.keys():
                     dissipator += no.dissipator(c[k])
         else:
             for c in c_ops:
-                for k in c:
+                for k in c.keys():
                     dissipator += no.dissipator(c[k], method=method)
         assert np.allclose(dissipator, D_ana)
 
@@ -211,7 +211,7 @@ def test_jump():
     dim = a.shape[0]
     J = np.zeros((dim**2, dim**2))
     for c_dict in c_ops:
-        for k in c_dict:
+        for k in c_dict.keys():
             J += no.jump(c_dict[k])
     J_ana = np.zeros((4, 4))
     J_ana[0, 3] = kappa
