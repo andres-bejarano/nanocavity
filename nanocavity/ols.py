@@ -143,9 +143,5 @@ def liouvillian(
     cops = [c_pL, c_pR, c_mL, c_mR, cn, ca]
 
     L = no.liouvillian(Hs, cops, method=method, cond=cond)
-    # L += no.dissipator(c_pL, method, diagonal_form=False)
-    # L += no.dissipator(c_mL, method, diagonal_form=False)
-    # L += no.dissipator(c_pR, method, diagonal_form=False)
-    # L += no.dissipator(c_mR, method, diagonal_form=False)
 
     return L
