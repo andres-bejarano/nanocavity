@@ -187,23 +187,21 @@ def test_dissipators():
         Hqt0, Hqt1, [dg_qt, de_qt, a_qt] = nqtls.Hamiltonian(
             Eg, Delta, hw_ph, g_ph, U, max_bosons
         )
-        Hnc = Hnc0
-        Hqt = Hqt0
         c_ops_qt = list(
             nqtls.collapses(
-                Hqt, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
+                Hqt0, [dg_qt, de_qt, a_qt], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
             )
         )
         c_opsp_nc, c_opsm_nc = ntls.collapses(
-            Hnc, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
+            Hnc0, [dg_nc, de_nc, a_nc], VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph
         )
 
         Dnc = 0
         for c in c_opsp_nc:
-            for k in c:
+            for k in c.keys():
                 Dnc += no.dissipator(c[k])
         for c in c_opsm_nc:
-            for k in c:
+            for k in c.keys():
                 Dnc += no.dissipator(c[k])
 
         Dqo = nqo.dissipator(c_ops_qt)
