@@ -90,8 +90,9 @@ def jump(c_ops):
         raise TypeError("c_ops must be a single operator or a list of them")
     J = 0
 
-    for op in c_ops:
-        J += np.kron(op, op.conj())
+    for op1 in c_ops:
+        for op2 in c_ops:
+            J += np.kron(op1, op2.conj())
     return J
 
 
