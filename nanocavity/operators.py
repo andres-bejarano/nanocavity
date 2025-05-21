@@ -22,7 +22,7 @@ def collapses(A_op, basis, kT, bath, rate, bin_width, mu=0, cutoff=0):
             Either 'fermionic' or 'bosonic/bosonicX+'
         rate: float
             coupling strength
-        bin_width: flot >= 0
+        bin_width: float >= 0
             The energy window tolerance used to combine different collapse operators
         mu: float
             chemical potential
@@ -33,7 +33,7 @@ def collapses(A_op, basis, kT, bath, rate, bin_width, mu=0, cutoff=0):
     -------
         Two dictonaries one for adding and one for removing particles.
         The keys give the energy difference of the connected states.
-        The values are lists of collapse operators corresponding to the energy differnce.
+        The values are lists of collapse operators corresponding to the energy difference.
     """
     if bin_width < 0:
         raise ValueError("bin_width needs to be >= 0!")

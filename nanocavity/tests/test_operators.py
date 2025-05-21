@@ -209,7 +209,7 @@ def test_jump():
     c_opsp, c_opsm = no.collapses(a, basis, kT, "bosonic", kappa, bin_width)
     c_ops = [c_opsp, c_opsm]
     dim = a.shape[0]
-    J = np.zeros((dim**2, dim**2))
+    J = 0
     for c_dict in c_ops:
         for k in c_dict.keys():
             J += no.jump(c_dict[k])
