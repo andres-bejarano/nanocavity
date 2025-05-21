@@ -178,8 +178,7 @@ def test_stationary_single_cavity_mode():
     H = hw_ph * Nb
     basis = H.eigh()
     # numerics
-    bin_width = 1e-6
-    cp, cm = no.collapses(a, basis, kT, "bosonic", kappa, bin_width)
+    cp, cm = no.collapses(a, basis, kT, "bosonic", kappa, bin_width=1e-6)
     L = no.liouvillian(H, [cp, cm])
     rho_st = nme.stationary(L)
     Pn = rho_st.diagonal()
