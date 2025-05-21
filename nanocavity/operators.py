@@ -66,7 +66,10 @@ def collapses(A_op, basis, kT, bath, rate, bin_width, mu=0, cutoff=0):
         for i in range(dim):
             if abs(M_fi[f, i]) > cutoff:
                 deltaE = E[f] - E[i]
-                deltaE_bin = np.round(deltaE / bin_width) * bin_width
+                if bin_width > 0:
+                    deltaE_bin = np.round(deltaE / bin_width) * bin_width
+                else:
+                    print("Warning: With bin_width=0 you may be relying on the equality of floats!")
                 P = M_fi[f, i] * V[:, f].reshape(dim, 1) @ V[:, i].reshape(1, dim)
                 if "bosonic" in bath:
                     cp[deltaE_bin].append(np.sqrt(rate * nb_fi_p.T[f, i]) * P.conj().T)
