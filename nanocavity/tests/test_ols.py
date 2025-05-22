@@ -172,6 +172,26 @@ def test_Liovillian_matrix_elements():
     
     # numerical vs anallytical  L population block
     assert np.allclose(Lpop_num.real, Lpop_an, atol=(Gamma_t/kappa))
+    
+    
+    # checking L coherences blocks
+
+    # S74
+    e0_h1 = nols.get_vectorized_rho_index(n1=0, q1=1, n2=1, q2=0, max_bosons=N_ph_max)
+    assert np.allclose(L[e0_h1, e0_h1] , 1j *hw_ph - (kappa *  g_ph ** 2 /2 + kappa) / 2)
+
+    # S75
+    h0_e1 = nols.get_vectorized_rho_index(n1=0, q1=0, n2=1, q2=1, max_bosons=N_ph_max)
+    assert np.allclose(L[h0_e1, h0_e1], 1j *hw_ph - (kappa *  g_ph ** 2 /2 + kappa) / 2)
+
+    # S76 -77
+    h0_e0 = nols.get_vectorized_rho_index(n1=0, q1=0, n2=0, q2=1, max_bosons=N_ph_max)
+    h1_e1 = nols.get_vectorized_rho_index(n1=1, q1=0, n2=1, q2=1, max_bosons=N_ph_max)
+ 
+    assert np.allclose(L[h0_e0, h0_e0],  -kappa *  g_ph ** 2 / 4, atol=Gamma_t/kappa) 
+    assert np.allclose(L[h0_e0, h1_e1], - kappa)  # why - kappa? should be +
+
+
 
     # coherences zero?
     rho_st = nme.stationary(L)
