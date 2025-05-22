@@ -220,3 +220,31 @@ def test_jump():
     for op in (a, a.toarray()):
         J1 = kappa * no.jump(op)
         assert np.allclose(J1, J_ana)
+
+
+def test_damped_cavity():
+    hw_ph = 1
+    a, n = sq.composite(boson_modes=[1])
+    H = hw_ph * n
+    basis = H.eigh()
+    bin_width = 1e-6
+    kT = 0.01
+    kappa = 0.1
+    c_opsp, c_opsm = no.collapses(a, basis, kT, "bosonic", kappa, bin_width)
+    c_ops = [c_opsp, c_opsm]
+
+    dissipator = 0
+    for c in c_ops:
+        for k in c.keys():
+            dissipator += no.dissipator(c[k])
+
+    c_ops_direct = [{'hw_ph': [np.sqrt(kappa * nd.bose_einstein(hw_ph, kT)) * a.d.toarray()],
+                    '-hw_ph': [np.sqrt(kappa * (1 - nd.bose_einstein(hw_ph, kT))) * a.toarray()]
+                    }]
+
+    dissipator_d = 0
+    for c in c_ops_direct:
+        for k in c.keys():
+            dissipator_d += no.dissipator(c[k])
+    assert np.allclose(dissipator, dissipator_d)
+
