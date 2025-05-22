@@ -4,6 +4,8 @@ from itertools import chain
 from secondquant.operator import Operator
 import numpy as np
 import secondquant as sq
+import nanocavity.franck_condon as nfc
+import nanocavity.master_equation as nme
 
 
 def test_hamiltonian():
@@ -109,4 +111,70 @@ def test_get_vectorized_rho_index():
 
     index2 = [i_h0, i_h1, i_h2, i_e0, i_e1, i_e2]
 
-    assert index == index2 
+    assert index == index2
+
+def test_Liovillian_matrix_elements():
+    hw_ph = 1
+    g_ph = 0.5
+    N_ph_max = 5
+    
+    # we need Gamma<<kappa 
+    Gamma_s, Gamma_t = 5e-6, 1e-6
+    kappa = 0.1
+    kT = 0.01
+
+    # first photon emission threshold
+    Vs, Vt = 0.5, -1.5
+    Hs, [dg, a_ph], [ng, n_ph] = nols.Hamiltonian(hw_ph=hw_ph, max_bosons=N_ph_max)
+    L = nols.liouvillian(dg, a_ph, Hs, g_ph, Vs, Vt, Gamma_s, Gamma_t, kappa, kT)
+
+    # population block numerically
+    index_h, index_e = [], []
+    for i in range(3):
+        index_h.append(nols.get_vectorized_rho_index(n1=i, q1=0, n2=i, q2=0, max_bosons=N_ph_max))
+        index_e.append(nols.get_vectorized_rho_index(n1=i, q1=1, n2=i, q2=1, max_bosons=N_ph_max))
+    index = index_h +  index_e
+
+    Lpop_num = L[np.ix_(index, index)]
+
+    # population block anallytically
+    # Franck-Condon 
+    n = np.arange(3)
+    F = nfc.FC(n, n, g_ph)
+    F2 = F ** 2
+
+    # according to eq S155
+    GammaS = Gamma_s * F2
+    GammaT = Gamma_t * F2
+
+    GammaP = np.array([
+        [GammaS[0, 0], GammaS[0, 1], GammaT[0 , 2] + GammaS[0, 2]],
+        [0, GammaS[1, 1], GammaS[1, 2]],
+        [0, 0, GammaS[2, 2]],
+        ])
+
+    GammaM = np.array([
+        [GammaT[0, 0], GammaT[0, 1] + GammaS[0, 1], GammaT[0, 2] + GammaS[0, 2]],
+        [GammaT[1 , 0], GammaT[1, 1], GammaT[1, 2] + GammaS[1, 2]],
+        [0, GammaT[2, 1], GammaT[2, 2]],
+        ])
+
+
+    # Eq S155
+    Lpop_an = np.array([
+                [- GammaP[0, 0],  kappa, 0, GammaM[0, 0], GammaM[0, 1], GammaM[0, 2]],
+                [0, -kappa, 2 * kappa, GammaM[1, 0], GammaM[1, 1], GammaM[1 ,2]],
+                [0, 0, - 2 *  kappa, 0, GammaM[2, 1], GammaM[2, 2]],
+                [GammaP[0, 0], GammaP[0, 1],  GammaP[0 , 2], - GammaM[0, 0] - GammaM[1, 0], kappa, 0],
+                [0,  GammaP[1, 1], GammaP[1, 2], 0, -kappa, 2 * kappa],
+                [0, 0, GammaP[2, 2], 0, 0, -2 * kappa]
+                ])
+    
+    # numerical vs anallytical  L population block
+    assert np.allclose(Lpop_num.real, Lpop_an, atol=(Gamma_t/kappa))
+
+    # coherences zero?
+    rho_st = nme.stationary(L)
+    coherences = rho_st - np.diag(np.diag(rho_st))
+    max_off = np.max(np.abs(coherences))
+    assert max_off < 1e-15
