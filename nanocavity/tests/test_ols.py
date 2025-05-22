@@ -190,11 +190,34 @@ def test_Liovillian_matrix_elements():
  
     assert np.allclose(L[h0_e0, h0_e0],  -kappa *  g_ph ** 2 / 4, atol=Gamma_t/kappa) 
     assert np.allclose(L[h0_e0, h1_e1], - kappa)  # why - kappa? should be +
+    assert np.allclose(L[h1_e1, h1_e1],  -kappa *  g_ph ** 2 / 4 - kappa, atol=Gamma_t/kappa) 
 
 
+    #S78 - 79
+    h0_h1 = nols.get_vectorized_rho_index(n1=0, q1=0, n2=1, q2=0, max_bosons=N_ph_max)
+    e0_e1 = nols.get_vectorized_rho_index(n1=0, q1=1, n2=1, q2=1, max_bosons=N_ph_max)
+    
+    assert np.allclose(L[h0_h1, h0_h1], 1j * hw_ph - kappa / 2)
+    assert np.allclose(L[e0_e1, e0_e1], 1j * hw_ph - kappa / 2)
+
+    # virtual transitions
+
+    Gamma_t00_1 = Gamma_t * nfc.FC(0, 0, g_ph) * nfc.FC(1, 1, g_ph)
+    Gamma_s00_1 = Gamma_s * nfc.FC(0, 0, g_ph) * nfc.FC(1, 1, g_ph)
+    assert np.allclose(L[h0_h1, e0_e1], Gamma_t00_1)
+    assert np.allclose(L[e0_e1, h0_h1], Gamma_s00_1)
 
     # coherences zero?
     rho_st = nme.stationary(L)
     coherences = rho_st - np.diag(np.diag(rho_st))
     max_off = np.max(np.abs(coherences))
     assert max_off < 1e-15
+
+
+    # cross terms in correlations are zero 
+
+    M, _ = nme.regression_theorem(a_ph.d, L, ng, cutoff=0)
+    assert np.allclose(M, 0)
+    M, _ = nme.regression_theorem(ng, L, a_ph, cutoff=0)
+    assert np.allclose(M, 0)
+
