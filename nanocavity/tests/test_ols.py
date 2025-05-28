@@ -56,3 +56,21 @@ def test_liouvillian():
     assert np.allclose(L.shape[0], Hs.toarray().shape[0] ** 2)
     assert np.allclose(L.shape[1], Hs.toarray().shape[1] ** 2)
     assert np.allclose(L[0, 7], kappa)
+
+def test_G_p_nm_a():
+    assert np.isclose(nols.G_p_nm_a(1, 1, 1, 0.5, 1e-4, 0.001), 0)
+
+    assert np.isclose(nols.G_p_nm_a(3, 1, 0.3, 0.5, 1e-4, 0.001), 0)
+    assert not np.isclose(nols.G_p_nm_a(3, 1, 0.3, 2.5, 1e-4, 0.001), 0)
+
+    assert not np.isclose(nols.G_p_nm_a(1, 3, 0.3, 0.5, 1e-4, 0.001), 0)
+    assert not np.isclose(nols.G_p_nm_a(1, 3, 0.3, 2.5, 1e-4, 0.001), 0)
+
+def test_G_m_nm_a():
+    assert np.isclose(nols.G_m_nm_a(1, 1, 1, 0.5, 1e-4, 0.001), 0)
+
+    assert np.isclose(nols.G_m_nm_a(3, 1, 0.3, 0.5, 1e-4, 0.001), 0)
+    assert np.isclose(nols.G_m_nm_a(3, 1, 0.3, 2.5, 1e-4, 0.001), 0)
+
+    assert np.isclose(nols.G_m_nm_a(1, 3, 0.3, 2.5, 1e-4, 0.001), 0)
+    assert not np.isclose(nols.G_m_nm_a(1, 3, 0.3, 0.5, 1e-4, 0.001), 0)

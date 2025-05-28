@@ -1,4 +1,6 @@
 import nanocavity.operators as no
+import nanocavity.franck_condon as nfc
+import nanocavity.distributions as nd
 import secondquant as sq
 from secondquant.operator import Operator
 import scipy.linalg as sa
@@ -146,3 +148,62 @@ def liouvillian(
     L = no.liouvillian(Hs, cops, method=method, cond=cond)
 
     return L
+
+def G_p_nm_a(n, m, g_ph, V, Gamma, kT, DE=0):
+    """
+    Function to calculate the inelastic tunneling rate for the one level model from q=0 to q=1 at a certain lead.
+    Parameters:
+    -----
+    n: int
+        photon number of the final state
+    m: int
+        photon number of the initial state
+    g_ph: float
+        coupling strength
+    V: float
+        applied bias
+    Gamma: float
+        bare tunneling rate
+    kT: float
+        temperature
+    DE: float
+        Energy difference between q=1 and q=0
+
+    Returns:
+    -----
+        Float
+        The inelastic tunneling rate
+    """
+    Fnm = nfc.FC(n, m, g_ph) ** 2
+    f = nd.fermi_dirac(DE + n - m, kT, V)
+    return Gamma * f * Fnm
+
+
+def G_m_nm_a(n, m, g_ph, V, Gamma, kT, DE=0):
+    """
+    Function to calculate the inelastic tunneling rate for the one level model from q=1 to q=0 at a certain lead.
+    Parameters:
+    -----
+    n: int
+        photon number of the final state
+    m: int
+        photon number of the initial state
+    g_ph: float
+        coupling strength
+    V: float
+        applied bias
+    Gamma: float
+        bare tunneling rate
+    kT: float
+        temperature
+    DE: float
+        Energy difference between q=1 and q=0
+
+    Returns:
+    -----
+        Float
+        The inelastic tunneling rate
+    """
+    Fnm = nfc.FC(n, m, g_ph) ** 2
+    f = nd.fermi_dirac(m - n - DE, kT, V)
+    return Gamma * (1 - f) * Fnm
