@@ -4,6 +4,7 @@ from itertools import chain
 from secondquant.operator import Operator
 import numpy as np
 import secondquant as sq
+import nanocavity.franck_condon as nfc
 
 
 def test_hamiltonian():
@@ -57,20 +58,57 @@ def test_liouvillian():
     assert np.allclose(L.shape[1], Hs.toarray().shape[1] ** 2)
     assert np.allclose(L[0, 7], kappa)
 
-def test_G_p_nm_a():
-    assert np.isclose(nols.G_p_nm_a(1, 1, 1, 0.5, 1e-4, 0.001), 0)
 
-    assert np.isclose(nols.G_p_nm_a(3, 1, 0.3, 0.5, 1e-4, 0.001), 0)
-    assert not np.isclose(nols.G_p_nm_a(3, 1, 0.3, 2.5, 1e-4, 0.001), 0)
+def test_G_pm_nm_a():
+    qi, qf = np.meshgrid([0, 1], [0, 1], indexing="ij")
+    print(qf - qi)
+    qf, qi = np.meshgrid(1, 3, indexing="ij")
+    print(qf - qi)
+    Gamma = 1e-4
+    kT = 1e-3
+    Gp, Gm = nols.G_pm_nm_a(1, 1, 1, 0.5, Gamma, kT)
+    assert np.isclose(Gp, 0)
+    assert np.isclose(Gm, 0)
+    Gp, Gm = nols.G_pm_nm_a(3, 1, 0.3, 0.5, Gamma, kT)
+    assert np.isclose(Gp, 0)
+    assert np.isclose(Gm, 0)
 
-    assert not np.isclose(nols.G_p_nm_a(1, 3, 0.3, 0.5, 1e-4, 0.001), 0)
-    assert not np.isclose(nols.G_p_nm_a(1, 3, 0.3, 2.5, 1e-4, 0.001), 0)
+    Gp, Gm = nols.G_pm_nm_a(3, 1, 0.3, 2.5, Gamma, kT)
+    assert np.isclose(Gp, Gamma * nfc.FC(3, 1, 0.3) ** 2)
+    assert np.isclose(Gm, 0)
 
-def test_G_m_nm_a():
-    assert np.isclose(nols.G_m_nm_a(1, 1, 1, 0.5, 1e-4, 0.001), 0)
+    # Add these two tests back for Gp and Gm
+    Gp, Gm = nols.G_pm_nm_a(1, 3, 0.3, 0.5, Gamma, kT)
+    assert np.isclose(Gp, nfc.FC(1, 3, 0.3) ** 2 * Gamma)
+    assert np.isclose(Gm, nfc.FC(1, 3, 0.3) ** 2 * Gamma)
 
-    assert np.isclose(nols.G_m_nm_a(3, 1, 0.3, 0.5, 1e-4, 0.001), 0)
-    assert np.isclose(nols.G_m_nm_a(3, 1, 0.3, 2.5, 1e-4, 0.001), 0)
+    Gp, Gm = nols.G_pm_nm_a(1, 3, 0.3, 2.5, Gamma, kT)
+    assert np.isclose(Gp, nfc.FC(1, 3, 0.3) ** 2 * Gamma)
+    assert np.isclose(Gm, 0)
 
-    assert np.isclose(nols.G_m_nm_a(1, 3, 0.3, 2.5, 1e-4, 0.001), 0)
-    assert not np.isclose(nols.G_m_nm_a(1, 3, 0.3, 0.5, 1e-4, 0.001), 0)
+    Gp, Gm = nols.G_pm_nm_a([0, 1], [0, 1], 0.3, 0.5, Gamma, kT)
+    assert Gp.shape == (2, 2)
+    assert Gm.shape == (2, 2)
+    assert np.isclose(Gp[0, 0], nfc.FC(0, 0, 0.3) ** 2 * Gamma)
+    assert np.isclose(Gp[0, 1], nfc.FC(1, 0, 0.3) ** 2 * Gamma)
+    assert np.isclose(Gp[1, 0], 0)
+    assert np.isclose(Gp[1, 1], nfc.FC(1, 1, 0.3) ** 2 * Gamma)
+
+    assert np.isclose(Gm[0, 0], 0)
+    assert np.isclose(Gm[0, 1], nfc.FC(1, 0, 0.3) ** 2 * Gamma)
+    assert np.isclose(Gm[1, 0], 0)
+    assert np.isclose(Gm[1, 1], 0)
+
+    Gp, Gm = nols.G_pm_nm_a([0, 1], 0, 0.3, 0.5, Gamma, kT)
+    assert Gp.shape == (2,)
+    assert Gm.shape == (2,)
+
+
+# def test_G_m_nm_a():
+#     assert np.isclose(nols.G_m_nm_a(1, 1, 1, 0.5, Gamma, 0.001), 0)
+#
+#     assert np.isclose(nols.G_m_nm_a(3, 1, 0.3, 0.5, Gamma, 0.001), 0)
+#     assert np.isclose(nols.G_m_nm_a(3, 1, 0.3, 2.5, kT, 0.001), 0)
+#
+#     assert np.isclose(nols.G_m_nm_a(1, 3, 0.3, 2.5, kT, 0.001), 0)
+#     assert not np.isclose(nols.G_m_nm_a(1, 3, 0.3, 0.5, kT, 0.001), 0)

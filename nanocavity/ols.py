@@ -149,6 +149,7 @@ def liouvillian(
 
     return L
 
+
 def G_p_nm_a(n, m, g_ph, V, Gamma, kT, DE=0):
     """
     Function to calculate the inelastic tunneling rate for the one level model from q=0 to q=1 at a certain lead.
@@ -174,19 +175,17 @@ def G_p_nm_a(n, m, g_ph, V, Gamma, kT, DE=0):
         Float
         The inelastic tunneling rate
     """
-    Fnm = nfc.FC(n, m, g_ph) ** 2
-    f = nd.fermi_dirac(DE + n - m, kT, V)
     return Gamma * f * Fnm
 
 
-def G_m_nm_a(n, m, g_ph, V, Gamma, kT, DE=0):
+def G_pm_nm_a(n, m, g_ph, V, Gamma, kT, DE=0):
     """
-    Function to calculate the inelastic tunneling rate for the one level model from q=1 to q=0 at a certain lead.
+    Function to calculate the inelastic tunneling rates for the one level model.
     Parameters:
     -----
-    n: int
+    n: int or array like
         photon number of the final state
-    m: int
+    m: int or array like
         photon number of the initial state
     g_ph: float
         coupling strength
@@ -201,9 +200,33 @@ def G_m_nm_a(n, m, g_ph, V, Gamma, kT, DE=0):
 
     Returns:
     -----
-        Float
-        The inelastic tunneling rate
+    G_p_nm_a:    np.array or Float
+                The inelastic tunneling rate for transitions from 0 -> 1
+    G_m_nm_a:    np.array or Float
+                The inelastic tunneling rate for transitions from 1 -> 0
     """
+    err_string = (
+        "n and m must be nonnegative integers or lists of nonnegative integers."
+    )
+    for q in (n, m):
+        if isinstance(q, (list, np.ndarray)):
+            q = np.array(q)
+            if q.dtype != np.int64 or (q < 0).any():
+                raise TypeError(err_string)
+        elif not isinstance(q, int) or q < 0:
+            raise TypeError(err_string)
+
+    qf, qi = np.meshgrid(n, m, indexing="ij")
     Fnm = nfc.FC(n, m, g_ph) ** 2
-    f = nd.fermi_dirac(m - n - DE, kT, V)
-    return Gamma * (1 - f) * Fnm
+    fp = nd.fermi_dirac(qf - qi - DE, kT, V)
+    fm = 1 - nd.fermi_dirac(DE + qi - qf, kT, V)
+    if np.isscalar(n) and np.isscalar(m):
+        fp = fp[0].item()
+        fm = fm[0].item()
+    elif np.isscalar(n) or np.isscalar(m):
+        fp = fp.ravel()
+        fm = fm.ravel()
+
+    G_p_nm = Gamma * fp * Fnm
+    G_m_nm = Gamma * fm * Fnm
+    return G_p_nm, G_m_nm
