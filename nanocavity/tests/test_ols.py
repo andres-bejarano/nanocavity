@@ -84,11 +84,11 @@ def test_G_pm_nm_a():
     assert np.isclose(Gp, nfc.FC(1, 3, g_ph) ** 2)
     assert np.isclose(Gm, 0)
 
-    Gp, Gm = nols.G_pm_nm_a(1, 3, g_ph, 2.5, kT, 0.3)
+    Gp, Gm = nols.G_pm_nm_a(1, 3, g_ph, 2.5, kT, DE=0.3)
     assert np.isclose(Gp, nfc.FC(1, 3, g_ph) ** 2)
     assert np.isclose(Gm, 0)
 
-    Gp, Gm = nols.G_pm_nm_a(1, 3, g_ph, 2.5, kT, 0.8)
+    Gp, Gm = nols.G_pm_nm_a(1, 3, g_ph, 2.5, kT, DE=0.8)
     assert np.isclose(Gp, nfc.FC(1, 3, g_ph) ** 2)
     assert np.isclose(Gm, nfc.FC(1, 3, g_ph) ** 2)
 
