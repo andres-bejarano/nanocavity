@@ -150,35 +150,7 @@ def liouvillian(
     return L
 
 
-def G_p_nm_a(n, m, g_ph, V, Gamma, kT, DE=0):
-    """
-    Function to calculate the inelastic tunneling rate for the one level model from q=0 to q=1 at a certain lead.
-    Parameters:
-    -----
-    n: int
-        photon number of the final state
-    m: int
-        photon number of the initial state
-    g_ph: float
-        coupling strength
-    V: float
-        applied bias
-    Gamma: float
-        bare tunneling rate
-    kT: float
-        temperature
-    DE: float
-        Energy difference between q=1 and q=0
-
-    Returns:
-    -----
-        Float
-        The inelastic tunneling rate
-    """
-    return Gamma * f * Fnm
-
-
-def G_pm_nm_a(n, m, g_ph, V, Gamma, kT, DE=0):
+def G_pm_nm_a(n, m, g_ph, V, kT, DE=0):
     """
     Function to calculate the inelastic tunneling rates for the one level model.
     Parameters:
@@ -191,8 +163,6 @@ def G_pm_nm_a(n, m, g_ph, V, Gamma, kT, DE=0):
         coupling strength
     V: float
         applied bias
-    Gamma: float
-        bare tunneling rate
     kT: float
         temperature
     DE: float
@@ -227,6 +197,6 @@ def G_pm_nm_a(n, m, g_ph, V, Gamma, kT, DE=0):
         fp = fp.ravel()
         fm = fm.ravel()
 
-    G_p_nm = Gamma * fp * Fnm
-    G_m_nm = Gamma * fm * Fnm
+    G_p_nm = fp * Fnm
+    G_m_nm = fm * Fnm
     return G_p_nm, G_m_nm
