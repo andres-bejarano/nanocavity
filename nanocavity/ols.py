@@ -147,6 +147,7 @@ def liouvillian(
 
     return L
 
+
 def get_diagonal_indices(max_bosons, cutoff=None):
     """
     Returns diagonal indices of Hs for a truncated photon basis in each charge sector q = 0 and q = 1.
@@ -175,7 +176,6 @@ def get_diagonal_indices(max_bosons, cutoff=None):
     return indices
 
 
-
 def get_basis_index(n, q, max_bosons):
     """
     Returns the index in the full Hilbert space basis for a state |n, q⟩
@@ -186,6 +186,7 @@ def get_basis_index(n, q, max_bosons):
         return max_bosons + 1 + n
     else:
         raise ValueError("q must be 0 or 1")
+
 
 def get_vectorized_rho_index(n1, q1, n2, q2, max_bosons):
     """

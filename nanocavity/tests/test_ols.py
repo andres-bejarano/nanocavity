@@ -59,14 +59,16 @@ def test_liouvillian():
     assert np.allclose(L.shape[1], Hs.toarray().shape[1] ** 2)
     assert np.allclose(L[0, 7], kappa)
 
+
 def test_get_diagonal_indices():
-    Nmax = 5 
+    Nmax = 5
     index = nols.get_diagonal_indices(max_bosons=Nmax, cutoff=2)
 
     assert len(index) == 6
     for i in range(3):
         assert index[i] == [i, i]
         assert index[i + 3] == [Nmax + 1 + i, Nmax + 1 + i]
+
 
 def get_basis_index(n, q, max_bosons):
 
@@ -89,14 +91,19 @@ def get_basis_index(n, q, max_bosons):
     except ValueError:
         pass  # This is the expected behavior
 
+
 def test_get_vectorized_rho_index():
     # we check population index
     N_ph_max = 4
     index_h, index_e = [], []
     for i in range(3):
-        index_h.append(nols.get_vectorized_rho_index(n1=i, q1=0, n2=i, q2=0, max_bosons=N_ph_max))
-        index_e.append(nols.get_vectorized_rho_index(n1=i, q1=1, n2=i, q2=1, max_bosons=N_ph_max))
-    index = index_h +  index_e
+        index_h.append(
+            nols.get_vectorized_rho_index(n1=i, q1=0, n2=i, q2=0, max_bosons=N_ph_max)
+        )
+        index_e.append(
+            nols.get_vectorized_rho_index(n1=i, q1=1, n2=i, q2=1, max_bosons=N_ph_max)
+        )
+    index = index_h + index_e
 
     # index_by_hand
     dim = 2 * (N_ph_max + 1)
@@ -105,7 +112,7 @@ def test_get_vectorized_rho_index():
     i_h1 = dim + 1
     i_h2 = i_h1 + dim + 1
 
-    i_e0 = (N_ph_max + 1) *  dim + (N_ph_max + 1)
+    i_e0 = (N_ph_max + 1) * dim + (N_ph_max + 1)
     i_e1 = i_e0 + dim + 1
     i_e2 = i_e1 + dim + 1
 
@@ -113,12 +120,13 @@ def test_get_vectorized_rho_index():
 
     assert index == index2
 
+
 def test_Liovillian_matrix_elements():
     hw_ph = 1
     g_ph = 0.5
     N_ph_max = 5
-    
-    # we need Gamma<<kappa 
+
+    # we need Gamma<<kappa
     Gamma_s, Gamma_t = 5e-6, 1e-6
     kappa = 0.1
     kT = 0.01
@@ -131,72 +139,88 @@ def test_Liovillian_matrix_elements():
     # population block numerically
     index_h, index_e = [], []
     for i in range(3):
-        index_h.append(nols.get_vectorized_rho_index(n1=i, q1=0, n2=i, q2=0, max_bosons=N_ph_max))
-        index_e.append(nols.get_vectorized_rho_index(n1=i, q1=1, n2=i, q2=1, max_bosons=N_ph_max))
-    index = index_h +  index_e
+        index_h.append(
+            nols.get_vectorized_rho_index(n1=i, q1=0, n2=i, q2=0, max_bosons=N_ph_max)
+        )
+        index_e.append(
+            nols.get_vectorized_rho_index(n1=i, q1=1, n2=i, q2=1, max_bosons=N_ph_max)
+        )
+    index = index_h + index_e
 
     Lpop_num = L[np.ix_(index, index)]
 
     # population block anallytically
-    # Franck-Condon 
+    # Franck-Condon
     n = np.arange(3)
     F = nfc.FC(n, n, g_ph)
-    F2 = F ** 2
+    F2 = F**2
 
     # according to eq S155
     GammaS = Gamma_s * F2
     GammaT = Gamma_t * F2
 
-    GammaP = np.array([
-        [GammaS[0, 0], GammaS[0, 1], GammaT[0 , 2] + GammaS[0, 2]],
-        [0, GammaS[1, 1], GammaS[1, 2]],
-        [0, 0, GammaS[2, 2]],
-        ])
+    GammaP = np.array(
+        [
+            [GammaS[0, 0], GammaS[0, 1], GammaT[0, 2] + GammaS[0, 2]],
+            [0, GammaS[1, 1], GammaS[1, 2]],
+            [0, 0, GammaS[2, 2]],
+        ]
+    )
 
-    GammaM = np.array([
-        [GammaT[0, 0], GammaT[0, 1] + GammaS[0, 1], GammaT[0, 2] + GammaS[0, 2]],
-        [GammaT[1 , 0], GammaT[1, 1], GammaT[1, 2] + GammaS[1, 2]],
-        [0, GammaT[2, 1], GammaT[2, 2]],
-        ])
-
+    GammaM = np.array(
+        [
+            [GammaT[0, 0], GammaT[0, 1] + GammaS[0, 1], GammaT[0, 2] + GammaS[0, 2]],
+            [GammaT[1, 0], GammaT[1, 1], GammaT[1, 2] + GammaS[1, 2]],
+            [0, GammaT[2, 1], GammaT[2, 2]],
+        ]
+    )
 
     # Eq S155
-    Lpop_an = np.array([
-                [- GammaP[0, 0],  kappa, 0, GammaM[0, 0], GammaM[0, 1], GammaM[0, 2]],
-                [0, -kappa, 2 * kappa, GammaM[1, 0], GammaM[1, 1], GammaM[1 ,2]],
-                [0, 0, - 2 *  kappa, 0, GammaM[2, 1], GammaM[2, 2]],
-                [GammaP[0, 0], GammaP[0, 1],  GammaP[0 , 2], - GammaM[0, 0] - GammaM[1, 0], kappa, 0],
-                [0,  GammaP[1, 1], GammaP[1, 2], 0, -kappa, 2 * kappa],
-                [0, 0, GammaP[2, 2], 0, 0, -2 * kappa]
-                ])
-    
+    Lpop_an = np.array(
+        [
+            [-GammaP[0, 0], kappa, 0, GammaM[0, 0], GammaM[0, 1], GammaM[0, 2]],
+            [0, -kappa, 2 * kappa, GammaM[1, 0], GammaM[1, 1], GammaM[1, 2]],
+            [0, 0, -2 * kappa, 0, GammaM[2, 1], GammaM[2, 2]],
+            [
+                GammaP[0, 0],
+                GammaP[0, 1],
+                GammaP[0, 2],
+                -GammaM[0, 0] - GammaM[1, 0],
+                kappa,
+                0,
+            ],
+            [0, GammaP[1, 1], GammaP[1, 2], 0, -kappa, 2 * kappa],
+            [0, 0, GammaP[2, 2], 0, 0, -2 * kappa],
+        ]
+    )
+
     # numerical vs anallytical  L population block
-    assert np.allclose(Lpop_num.real, Lpop_an, atol=(Gamma_t/kappa))
-    
-    
+    assert np.allclose(Lpop_num.real, Lpop_an, atol=(Gamma_t / kappa))
+
     # checking L coherences blocks
 
     # S74
     e0_h1 = nols.get_vectorized_rho_index(n1=0, q1=1, n2=1, q2=0, max_bosons=N_ph_max)
-    assert np.allclose(L[e0_h1, e0_h1] , 1j *hw_ph - (kappa *  g_ph ** 2 /2 + kappa) / 2)
+    assert np.allclose(L[e0_h1, e0_h1], 1j * hw_ph - (kappa * g_ph**2 / 2 + kappa) / 2)
 
     # S75
     h0_e1 = nols.get_vectorized_rho_index(n1=0, q1=0, n2=1, q2=1, max_bosons=N_ph_max)
-    assert np.allclose(L[h0_e1, h0_e1], 1j *hw_ph - (kappa *  g_ph ** 2 /2 + kappa) / 2)
+    assert np.allclose(L[h0_e1, h0_e1], 1j * hw_ph - (kappa * g_ph**2 / 2 + kappa) / 2)
 
     # S76 -77
     h0_e0 = nols.get_vectorized_rho_index(n1=0, q1=0, n2=0, q2=1, max_bosons=N_ph_max)
     h1_e1 = nols.get_vectorized_rho_index(n1=1, q1=0, n2=1, q2=1, max_bosons=N_ph_max)
- 
-    assert np.allclose(L[h0_e0, h0_e0],  -kappa *  g_ph ** 2 / 4, atol=Gamma_t/kappa) 
-    assert np.allclose(L[h0_e0, h1_e1], - kappa)  # why - kappa? should be +
-    assert np.allclose(L[h1_e1, h1_e1],  -kappa *  g_ph ** 2 / 4 - kappa, atol=Gamma_t/kappa) 
 
+    assert np.allclose(L[h0_e0, h0_e0], -kappa * g_ph**2 / 4, atol=Gamma_t / kappa)
+    assert np.allclose(L[h0_e0, h1_e1], -kappa)  # why - kappa? should be +
+    assert np.allclose(
+        L[h1_e1, h1_e1], -kappa * g_ph**2 / 4 - kappa, atol=Gamma_t / kappa
+    )
 
-    #S78 - 79
+    # S78 - 79
     h0_h1 = nols.get_vectorized_rho_index(n1=0, q1=0, n2=1, q2=0, max_bosons=N_ph_max)
     e0_e1 = nols.get_vectorized_rho_index(n1=0, q1=1, n2=1, q2=1, max_bosons=N_ph_max)
-    
+
     assert np.allclose(L[h0_h1, h0_h1], 1j * hw_ph - kappa / 2)
     assert np.allclose(L[e0_e1, e0_e1], 1j * hw_ph - kappa / 2)
 
@@ -213,11 +237,9 @@ def test_Liovillian_matrix_elements():
     max_off = np.max(np.abs(coherences))
     assert max_off < 1e-15
 
-
-    # cross terms in correlations are zero 
+    # cross terms in correlations are zero
 
     M, _ = nme.regression_theorem(a_ph.d, L, ng, cutoff=0)
     assert np.allclose(M, 0)
     M, _ = nme.regression_theorem(ng, L, a_ph, cutoff=0)
     assert np.allclose(M, 0)
-
