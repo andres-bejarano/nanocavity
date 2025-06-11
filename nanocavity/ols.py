@@ -285,38 +285,38 @@ def Pst(g_ph, VL, VR, Gamma_L, Gamma_R, kappa, kT):
 
     """
 
-    Gp00L, Gm00L = G_pm_nm_a(0, 0, g_ph, VL, Gamma_L, kT)
-    Gp00R, Gm00R = G_pm_nm_a(0, 0, g_ph, VR, Gamma_R, kT)
+    Gp00L, Gm00L = G_pm_nm_a(0, 0, g_ph, VL, kT)
+    Gp00R, Gm00R = G_pm_nm_a(0, 0, g_ph, VR, kT)
     Gp00 = Gamma_L * Gp00L + Gamma_R * Gp00R
     Gm00 = Gamma_L * Gm00L + Gamma_R * Gm00R
 
-    Gp10L, Gm10L = G_pm_nm_a(1, 0, g_ph, VL, Gamma_L, kT)
-    Gp10R, Gm10R = G_pm_nm_a(1, 0, g_ph, VR, Gamma_R, kT)
+    Gp10L, Gm10L = G_pm_nm_a(1, 0, g_ph, VL, kT)
+    Gp10R, Gm10R = G_pm_nm_a(1, 0, g_ph, VR, kT)
     Gp10 = Gamma_L * Gp10L + Gamma_R * Gp10R
     Gm10 = Gamma_L * Gm10L + Gamma_R * Gm10R
 
-    Gp11L, Gm11L = G_pm_nm_a(1, 1, g_ph, VL, Gamma_L, kT)
-    Gp11R, Gm11R = G_pm_nm_a(1, 1, g_ph, VR, Gamma_R, kT)
+    Gp11L, Gm11L = G_pm_nm_a(1, 1, g_ph, VL, kT)
+    Gp11R, Gm11R = G_pm_nm_a(1, 1, g_ph, VR, kT)
     Gp11 = Gamma_L * Gp11L + Gamma_R * Gp11R
     Gm11 = Gamma_L * Gm11L + Gamma_R * Gm11R
 
-    Gp12L, Gm12L = G_pm_nm_a(1, 2, g_ph, VL, Gamma_L, kT)
-    Gp12R, Gm12R = G_pm_nm_a(1, 2, g_ph, VR, Gamma_R, kT)
+    Gp12L, Gm12L = G_pm_nm_a(1, 2, g_ph, VL, kT)
+    Gp12R, Gm12R = G_pm_nm_a(1, 2, g_ph, VR, kT)
     Gp12 = Gamma_L * Gp12L + Gamma_R * Gp12L
     Gm12 = Gamma_L * Gm12R + Gamma_R * Gm12R
 
-    Gp21L, Gm21L = G_pm_nm_a(2, 1, g_ph, VL, Gamma_L, kT)
-    Gp21R, Gm21R = G_pm_nm_a(2, 1, g_ph, VR, Gamma_R, kT)
+    Gp21L, Gm21L = G_pm_nm_a(2, 1, g_ph, VL, kT)
+    Gp21R, Gm21R = G_pm_nm_a(2, 1, g_ph, VR, kT)
     Gp21 = Gamma_L * Gp21L + Gamma_R * Gp21R
     Gm21 = Gamma_L * Gm21L + Gamma_R * Gm21R
 
-    Gp20L, Gm20L = G_pm_nm_a(2, 0, g_ph, VL, Gamma_L, kT)
-    Gp20R, Gm20R = G_pm_nm_a(2, 0, g_ph, VR, Gamma_R, kT)
+    Gp20L, Gm20L = G_pm_nm_a(2, 0, g_ph, VL, kT)
+    Gp20R, Gm20R = G_pm_nm_a(2, 0, g_ph, VR, kT)
     Gp20 = Gamma_L * Gp20L + Gamma_R * Gp20R
     Gm20 = Gamma_L * Gm20L + Gamma_R * Gm20R
 
-    Gp22L, Gm22L = G_pm_nm_a(2, 2, g_ph, VL, Gamma_L, kT)
-    Gp22R, Gm22R = G_pm_nm_a(2, 2, g_ph, VR, Gamma_R, kT)
+    Gp22L, Gm22L = G_pm_nm_a(2, 2, g_ph, VL, kT)
+    Gp22R, Gm22R = G_pm_nm_a(2, 2, g_ph, VR, kT)
     Gp22 = Gamma_L * Gp22L + Gamma_R * Gp22R
     Gm22 = Gamma_L * Gm22L + Gamma_R * Gm22R
 
