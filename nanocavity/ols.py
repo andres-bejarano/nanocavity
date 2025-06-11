@@ -285,74 +285,45 @@ def Pst(g_ph, VL, VR, Gamma_L, Gamma_R, kappa, kT):
 
     """
 
-    Gp00L, Gm00L = G_pm_nm_a(0, 0, g_ph, VL, kT)
-    Gp00R, Gm00R = G_pm_nm_a(0, 0, g_ph, VR, kT)
-    Gp00 = Gamma_L * Gp00L + Gamma_R * Gp00R
-    Gm00 = Gamma_L * Gm00L + Gamma_R * Gm00R
-
-    Gp10L, Gm10L = G_pm_nm_a(1, 0, g_ph, VL, kT)
-    Gp10R, Gm10R = G_pm_nm_a(1, 0, g_ph, VR, kT)
-    Gp10 = Gamma_L * Gp10L + Gamma_R * Gp10R
-    Gm10 = Gamma_L * Gm10L + Gamma_R * Gm10R
-
-    Gp11L, Gm11L = G_pm_nm_a(1, 1, g_ph, VL, kT)
-    Gp11R, Gm11R = G_pm_nm_a(1, 1, g_ph, VR, kT)
-    Gp11 = Gamma_L * Gp11L + Gamma_R * Gp11R
-    Gm11 = Gamma_L * Gm11L + Gamma_R * Gm11R
-
-    Gp12L, Gm12L = G_pm_nm_a(1, 2, g_ph, VL, kT)
-    Gp12R, Gm12R = G_pm_nm_a(1, 2, g_ph, VR, kT)
-    Gp12 = Gamma_L * Gp12L + Gamma_R * Gp12L
-    Gm12 = Gamma_L * Gm12R + Gamma_R * Gm12R
-
-    Gp21L, Gm21L = G_pm_nm_a(2, 1, g_ph, VL, kT)
-    Gp21R, Gm21R = G_pm_nm_a(2, 1, g_ph, VR, kT)
-    Gp21 = Gamma_L * Gp21L + Gamma_R * Gp21R
-    Gm21 = Gamma_L * Gm21L + Gamma_R * Gm21R
-
-    Gp20L, Gm20L = G_pm_nm_a(2, 0, g_ph, VL, kT)
-    Gp20R, Gm20R = G_pm_nm_a(2, 0, g_ph, VR, kT)
-    Gp20 = Gamma_L * Gp20L + Gamma_R * Gp20R
-    Gm20 = Gamma_L * Gm20L + Gamma_R * Gm20R
-
-    Gp22L, Gm22L = G_pm_nm_a(2, 2, g_ph, VL, kT)
-    Gp22R, Gm22R = G_pm_nm_a(2, 2, g_ph, VR, kT)
-    Gp22 = Gamma_L * Gp22L + Gamma_R * Gp22R
-    Gm22 = Gamma_L * Gm22L + Gamma_R * Gm22R
+    n = np.arange(3)
+    GpL, GmL = G_pm_nm_a(n, n, g_ph, VL, kT)
+    GpR, GmR = G_pm_nm_a(n, n, g_ph, VR, kT)
+    Gp = Gamma_L * GpL + Gamma_R * GpR
+    Gm = Gamma_L * GmL + Gamma_R * GmR
 
     # Eqs 29 - 34 of main text
-    Gamma_e0 = Gm00 + Gm10 + Gm20
-    Gamma_h0 = Gp00 + Gp10 + Gp20
+    Gamma_e0 = Gm[0, 0] + Gm[1, 0] + Gm[2, 0]
+    Gamma_h0 = Gp[0, 0] + Gp[1, 0] + Gp[2, 0]
     P0 = Gamma_e0 / (Gamma_e0 + Gamma_h0)
     Q0 = Gamma_h0 / (Gamma_e0 + Gamma_h0)
 
     P1 = (
-        (Gm10 + Gm20) * Q0 / kappa
-        + (Gm11 + Gm21) * (Gp10 + Gp20) * P0 / kappa**2
-        + (Gm12 + Gm22) * Gp20 * P0 / (2 * kappa**2)
+        (Gm[1, 0] + Gm[2, 0]) * Q0 / kappa
+        + (Gm[1, 1] + Gm[2, 1]) * (Gp[1, 0] + Gp[2, 0]) * P0 / kappa**2
+        + (Gm[1, 2] + Gm[2, 2]) * Gp[2, 0] * P0 / (2 * kappa**2)
     )
 
     Q1 = (
-        (Gp10 + Gp20) * P0 / kappa
-        + (Gp11 + Gp21) * (Gm10 + Gm20) * Q0 / kappa**2
-        + (Gp12 + Gp22) * Gp20 * Q0 / (2 * kappa**2)
+        (Gp[1, 0] + Gp[2, 0]) * P0 / kappa
+        + (Gp[1, 1] + Gp[2, 1]) * (Gm[1, 0] + Gm[2, 0]) * Q0 / kappa**2
+        + (Gp[1, 2] + Gp[2, 2]) * Gp[2, 0] * Q0 / (2 * kappa**2)
     )
 
     P2 = (
-        Gm20 * Q0 / (2 * kappa)
-        + Gm21 * (Gp21 + Gp11) * (Gm10 + Gm20) * Q0 / (2 * kappa**3)
-        + Gm22 * Gp21 * (Gm10 + Gm20) * Q0 / (4 * kappa**3)
-        + Gm21 * (Gp20 + Gp10) * P0 / (2 * kappa**2)
-        + Gm22 * Gp20 * P0 / (4 * kappa**2)
+        Gm[2, 0] * Q0 / (2 * kappa)
+        + Gm[2, 1] * (Gp[2, 1] + Gp[1, 1]) * (Gm[1, 0] + Gm[2, 0]) * Q0 / (2 * kappa**3)
+        + Gm[2, 2] * Gp[2, 1] * (Gm[1, 0] + Gm[2, 0]) * Q0 / (4 * kappa**3)
+        + Gm[2, 1] * (Gp[2, 0] + Gp[1, 0]) * P0 / (2 * kappa**2)
+        + Gm[2, 2] * Gp[2, 0] * P0 / (4 * kappa**2)
     )
 
     Q2 = (
-        Gp21 * (Gm10 + Gm20) * Q0 / (2 * kappa**2)
-        + Gp22 * Gp20 * Q0 / (2 * kappa**2)
-        + Gp20 * P0 / (2 * kappa)
-        + Gp21 * (Gm11 + Gm21) * (Gp10 + Gp20) * P0 / (2 * kappa**3)
-        + Gp21 * (Gm12 + Gm22) * Gp20 * P0 / (2 * kappa**3)
-        + Gp22 * Gm21 * (Gp20 + Gp10) * P0 / (2 * kappa**3)
-        + Gp22 * Gm22 * Gp20 * P0 / (4 * kappa**3)
+        Gp[2, 1] * (Gm[1, 0] + Gm[2, 0]) * Q0 / (2 * kappa**2)
+        + Gp[2, 2] * Gp[2, 0] * Q0 / (2 * kappa**2)
+        + Gp[2, 0] * P0 / (2 * kappa)
+        + Gp[2, 1] * (Gm[1, 1] + Gm[2, 1]) * (Gp[1, 0] + Gp[2, 0]) * P0 / (2 * kappa**3)
+        + Gp[2, 1] * (Gm[1, 2] + Gm[2, 2]) * Gp[2, 0] * P0 / (2 * kappa**3)
+        + Gp[2, 2] * Gm[2, 1] * (Gp[2, 0] + Gp[1, 0]) * P0 / (2 * kappa**3)
+        + Gp[2, 2] * Gm[2, 2] * Gp[2, 0] * P0 / (4 * kappa**3)
     )
     return P0, P1, P2, Q0, Q1, Q2
