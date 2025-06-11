@@ -87,7 +87,6 @@ def test_populations():
         assert np.allclose(Pnum, Pan)
 
 
-
 def test_G_pm_nm_a():
     qi, qf = np.meshgrid([0, 1], [0, 1], indexing="ij")
     qf, qi = np.meshgrid(1, 3, indexing="ij")
@@ -137,7 +136,8 @@ def test_G_pm_nm_a():
     Gp, Gm = nols.G_pm_nm_a([0, 1], 0, g_ph, 0.5, kT)
     assert Gp.shape == (2,)
     assert Gm.shape == (2,)
-    
+
+
 def test_get_diagonal_indices():
     Nmax = 5
     index = nols.get_diagonal_indices(max_bosons=Nmax, cutoff=2)
