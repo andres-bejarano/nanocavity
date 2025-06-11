@@ -1,4 +1,6 @@
 import nanocavity.operators as no
+import nanocavity.franck_condon as nfc
+import nanocavity.distributions as nd
 import secondquant as sq
 from secondquant.operator import Operator
 import scipy.linalg as sa
@@ -146,3 +148,110 @@ def liouvillian(
     L = no.liouvillian(Hs, cops, method=method, cond=cond)
 
     return L
+
+
+def G_pm_nm_a(n, m, g_ph, V, kT, DE=0):
+    """
+    Function to calculate the inelastic tunneling rates for the one level model.
+    Parameters:
+    -----
+    n: int or array like
+        photon number of the final state
+    m: int or array like
+        photon number of the initial state
+    g_ph: float
+        coupling strength
+    V: float
+        applied bias
+    kT: float
+        temperature
+    DE: float
+        Energy difference between q=1 and q=0
+
+    Returns:
+    -----
+    G_p_nm_a:    np.array or Float
+                The inelastic tunneling rate for transitions from 0 -> 1
+    G_m_nm_a:    np.array or Float
+                The inelastic tunneling rate for transitions from 1 -> 0
+    """
+    err_string = (
+        "n and m must be nonnegative integers or lists of nonnegative integers."
+    )
+    for q in (n, m):
+        if isinstance(q, (list, np.ndarray)):
+            q = np.array(q)
+            if q.dtype != np.int64 or (q < 0).any():
+                raise TypeError(err_string)
+        elif not isinstance(q, int) or q < 0:
+            raise TypeError(err_string)
+
+    qf, qi = np.meshgrid(n, m, indexing="ij")
+    Fnm = nfc.FC(n, m, g_ph) ** 2
+    fp = nd.fermi_dirac(qf - qi - DE, kT, V)
+    fm = 1 - nd.fermi_dirac(DE + qi - qf, kT, V)
+    if np.isscalar(n) and np.isscalar(m):
+        fp = fp[0].item()
+        fm = fm[0].item()
+    elif np.isscalar(n) or np.isscalar(m):
+        fp = fp.ravel()
+        fm = fm.ravel()
+
+    G_p_nm = fp * Fnm
+    G_m_nm = fm * Fnm
+    return G_p_nm, G_m_nm
+
+def get_diagonal_indices(max_bosons, cutoff=None):
+    """
+    Returns diagonal indices of Hs for a truncated photon basis in each charge sector q = 0 and q = 1.
+
+    Parameters:
+    - max_bosons (int): Maximum photon number used to construct Hs (sets size of blocks)
+    - cutoff_q0 (int or None): Max photon number to keep for q=0, 1 (inclusive). If None, use full range (0 to max_bosons)
+
+    Returns:
+    - List of [i, i] indices for the truncated diagonal
+    """
+    indices = []
+
+    if cutoff is None:
+        cutoff = max_bosons
+
+    # Block q = 0
+    for n in range(cutoff + 1):
+        indices.append([n, n])
+
+    # Block q = 1
+    offset = max_bosons + 1
+    for n in range(cutoff + 1):
+        indices.append([offset + n, offset + n])
+
+    return indices
+
+
+def get_basis_index(n, q, max_bosons):
+    """
+    Returns the index in the full Hilbert space basis for a state |n, q⟩
+    """
+    if q == 0:
+        return n
+    elif q == 1:
+        return max_bosons + 1 + n
+    else:
+        raise ValueError("q must be 0 or 1")
+
+
+def get_vectorized_rho_index(n1, q1, n2, q2, max_bosons):
+    """
+    Returns the index in the vectorized density matrix vec(rho) for ⟨n1,q1| ρ |n2,q2⟩
+    with row-stacking (vec(rho)[i,j] = i * d + j)
+    """
+    # Dimension of total Hilbert space
+    d = 2 * (max_bosons + 1)
+
+    # Get row (bra) and column (ket) indices
+    i = get_basis_index(n1, q1, max_bosons)  # bra
+    j = get_basis_index(n2, q2, max_bosons)  # ket
+
+    # Row-stacked vectorized index
+    return i * d + j
