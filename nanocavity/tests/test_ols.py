@@ -60,6 +60,56 @@ def test_liouvillian():
     assert np.allclose(L[0, 7], kappa)
 
 
+def test_G_pm_nm_a():
+    qi, qf = np.meshgrid([0, 1], [0, 1], indexing="ij")
+    qf, qi = np.meshgrid(1, 3, indexing="ij")
+    kT = 1e-3
+    g_ph = 0.3
+    Gp, Gm = nols.G_pm_nm_a(1, 1, 1, 0.5, kT)
+    assert np.isclose(Gp, 0)
+    assert np.isclose(Gm, 0)
+    Gp, Gm = nols.G_pm_nm_a(3, 1, g_ph, 0.5, kT)
+    assert np.isclose(Gp, 0)
+    assert np.isclose(Gm, 0)
+
+    Gp, Gm = nols.G_pm_nm_a(3, 1, g_ph, 2.5, kT)
+    assert np.isclose(Gp, nfc.FC(3, 1, g_ph) ** 2)
+    assert np.isclose(Gm, 0)
+
+    # Add these two tests back for Gp and Gm
+    Gp, Gm = nols.G_pm_nm_a(1, 3, g_ph, 0.5, kT)
+    assert np.isclose(Gp, nfc.FC(1, 3, g_ph) ** 2)
+    assert np.isclose(Gm, nfc.FC(1, 3, g_ph) ** 2)
+
+    Gp, Gm = nols.G_pm_nm_a(1, 3, g_ph, 2.5, kT)
+    assert np.isclose(Gp, nfc.FC(1, 3, g_ph) ** 2)
+    assert np.isclose(Gm, 0)
+
+    Gp, Gm = nols.G_pm_nm_a(1, 3, g_ph, 2.5, kT, DE=0.3)
+    assert np.isclose(Gp, nfc.FC(1, 3, g_ph) ** 2)
+    assert np.isclose(Gm, 0)
+
+    Gp, Gm = nols.G_pm_nm_a(1, 3, g_ph, 2.5, kT, DE=0.8)
+    assert np.isclose(Gp, nfc.FC(1, 3, g_ph) ** 2)
+    assert np.isclose(Gm, nfc.FC(1, 3, g_ph) ** 2)
+
+    Gp, Gm = nols.G_pm_nm_a([0, 1], [0, 1], g_ph, 0.5, kT)
+    assert Gp.shape == (2, 2)
+    assert Gm.shape == (2, 2)
+    assert np.isclose(Gp[0, 0], nfc.FC(0, 0, g_ph) ** 2)
+    assert np.isclose(Gp[0, 1], nfc.FC(1, 0, g_ph) ** 2)
+    assert np.isclose(Gp[1, 0], 0)
+    assert np.isclose(Gp[1, 1], nfc.FC(1, 1, g_ph) ** 2)
+
+    assert np.isclose(Gm[0, 0], 0)
+    assert np.isclose(Gm[0, 1], nfc.FC(1, 0, g_ph) ** 2)
+    assert np.isclose(Gm[1, 0], 0)
+    assert np.isclose(Gm[1, 1], 0)
+
+    Gp, Gm = nols.G_pm_nm_a([0, 1], 0, g_ph, 0.5, kT)
+    assert Gp.shape == (2,)
+    assert Gm.shape == (2,)
+    
 def test_get_diagonal_indices():
     Nmax = 5
     index = nols.get_diagonal_indices(max_bosons=Nmax, cutoff=2)
@@ -243,3 +293,4 @@ def test_Liovillian_matrix_elements():
     assert np.allclose(M, 0)
     M, _ = nme.regression_theorem(ng, L, a_ph, cutoff=0)
     assert np.allclose(M, 0)
+
