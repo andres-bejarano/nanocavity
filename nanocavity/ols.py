@@ -201,6 +201,7 @@ def G_pm_nm_a(n, m, g_ph, V, kT, DE=0):
     G_m_nm = fm * Fnm
     return G_p_nm, G_m_nm
 
+
 def get_diagonal_indices(max_bosons, cutoff=None):
     """
     Returns diagonal indices of Hs for a truncated photon basis in each charge sector q = 0 and q = 1.
@@ -257,69 +258,101 @@ def get_vectorized_rho_index(n1, q1, n2, q2, max_bosons):
     return i * d + j
 
 
+def Pst(g_ph, VL, VR, Gamma_L, Gamma_R, kappa, kT):
+    """
+    Function that calculates the sationary solution of the population until 2 photons.
+    Parameters:
+    -----
 
-def Pst(Vt, Vs, Gamma_t, Gamma_s, g_ph, kappa, kT=1e-2):
-    Gp00t, Gm00t = nols.G_pm_nm_a(0, 0, g_ph, Vt, Gamma_t, kT)
-    Gp00s, Gm00s = nols.G_pm_nm_a(0, 0, g_ph, Vs, Gamma_s, kT) 
-    Gp00 = Gamma_t * Gp00t + Gamma_s * Gp00s
-    Gm00 = Gamma_t * Gm00t + Gamma_s * Gm00s
+    g_ph: float
+        electron-photon coupling strength
+    VL: float
+        bias at left lead
+    VR: float
+        bias at right lead
+    Gamma_L: float
+        tunneling rate at the left lead
+    Gamma_R: float
+        tunneling rate at the right lead
+    kappa: float
+        cavity damping rate
+    kT: float
+        temperature
 
-    Gp10t, Gm10t = nols.G_pm_nm_a(1, 0, g_ph, Vt, Gamma_t, kT)
-    Gp10s, Gm10s = nols.G_pm_nm_a(1, 0, g_ph, Vs, Gamma_s, kT) 
-    Gp10 = Gamma_t * Gp10t + Gamma_s * Gp10s
-    Gm10 = Gamma_t * Gm10t + Gamma_s * Gm10s
+    Returns:
+    -----
+    P: tuple with pupulations
 
-    Gp11t, Gm11t = nols.G_pm_nm_a(1, 1, g_ph, Vt, Gamma_t, kT)
-    Gp11s, Gm11s = nols.G_pm_nm_a(1, 1, g_ph, Vs, Gamma_s, kT) 
-    Gp11 = Gamma_t * Gp11t + Gamma_s * Gp11s
-    Gm11 = Gamma_t * Gm11t + Gamma_s * Gm11s
+    """
 
-    Gp12t, Gm12t = nols.G_pm_nm_a(1, 2, g_ph, Vt, Gamma_t, kT)
-    Gp12s, Gm12s = nols.G_pm_nm_a(1, 2, g_ph, Vs, Gamma_s, kT) 
-    Gp12 = Gamma_t * Gp12t + Gamma_s * Gp12s
-    Gm12 = Gamma_t * Gm12t + Gamma_s * Gm12s
+    Gp00L, Gm00L = G_pm_nm_a(0, 0, g_ph, VL, Gamma_L, kT)
+    Gp00R, Gm00R = G_pm_nm_a(0, 0, g_ph, VR, Gamma_R, kT)
+    Gp00 = Gamma_L * Gp00L + Gamma_R * Gp00R
+    Gm00 = Gamma_L * Gm00L + Gamma_R * Gm00R
 
-    Gp21t, Gm21t = nols.G_pm_nm_a(2, 1, g_ph, Vt, Gamma_t, kT)
-    Gp21s, Gm21s = nols.G_pm_nm_a(2, 1, g_ph, Vs, Gamma_s, kT) 
-    Gp21 = Gamma_t * Gp21t + Gamma_s * Gp21s
-    Gm21 = Gamma_t * Gm21t + Gamma_s * Gm21s
+    Gp10L, Gm10L = G_pm_nm_a(1, 0, g_ph, VL, Gamma_L, kT)
+    Gp10R, Gm10R = G_pm_nm_a(1, 0, g_ph, VR, Gamma_R, kT)
+    Gp10 = Gamma_L * Gp10L + Gamma_R * Gp10R
+    Gm10 = Gamma_L * Gm10L + Gamma_R * Gm10R
 
+    Gp11L, Gm11L = G_pm_nm_a(1, 1, g_ph, VL, Gamma_L, kT)
+    Gp11R, Gm11R = G_pm_nm_a(1, 1, g_ph, VR, Gamma_R, kT)
+    Gp11 = Gamma_L * Gp11L + Gamma_R * Gp11R
+    Gm11 = Gamma_L * Gm11L + Gamma_R * Gm11R
 
-    Gp20t, Gm20t = nols.G_pm_nm_a(2, 0, g_ph, Vt, Gamma_t, kT)
-    Gp20s, Gm20s = nols.G_pm_nm_a(2, 0, g_ph, Vs, Gamma_s, kT) 
-    Gp20 = Gamma_t * Gp20t + Gamma_s * Gp20s
-    Gm20 = Gamma_t * Gm20t + Gamma_s * Gm20s
+    Gp12L, Gm12L = G_pm_nm_a(1, 2, g_ph, VL, Gamma_L, kT)
+    Gp12R, Gm12R = G_pm_nm_a(1, 2, g_ph, VR, Gamma_R, kT)
+    Gp12 = Gamma_L * Gp12L + Gamma_R * Gp12L
+    Gm12 = Gamma_L * Gm12R + Gamma_R * Gm12R
 
-    Gp22t, Gm22t = nols.G_pm_nm_a(2, 2, g_ph, Vt, Gamma_t, kT)
-    Gp22s, Gm22s = nols.G_pm_nm_a(2, 2, g_ph, Vs, Gamma_s, kT) 
-    Gp22 = Gamma_t * Gp22t + Gamma_s * Gp22s
-    Gm22 = Gamma_t * Gm22t + Gamma_s * Gm22s
+    Gp21L, Gm21L = G_pm_nm_a(2, 1, g_ph, VL, Gamma_L, kT)
+    Gp21R, Gm21R = G_pm_nm_a(2, 1, g_ph, VR, Gamma_R, kT)
+    Gp21 = Gamma_L * Gp21L + Gamma_R * Gp21R
+    Gm21 = Gamma_L * Gm21L + Gamma_R * Gm21R
 
-    #Eqs 29 - 34 of main text
-    Gamma_e0 = Gm00 +  Gm10 + Gm20
-    Gamma_h0 = Gp00 +  Gp10 + Gp20
-    P0 =  Gamma_e0 / (Gamma_e0 + Gamma_h0)
-    Q0 =  Gamma_h0 / (Gamma_e0 + Gamma_h0)
+    Gp20L, Gm20L = G_pm_nm_a(2, 0, g_ph, VL, Gamma_L, kT)
+    Gp20R, Gm20R = G_pm_nm_a(2, 0, g_ph, VR, Gamma_R, kT)
+    Gp20 = Gamma_L * Gp20L + Gamma_R * Gp20R
+    Gm20 = Gamma_L * Gm20L + Gamma_R * Gm20R
 
-    P1 = (Gm10 + Gm20) * Q0 / kappa \
-        + (Gm11 + Gm21)*(Gp10+ Gp20)* P0 / kappa ** 2 \
-        + (Gm12 + Gm22) * Gp20 * P0 / (2 * kappa ** 2)
+    Gp22L, Gm22L = G_pm_nm_a(2, 2, g_ph, VL, Gamma_L, kT)
+    Gp22R, Gm22R = G_pm_nm_a(2, 2, g_ph, VR, Gamma_R, kT)
+    Gp22 = Gamma_L * Gp22L + Gamma_R * Gp22R
+    Gm22 = Gamma_L * Gm22L + Gamma_R * Gm22R
 
-    Q1 = (Gp10 + Gp20) * P0 / kappa \
-     + (Gp11 + Gp21) * (Gm10 + Gm20) * Q0 / kappa**2 \
-     + (Gp12 + Gp22) * Gp20 * Q0 / (2 * kappa**2)
+    # Eqs 29 - 34 of main text
+    Gamma_e0 = Gm00 + Gm10 + Gm20
+    Gamma_h0 = Gp00 + Gp10 + Gp20
+    P0 = Gamma_e0 / (Gamma_e0 + Gamma_h0)
+    Q0 = Gamma_h0 / (Gamma_e0 + Gamma_h0)
 
-    P2 = Gm20 * Q0 / (2 * kappa) \
-     + Gm21 * (Gp21 + Gp11) * (Gm10 + Gm20) * Q0 / (2 * kappa**3) \
-     + Gm22 * Gp21 * (Gm10 + Gm20) * Q0 / (4 * kappa**3) \
-     + Gm21 * (Gp20 + Gp10) * P0 / (2 * kappa**2) \
-     + Gm22 * Gp20 * P0 / (4 * kappa**2) 
+    P1 = (
+        (Gm10 + Gm20) * Q0 / kappa
+        + (Gm11 + Gm21) * (Gp10 + Gp20) * P0 / kappa**2
+        + (Gm12 + Gm22) * Gp20 * P0 / (2 * kappa**2)
+    )
 
-    Q2 = Gp21 * (Gm10 + Gm20) * Q0 / (2 *kappa**2) \
-     + Gp22 * Gp20 * Q0 / (2 * kappa**2) \
-     + Gp20 * P0 / (2 * kappa) \
-     + Gp21 * (Gm11 + Gm21) * (Gp10 + Gp20) * P0 / (2 * kappa**3) \
-     + Gp21 * (Gm12 + Gm22) * Gp20 * P0 / (2 * kappa**3) \
-     + Gp22 * Gm21 * (Gp20 + Gp10) * P0 / (2 * kappa**3) \
-     + Gp22 * Gm22 * Gp20 * P0 / (4 * kappa**3)
+    Q1 = (
+        (Gp10 + Gp20) * P0 / kappa
+        + (Gp11 + Gp21) * (Gm10 + Gm20) * Q0 / kappa**2
+        + (Gp12 + Gp22) * Gp20 * Q0 / (2 * kappa**2)
+    )
+
+    P2 = (
+        Gm20 * Q0 / (2 * kappa)
+        + Gm21 * (Gp21 + Gp11) * (Gm10 + Gm20) * Q0 / (2 * kappa**3)
+        + Gm22 * Gp21 * (Gm10 + Gm20) * Q0 / (4 * kappa**3)
+        + Gm21 * (Gp20 + Gp10) * P0 / (2 * kappa**2)
+        + Gm22 * Gp20 * P0 / (4 * kappa**2)
+    )
+
+    Q2 = (
+        Gp21 * (Gm10 + Gm20) * Q0 / (2 * kappa**2)
+        + Gp22 * Gp20 * Q0 / (2 * kappa**2)
+        + Gp20 * P0 / (2 * kappa)
+        + Gp21 * (Gm11 + Gm21) * (Gp10 + Gp20) * P0 / (2 * kappa**3)
+        + Gp21 * (Gm12 + Gm22) * Gp20 * P0 / (2 * kappa**3)
+        + Gp22 * Gm21 * (Gp20 + Gp10) * P0 / (2 * kappa**3)
+        + Gp22 * Gm22 * Gp20 * P0 / (4 * kappa**3)
+    )
     return P0, P1, P2, Q0, Q1, Q2

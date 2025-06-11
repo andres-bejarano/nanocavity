@@ -61,7 +61,6 @@ def test_liouvillian():
     assert np.allclose(L[0, 7], kappa)
 
 
-
 def test_populations():
     hw_ph = 1
     max_bosons = 5
@@ -69,8 +68,6 @@ def test_populations():
 
     kappa = 0.1
     kT = 0.01
-
-
 
     Vt = 0.5
     Vs = -1.5
@@ -86,5 +83,5 @@ def test_populations():
 
         row, colum = zip(*index)
         Pnum = rho_st[list(row), list(colum)]
-        Pan = nols.Pst(Vt, Vs, Gamma_t, Gamma_s, g_ph, kappa)
+        Pan = nols.Pst(g_ph, Vt, Vs, Gamma_t, Gamma_s, kappa, kT)
         assert np.allclose(Pnum, Pan)
