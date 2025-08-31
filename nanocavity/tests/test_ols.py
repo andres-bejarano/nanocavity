@@ -279,20 +279,20 @@ def test_Liovillian_matrix_elements():
 
     # S74
     e0_h1 = nols.get_vectorized_rho_index(n1=0, q1=1, n2=1, q2=0, max_bosons=N_ph_max)
-    assert np.allclose(L[e0_h1, e0_h1], 1j * hw_ph - (kappa * g_ph**2 / 2 + kappa) / 2)
+    assert np.allclose(L[e0_h1, e0_h1], 1j * hw_ph - (kappa * g_ph**2 + kappa) / 2)
 
     # S75
     h0_e1 = nols.get_vectorized_rho_index(n1=0, q1=0, n2=1, q2=1, max_bosons=N_ph_max)
-    assert np.allclose(L[h0_e1, h0_e1], 1j * hw_ph - (kappa * g_ph**2 / 2 + kappa) / 2)
+    assert np.allclose(L[h0_e1, h0_e1], 1j * hw_ph - (kappa * g_ph**2 + kappa) / 2)
 
     # S76 -77
     h0_e0 = nols.get_vectorized_rho_index(n1=0, q1=0, n2=0, q2=1, max_bosons=N_ph_max)
     h1_e1 = nols.get_vectorized_rho_index(n1=1, q1=0, n2=1, q2=1, max_bosons=N_ph_max)
 
-    assert np.allclose(L[h0_e0, h0_e0], -kappa * g_ph**2 / 4, atol=Gamma_t / kappa)
+    assert np.allclose(L[h0_e0, h0_e0], -kappa * g_ph**2 / 2, atol=Gamma_t / kappa)
     assert np.allclose(L[h0_e0, h1_e1], -kappa)  # why - kappa? should be +
     assert np.allclose(
-        L[h1_e1, h1_e1], -kappa * g_ph**2 / 4 - kappa, atol=Gamma_t / kappa
+        L[h1_e1, h1_e1], -kappa * g_ph**2 / 2 - kappa, atol=Gamma_t / kappa
     )
 
     # S78 - 79

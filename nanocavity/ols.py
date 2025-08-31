@@ -142,7 +142,7 @@ def liouvillian(
     [c_pL, c_pR], [c_mL, c_mR] = collapse_electronic(
         Dg, basis, VL, VR, Gamma_L, Gamma_R, kT
     )
-    cn = {"full": [np.sqrt(kappa * g_ph**2 / 2) * ng.toarray()]}
+    cn = {"full": [np.sqrt(kappa * g_ph**2) * ng.toarray()]}
     cops = [c_pL, c_pR, c_mL, c_mR, cn, ca]
 
     L = no.liouvillian(Hs, cops, method=method, cond=cond)
