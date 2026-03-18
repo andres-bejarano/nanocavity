@@ -248,7 +248,7 @@ def correlation_AB(
 
 def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=None):
     """Uses the regression theorem to compute the first-order correlation function
-    Re \int_0^\infty < A^\dagger(\tau) A(0) > e^{-i \omega \tau} d\tau.
+    :math:`Re \\int_0^\\infty < A^\\dagger(\\tau) A(0) > e^{-i \\omega \\tau} d\\tau`.
 
     Parameters
     ----------
@@ -306,12 +306,12 @@ def g2(
     rho_st=None,
 ):
     """Uses the quantum regression theorem to compute the second-order correlation function
-    < A^\dagger(0) A^\dagger(tau) A(tau) A(0) > / < A^\dagger A >^2.
-    The method 'eigen' expands in terms of Liouvillian eigenvalues E_k, such that
-    G2 = \sum_k M_k e^{E_k tau} with M_k = (w0, J v_k)(w_k, J rho_st)
-    where J = A \rho A^\dagger is a kind of jump superoperator.
-    The method 'direct' traces all involved operatros G2 = Tr(J e^{L tau} J rho_st).
-    The function is returned normalized G1 = (w0, J rho_st), then g2 = G2 / G1^2
+    :math:`\\langle A^\\dagger(0) A^\\dagger(\\tau) A(\\tau) A(0)\\rangle / \\langle A^\\dagger A \\rangle^2`.
+    The method 'eigen' expands in terms of Liouvillian eigenvalues :math:`E_k`, such that
+    :math:`G^2 = \\sum_k M_k e^{E_k \\tau}` with :math:`M_k = (w0, J v_k)(w_k, J rho_{st})`
+    where :math:`J = A \\rho A^\\dagger` is a kind of jump superoperator.
+    The method 'direct' traces all involved operators :math:`G^2 = Tr(J e^{L \\tau} J rho_{st})`.
+    The function is returned normalized :math:`G1 = (w0, J rho_{st})`, then :math:`g2 = G2 / G1^2`
 
     Parameters
     ----------

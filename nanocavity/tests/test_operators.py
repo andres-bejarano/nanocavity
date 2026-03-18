@@ -238,13 +238,17 @@ def test_damped_cavity():
         for k in c.keys():
             dissipator += no.dissipator(c[k])
 
-    c_ops_direct = [{'hw_ph': [np.sqrt(kappa * nd.bose_einstein(hw_ph, kT)) * a.d.toarray()],
-                    '-hw_ph': [np.sqrt(kappa * (1 - nd.bose_einstein(hw_ph, kT))) * a.toarray()]
-                    }]
+    c_ops_direct = [
+        {
+            "hw_ph": [np.sqrt(kappa * nd.bose_einstein(hw_ph, kT)) * a.d.toarray()],
+            "-hw_ph": [
+                np.sqrt(kappa * (1 - nd.bose_einstein(hw_ph, kT))) * a.toarray()
+            ],
+        }
+    ]
 
     dissipator_d = 0
     for c in c_ops_direct:
         for k in c.keys():
             dissipator_d += no.dissipator(c[k])
     assert np.allclose(dissipator, dissipator_d)
-
