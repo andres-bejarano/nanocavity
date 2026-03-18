@@ -75,7 +75,7 @@ def eig_norm(L):
     return El, vl, vr
 
 
-def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e-8):
+def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e-8, verbose=True):
     """Solves for the steady state of the QME
 
     Parameters
@@ -91,6 +91,8 @@ def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e-8):
         whether to perform sanity checks of the computed density matrix
     tol : float, optional
         tolerance enforced in sanity check (all eigenvalues > tol)
+    verbose : bool
+        print smallest and largest eigenvalues of rho_st (only if check=True)
 
     Returns
     -------
@@ -121,6 +123,8 @@ def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e-8):
         assert np.allclose(rho, rho.conj().T)
         # check positivity
         evals = np.linalg.eigvalsh(rho)
+        if verbose:
+            print(f"Smallest [largest] eigenvalue of rho_st: {np.min(evals)} [{np.max(evals)}]")
         assert np.all(evals >= tol)  # tolerate small negative numbers
     return rho
 
@@ -175,6 +179,7 @@ def regression_theorem(
         the precision of the values to be considered in the M coefficients
     real : bool
         whether to keep only the real part of Mk
+
     Returns
     -------
     Coefficients, Eigenvalues, (<A>), (<B>)
