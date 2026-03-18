@@ -75,7 +75,7 @@ def eig_norm(L):
     return El, vl, vr
 
 
-def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e8):
+def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e-8):
     """Solves for the steady state of the QME
 
     Parameters
