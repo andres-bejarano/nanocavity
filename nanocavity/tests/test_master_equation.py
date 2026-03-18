@@ -80,6 +80,10 @@ def test_eig_norm():
     E1 = np.einsum("ai,ab,bi->i", vl.conj(), L, vr)
     assert np.allclose(E, E1)
 
+    # recovering L
+    L1 = np.einsum("ai,i,bi->ab", vr, E, vl.conj())
+    assert np.allclose(L, L1)
+
 
 def test_eig_norm_nonsymmetric():
     d = 25
