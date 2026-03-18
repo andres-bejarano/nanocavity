@@ -87,6 +87,10 @@ def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e-8):
         sets the row which gets overwritten
     scale : float, optional
         scale factor for the diagonal entries in the modified Liouvillian
+    check : bool, optional
+        whether to perform sanity checks of the computed density matrix
+    tol : float, optional
+        tolerance enforced in sanity check (all eigenvalues > tol)
 
     Returns
     -------
