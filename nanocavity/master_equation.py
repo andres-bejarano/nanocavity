@@ -120,7 +120,7 @@ def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e-8):
         # check hermiticity
         assert np.allclose(rho, rho.conj().T)
         # check positivity
-        evals = np.linalg.eigvals(rho)
+        evals = np.linalg.eigvalsh(rho)
         assert np.all(evals >= tol)  # tolerate small negative numbers
     return rho
 
