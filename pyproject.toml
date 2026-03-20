@@ -36,5 +36,5 @@ markers = [
     "slow: marks tests as slow",
 ]
 testpaths = [
-    "nanocavity"
+    "nanocavity/tests"
 ]
