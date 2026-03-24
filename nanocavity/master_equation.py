@@ -76,7 +76,7 @@ def eig_norm(L):
 
 
 def stationary(
-    L, method="eig", row=0, scale=1e-12, check=True, tol=-1e-8, verbose=True
+    L, method="eig", row=0, scale=1e-12, tol=1e-16, check=True, verbose=True
 ):
     """Solves for the steady state of the QME
 
@@ -89,10 +89,10 @@ def stationary(
         sets the row which gets overwritten
     scale : float, optional
         scale factor for the diagonal entries in the modified Liouvillian
+    tol : float, optional
+        clip value applied to eigenvalues of rho_st (clipping disabled if set to False)
     check : bool, optional
         whether to perform sanity checks of the computed density matrix
-    tol : float, optional
-        tolerance enforced in sanity check (all eigenvalues > tol)
     verbose : bool
         print smallest and largest eigenvalues of rho_st (only if check=True)
 
@@ -114,7 +114,18 @@ def stationary(
         L0[sl] = b
         rho = np.linalg.solve(L0, b)
     rho = rho.reshape(d, d)
+
+    if tol:
+        # ensure hermitian
+        rho = (rho + rho.conj().T) / 2
+        evals, evecs = np.linalg.eigh(rho)
+        # clip eigenvalues >= tol
+        evals_clipped = np.clip(evals, tol, None)
+        rho = (evecs * evals_clipped) @ evecs.conj().T
+
+    # normalize
     rho /= np.trace(rho)
+
     if check:
         # ensure a physically meaningful density matrix
         assert np.isclose(np.trace(rho), 1.0)
@@ -130,6 +141,7 @@ def stationary(
                 f"Smallest [largest] eigenvalue of rho_st: {np.min(evals)} [{np.max(evals)}]"
             )
         assert np.all(evals >= tol)  # tolerate small negative numbers
+
     return rho
 
 
