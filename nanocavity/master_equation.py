@@ -291,7 +291,6 @@ def spectrum_resolvent(L, A, frequency, rho_st=None, diagonalize=False):
 
     Arho_vec = (A @ rho_st).toarray().reshape(-1)
     Adag_vec = A.toarray().conj().reshape(-1)
-    Id = np.identity(L.shape[0])
 
     if diagonalize:
         ev, V = np.linalg.eig(L)
@@ -300,6 +299,7 @@ def spectrum_resolvent(L, A, frequency, rho_st=None, diagonalize=False):
         S = np.einsum("i,iw,i->w", Adag_vec @ V, R, Vinv @ Arho_vec)
         return S.real / np.pi
 
+    Id = np.identity(L.shape[0])
     S = np.empty(frequency.shape)
     for i, w in enumerate(frequency):
         x = np.linalg.solve(1j * w * Id - L, Arho_vec)
