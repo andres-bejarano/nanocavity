@@ -107,3 +107,59 @@ def test_spectrum_analytics():
             H_parameters, VL, VR, kappa, Gamma_L, Gamma_R, kT, wlist, iva=iva
         )
         assert np.allclose(Inc, Ianalytics, atol=1e-6)
+
+
+def test_spectrum_with_and_without_iva():
+    # in the strong-coupling regime the two approaches should coincide
+    Eg = -0.4
+    Delta = 0.7
+    hw_ph = 1.0
+    g_ph = 0.2
+    U = 2
+    H0, Hint, [dg, de, a] = ntls.Hamiltonian(
+        Eg=Eg, Delta=Delta, hw_ph=hw_ph, g_ph=g_ph, U=U, max_bosons=2, rwa=True
+    )
+
+    kappa = 0.05
+    VL = Eg - 0.5
+    VR = Eg + 1.5  # sufficiently high voltage to populate both P+ and P-
+    Gamma_L = Gamma_R = 1e-5
+    kT = 0.01
+    cutoff = 1e-16
+
+    # IVA, collapses in bare basis
+    cp_iva, cm_iva = ntls.collapses(
+        H0,  # bare H0
+        [dg, de, a],
+        VL=VL,
+        VR=VR,
+        kappa=kappa,
+        Gamma_L=Gamma_L,
+        Gamma_R=Gamma_R,
+        kT=kT,
+        hw_ph=hw_ph,
+    )
+    L_iva = no.liouvillian(H0 + Hint, cp_iva + cm_iva)
+    rho_iva = nme.stationary(L_iva)
+    wlist = np.linspace(0, 2, 21)
+    S_iva = nme.spectrum(L_iva, a, wlist, rho_st=rho_iva, cutoff=cutoff)
+
+    # Collapses in dressed basis
+    cp, cm = ntls.collapses(
+        H0 + Hint,  # full H
+        [dg, de, a],
+        VL=VL,
+        VR=VR,
+        kappa=kappa,
+        Gamma_L=Gamma_L,
+        Gamma_R=Gamma_R,
+        kT=kT,
+        hw_ph=hw_ph,
+    )
+    L = no.liouvillian(H0 + Hint, cp + cm)
+    rho = nme.stationary(L)
+    S = nme.spectrum(L, a, wlist, rho_st=rho, cutoff=cutoff)
+
+    # the tolerances are not super-tight:
+    assert np.allclose(rho_iva, rho, atol=1e-5)
+    assert np.allclose(S_iva, S, rtol=3e-3, atol=1e-16)
