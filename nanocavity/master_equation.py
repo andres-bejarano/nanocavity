@@ -131,7 +131,7 @@ def stationary(
         assert np.isclose(np.trace(rho), 1.0)
         # check solution as stationary
         drho = L @ rho.reshape(d**2)
-        assert np.isclose(np.sum(drho), 0)
+        assert np.allclose(drho, 0)
         # check hermiticity
         assert np.allclose(rho, rho.conj().T)
         # check positivity
