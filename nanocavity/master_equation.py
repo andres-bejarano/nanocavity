@@ -75,7 +75,9 @@ def eig_norm(L):
     return El, vl, vr
 
 
-def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e-8, verbose=True):
+def stationary(
+    L, method="eig", row=0, scale=1e-12, check=True, tol=-1e-8, verbose=True
+):
     """Solves for the steady state of the QME
 
     Parameters
@@ -124,7 +126,9 @@ def stationary(L, method="eig", row=0, scale=1e-12, check=True, tol=-1e-8, verbo
         # check positivity
         evals = np.linalg.eigvalsh(rho)
         if verbose:
-            print(f"Smallest [largest] eigenvalue of rho_st: {np.min(evals)} [{np.max(evals)}]")
+            print(
+                f"Smallest [largest] eigenvalue of rho_st: {np.min(evals)} [{np.max(evals)}]"
+            )
         assert np.all(evals >= tol)  # tolerate small negative numbers
     return rho
 
