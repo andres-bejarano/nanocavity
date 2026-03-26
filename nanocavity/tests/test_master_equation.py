@@ -284,6 +284,12 @@ def test_spectrum():
         len(Mk) == len(E) == 6
     )  # With this cut we know that only 6 value are maintained
 
+    # compare with resolvent methods
+    I7 = nme.spectrum_resolvent(L, a, frequency)
+    assert np.allclose(I, I7)
+    I8 = nme.spectrum_resolvent(L, a, frequency, diagonalize=True)
+    assert np.allclose(I, I8)
+
 
 def test_g2():
     # just a single harmonic oscillator, H = a.d * a, coupled to bath
