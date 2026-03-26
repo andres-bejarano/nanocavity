@@ -140,7 +140,7 @@ def stationary(
             print(
                 f"Smallest [largest] eigenvalue of rho_st: {np.min(evals)} [{np.max(evals)}]"
             )
-        assert np.all(evals >= tol)  # tolerate small negative numbers
+        assert np.all(evals >= -np.abs(tol))  # tolerate small negative numbers
 
     return rho
 
