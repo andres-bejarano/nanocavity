@@ -153,7 +153,11 @@ def test_stationary(kT, bosons, rate, method):
     a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate, bin_width)
     c_ops = [c_opsp, c_opsm, a_opsp, a_opsm]
     L = no.liouvillian(H, c_ops)
-    rho = nme.stationary(L, method=method, check=True, tol=-1e8)
+    rho = nme.stationary(L, method=method, tol=1e-16, check=True)
+    rho2 = nme.stationary(
+        L, method=method, tol=False, check=False
+    )  # no eigenvalues clipped with tol=False
+    assert np.allclose(rho, rho2)
 
 
 def test_stationary_solve(row, scale):
@@ -167,7 +171,7 @@ def test_stationary_solve(row, scale):
     a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate, bin_width)
     c_ops = [c_opsp, c_opsm, a_opsp, a_opsm]
     L = no.liouvillian(H, c_ops)
-    rho = nme.stationary(L, method="solve", row=row, scale=scale, check=True, tol=-1e8)
+    rho = nme.stationary(L, method="solve", row=row, scale=scale, check=True)
 
 
 def test_stationary_single_cavity_mode():
