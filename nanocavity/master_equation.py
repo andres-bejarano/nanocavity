@@ -259,6 +259,55 @@ def correlation_AB(
     return S
 
 
+def spectrum_resolvent(L, A, frequency, rho_st=None, diagonalize=False):
+    """Computes the frequency spectrum S(frequency) through calculation
+    of the Liouvillian resolvent per frequency value.
+
+    Parameters
+    ----------
+    L : ndarray
+        Liouvillian superoperator
+    A : ndarray
+        Annihilation operator
+    frequency : float or ndarray
+        Frequencies (energies) to be evaluated
+    rho_st : ndarray, optional
+        steady-state density matrix
+    diagonalize : bool, optional
+        whether to diagonalize L before computing the resolvent.
+        This is numerically more efficient if many frequencies are requested.
+
+    Returns
+    -------
+    S : ndarray
+        Spectrum of A
+    """
+
+    frequency = _toarray(frequency)
+
+    if rho_st is None:
+        # we will rely on the default method for obtaining rho_st
+        rho_st = stationary(L)
+
+    Arho_vec = (A @ rho_st).toarray().reshape(-1)
+    Adag_vec = A.toarray().conj().reshape(-1)
+
+    if diagonalize:
+        ev, V = np.linalg.eig(L)
+        Vinv = np.linalg.inv(V)
+        R = 1 / (1j * frequency.reshape(1, -1) - ev.reshape(-1, 1))
+        S = np.einsum("i,iw,i->w", Adag_vec @ V, R, Vinv @ Arho_vec)
+        return S.real / np.pi
+
+    Id = np.identity(L.shape[0])
+    S = np.empty(frequency.shape)
+    for i, w in enumerate(frequency):
+        x = np.linalg.solve(1j * w * Id - L, Arho_vec)
+        S[i] = (Adag_vec @ x).real
+
+    return S / np.pi
+
+
 def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=None):
     """Uses the regression theorem to compute the first-order correlation function
     :math:`Re \\int_0^\\infty < A^\\dagger(\\tau) A(0) > e^{-i \\omega \\tau} d\\tau`.
