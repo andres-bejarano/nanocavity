@@ -163,3 +163,52 @@ def test_spectrum_with_and_without_iva():
     # the tolerances are not super-tight:
     assert np.allclose(rho_iva, rho, atol=1e-5)
     assert np.allclose(S_iva, S, rtol=3e-3, atol=1e-16)
+
+
+def test_direct_tunneling_term():
+    Eg = -0.4
+    hw_ph = 1
+    H0, Hint, [dg, de, a] = ntls.Hamiltonian(
+        Eg=Eg, Delta=0.7, hw_ph=hw_ph, g_ph=0.2, U=2, max_bosons=2, rwa=True
+    )
+
+    kappa = 0.05
+    VL = Eg - 0.5
+    VR = Eg + 1.5  # sufficiently high voltage to populate both P+ and P-
+    Gamma_L = Gamma_R = 1e-5
+    kT = 0.01
+    wlist = np.linspace(0, 2, 21)
+
+    cp0, cm0 = ntls.collapses(
+        H0,  # bare H0
+        [dg, de, a],
+        VL=VL,
+        VR=VR,
+        kappa=kappa,
+        Gamma_L=Gamma_L,
+        Gamma_R=Gamma_R,
+        kT=kT,
+        hw_ph=hw_ph,
+    )
+    L0 = no.liouvillian(H0 + Hint, cp0 + cm0)
+    rho0 = nme.stationary(L0)
+    S0 = nme.spectrum(L0, a, wlist, rho_st=rho0)
+
+    gamma_direct = 1e-5
+    cp, cm = ntls.collapses(
+        H0,  # bare H0
+        [dg, de, a],
+        VL=VL,
+        VR=VR,
+        kappa=kappa,
+        Gamma_L=Gamma_L,
+        Gamma_R=Gamma_R,
+        kT=kT,
+        hw_ph=hw_ph,
+        gamma_direct=gamma_direct,
+    )
+    L = no.liouvillian(H0 + Hint, cp + cm)
+    rho = nme.stationary(L)
+    S = nme.spectrum(L, a, wlist, rho_st=rho)
+
+    assert np.all(S > S0)
