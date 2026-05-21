@@ -120,7 +120,7 @@ def H_vi(Eg, Delta, hw_ph, g_ph, hw_vi, g_vi, U, max_bosons, rwa=False):
     return H, H0, Hint, anni_ops, num_ops
 
 
-def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, cutoff=0):
+def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, gamma_direct=0, cutoff=0):
     """
     Function to calculate the collapse operators with secondquant operators
 
@@ -145,6 +145,10 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, cutoff=0):
         Temperature
     hw_ph: float
         energy of the cavity (photon) mode
+    gamma_direct: float, optional
+        tunneling rate directly between the electrodes
+    cutoff: float, optional
+        cutoff energy
 
     Returns:
     -----
@@ -181,8 +185,16 @@ def collapses(H, ops, VL, VR, kappa, Gamma_L, Gamma_R, kT, hw_ph, cutoff=0):
     # we need to use the full cavity dissipator (see eq 6.37 in D.F.Walls and Gererd J. Milburn -  Quantum Optics).
     nb_p = ndist.bose_einstein(hw_ph, kT)
     nb_m = 1 + nb_p
-    c_ap = {"full": [np.sqrt(kappa * nb_p) * a.d.toarray()]}
-    c_am = {"full": [np.sqrt(kappa * nb_m) * a.toarray()]}
+
+    def F(x):
+        return -x / np.expm1(-x / kT)
+
+    def C(x):
+        V = VL - VR
+        return F(x + V) + F(x - V)
+
+    c_ap = {"full": [np.sqrt(kappa * nb_p + gamma_direct * C(-hw_ph)) * a.d.toarray()]}
+    c_am = {"full": [np.sqrt(kappa * nb_m + gamma_direct * C(hw_ph)) * a.toarray()]}
 
     Plus = [c_gpL, c_epL, c_gpR, c_epR, c_ap]
     Minus = [c_gmL, c_emL, c_gmR, c_emR, c_am]
