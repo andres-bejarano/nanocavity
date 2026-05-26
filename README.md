@@ -9,7 +9,7 @@
 The master equation describes the time evolution of the reduced density matrix $\rho$ of an open quantum system coupled to external baths. It is implemented through the Liouvillian superoperator $\mathcal{L}$, which encodes both the coherent (Hamiltonian) dynamics and the dissipative processes induced by the environment:
 
 
-$$\dot{\rho} = \mathcal{L}\rho = -i[H_S, \rho] + \sum_\omega \Gamma(\omega)\left[A(\omega)\rho A^\dagger(\omega) - \tfrac{1}{2}\{A^\dagger(\omega)A(\omega), \rho\}\right]$$
+$$\dot{\rho} = \mathcal{L}\rho = -i[H_S, \rho] + \sum_\omega \Gamma(\omega)\left[A(\omega)\rho A^\dagger(\omega) - \tfrac{1}{2}\left\\{A^\dagger(\omega)A(\omega), \rho\right\\}\right]$$
 
 Here $\omega$ labels the transition energies of the system, $\Gamma(\omega)$ is the transition rate associated with each energy, and $A(\omega)$ are the collapse operators — the quantum jump
 operators that describe the dissipative transitions at energy $\omega$.
