@@ -22,7 +22,7 @@ operators that describe the dissipative transitions at energy $\omega$.
 - Full Liouvillian superoperator in Liouville space
 - Steady-state density matrix (via null-space or linear solve)
 - Emission spectrum via spectral decomposition of the Liouvillian (no numerical Fourier transform needed)
-- Second-order photon correlation function g^(2)(tau) via the quantum regression theorem
+- Second-order photon correlation function  via the quantum regression theorem
 - Electronic and photonic current from jump superoperators
 
 ---
