@@ -13,6 +13,7 @@ $$\dot{\rho} = \mathcal{L}\rho = -i[H_S, \rho] + \sum_\omega \Gamma(\omega)\left
 
 Here $\omega$ labels the transition energies of the system, $\Gamma(\omega)$ is the transition rate associated with each energy, and $A(\omega)$ are the collapse operators — the quantum jump
 operators that describe the dissipative transitions at energy $\omega$.
+
 ---
 
 ## Features
