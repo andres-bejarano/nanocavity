@@ -8,6 +8,8 @@
 
 The package targets driven-dissipative systems where electronic transport through a molecular junction excites a plasmonic cavity mode. The dynamics are governed by the Lindblad master equation in Lindblad form, with the secular approximation applied when constructing the dissipator. This ensures complete positivity of the density matrix.
 
+$$\dot{\rho} = -i[H_S, \rho] + \sum_\omega \Gamma(\omega)\left[A(\omega)\rho A^\dagger(\omega) - \tfrac{1}{2}\{A^\dagger(\omega)A(\omega), \rho\}\right]$$
+
 ---
 
 ## Features
