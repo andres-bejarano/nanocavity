@@ -1,15 +1,18 @@
 # nanocavity
 
-**nanocavity** is a Python package for modeling current-induced light emission in biased plasmonic nanocavities. It solves the Lindblad quantum master equation (within the secular approximation) for open quantum systems coupled to fermionic and bosonic baths, and computes experimentally relevant observables: emission spectra, photon currents, and second-order photon correlation functions g^(2)(tau).
+**nanocavity** is a Python package for modeling current-induced light emission in biased plasmonic nanocavities. It solves the Lindblad quantum master equation (within the secular approximation) for open quantum systems coupled to fermionic and bosonic baths, and computes experimentally relevant observables: emission spectra, photon currents, and second-order photon correlation functions.
 
 ---
 
 ## Physics
 
-The package targets driven-dissipative systems where electronic transport through a molecular junction excites a plasmonic cavity mode. The dynamics are governed by the Lindblad master equation in Lindblad form, with the secular approximation applied when constructing the dissipator. This ensures complete positivity of the density matrix.
+The master equation describes the time evolution of the reduced density matrix $\rho$ of an open quantum system coupled to external baths. It is implemented through the Liouvillian superoperator $\mathcal{L}$, which encodes both the coherent (Hamiltonian) dynamics and the dissipative processes induced by the environment:
 
-$$\dot{\rho} = -i[H_S, \rho] + \sum_\omega \Gamma(\omega)\left[A(\omega)\rho A^\dagger(\omega) - \tfrac{1}{2}\{A^\dagger(\omega)A(\omega), \rho\}\right]$$
 
+$$\dot{\rho} = \mathcal{L}\rho = -i[H_S, \rho] + \sum_\omega \Gamma(\omega)\left[A(\omega)\rho A^\dagger(\omega) - \tfrac{1}{2}\{A^\dagger(\omega)A(\omega), \rho\}\right]$$
+
+Here $\omega$ labels the transition energies of the system, $\Gamma(\omega)$ is the transition rate associated with each energy, and $A(\omega)$ are the collapse operators — the quantum jump
+operators that describe the dissipative transitions at energy $\omega$.
 ---
 
 ## Features
