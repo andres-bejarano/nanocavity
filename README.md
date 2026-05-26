@@ -62,3 +62,17 @@ rho = nme.stationary(L)
 S  = nme.spectrum(L, a, rho)
 g2 = nme.g2(L, a, rho)
 ```
+
+
+This package was developed as part of the following work, where the theoretical
+framework and numerical implementation are described in detail:
+
+- **Thesis:** Andrés Bejarano, *Quantum theory of photon emission in current-driven single-molecule tunnel junctions*, University of the Basque Country / University of Bordeaux (2025). [PDF](https://addi.ehu.es/bitstream/handle/10810/77573/TESIS_ANDR%C3%89S_FELIPE_BEJARANO_S%C3%81NCHEZ..pdf?sequence=1&isAllowed=y)
+
+- **Paper:** Andrés Bejarano *et al.*, arXiv:2504.13657 (2025). [arXiv](https://arxiv.org/abs/2504.13657)
+
+## Citation
+
+If you use **nanocavity** in your research, please cite this repository:
+Andrés Bejarano, nanocavity: a Python package for modeling light emission
+in biased plasmonic nanocavities (2025). https://github.com/andres-bejarano/nanocavity
