@@ -33,6 +33,8 @@ source install.sh
 - `scipy >= 1.5.0`
 - [`secondquant >= 0.4.2`]
 - `matplotlib`
+- (optionally `QuTiP >= 5.0`)
+
 
 ---
 

@@ -29,8 +29,8 @@ fi
 # run the appropriate tests
 if [[ "$choice" == "a" || "$choice" == "A" ]]; then
     echo "Running all tests..."
-    $mypytest --durations=10 --pyargs nanocavity
+    $mypytest --durations=10
 elif [[ "$choice" == "f" || "$choice" == "F" ]]; then
     echo "Running only fast tests..."
-    $mypytest --durations=10 -m "not slow" --pyargs nanocavity
+    $mypytest --durations=10 -m "not slow"
 fi
