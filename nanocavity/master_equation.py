@@ -312,6 +312,9 @@ def spectrum_resolvent(L, A, frequency, rho_st=None, zero_mode_tol=None):
         ev = ev[mask]
         V = V[:, mask]
         Vinv = Vinv[mask, :]
+        print(
+            f"spectrum_resolvent: Removed {np.count_nonzero(~mask)} eigenpair(s) using tol={zero_mode_tol}"
+        )
 
     R = 1 / (1j * frequency.reshape(1, -1) - ev.reshape(-1, 1))
     S = np.einsum("i,iw,i->w", Adag_vec @ V, R, Vinv @ Arho_vec)
