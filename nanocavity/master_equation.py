@@ -271,7 +271,7 @@ def correlation_AB(
     return S
 
 
-def spectrum_resolvent(L, A, frequency, rho_st=None, diagonalize=False):
+def spectrum_resolvent(L, A, frequency, rho_st=None, diagonalize=False, zero_mode_tol=None):
     """Computes the frequency spectrum S(frequency) through calculation
     of the Liouvillian resolvent per frequency value.
 
@@ -288,6 +288,8 @@ def spectrum_resolvent(L, A, frequency, rho_st=None, diagonalize=False):
     diagonalize : bool, optional
         whether to diagonalize L before computing the resolvent.
         This is numerically more efficient if many frequencies are requested.
+    remove_zero_tol : float, optional
+        tolerance for eigenmodes of L to be removed
 
     Returns
     -------
@@ -307,6 +309,14 @@ def spectrum_resolvent(L, A, frequency, rho_st=None, diagonalize=False):
     if diagonalize:
         ev, V = np.linalg.eig(L)
         Vinv = np.linalg.inv(V)
+
+        if zero_mode_tol is not None:
+            # Remove modes below tolerance
+            mask = np.abs(ev) > zero_mode_tol
+            ev = ev[mask]
+            V = V[:, mask]
+            Vinv = Vinv[mask, :]
+
         R = 1 / (1j * frequency.reshape(1, -1) - ev.reshape(-1, 1))
         S = np.einsum("i,iw,i->w", Adag_vec @ V, R, Vinv @ Arho_vec)
         return S.real / np.pi
