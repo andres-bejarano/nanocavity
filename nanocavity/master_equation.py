@@ -271,7 +271,7 @@ def correlation_AB(
     return S
 
 
-def spectrum_resolvent(L, A, frequency, rho_st=None, diagonalize=False):
+def spectrum_resolvent(L, A, frequency, rho_st=None, zero_mode_tol=None):
     """Computes the frequency spectrum S(frequency) through calculation
     of the Liouvillian resolvent per frequency value.
 
@@ -285,9 +285,8 @@ def spectrum_resolvent(L, A, frequency, rho_st=None, diagonalize=False):
         Frequencies (energies) to be evaluated
     rho_st : ndarray, optional
         steady-state density matrix
-    diagonalize : bool, optional
-        whether to diagonalize L before computing the resolvent.
-        This is numerically more efficient if many frequencies are requested.
+    remove_zero_tol : float, optional
+        tolerance for eigenmodes of L to be removed
 
     Returns
     -------
@@ -295,29 +294,33 @@ def spectrum_resolvent(L, A, frequency, rho_st=None, diagonalize=False):
         Spectrum of A
     """
 
-    frequency = _toarray(frequency)
-
     if rho_st is None:
         # we will rely on the default method for obtaining rho_st
         rho_st = stationary(L)
 
+    ev, V = np.linalg.eig(L)
+    Vinv = np.linalg.inv(V)
+
+    modes_removed = 0
+    if zero_mode_tol is not None:
+        # Remove modes below tolerance
+        mask = np.abs(ev) > zero_mode_tol
+        ev = ev[mask]
+        V = V[:, mask]
+        Vinv = Vinv[mask, :]
+        modes_removed = np.count_nonzero(~mask)
+    print(f"spectrum_resolvent: Removed {modes_removed} eigenpair(s) using tol={zero_mode_tol}")
+    if modes_removed != 1:
+        print("  --> WARNING: theoretically exactly one mode of L should be removed!")
+
     Arho_vec = (A @ rho_st).toarray().reshape(-1)
     Adag_vec = A.toarray().conj().reshape(-1)
 
-    if diagonalize:
-        ev, V = np.linalg.eig(L)
-        Vinv = np.linalg.inv(V)
-        R = 1 / (1j * frequency.reshape(1, -1) - ev.reshape(-1, 1))
-        S = np.einsum("i,iw,i->w", Adag_vec @ V, R, Vinv @ Arho_vec)
-        return S.real / np.pi
+    frequency = _toarray(frequency)
+    R = 1 / (1j * frequency.reshape(1, -1) - ev.reshape(-1, 1))
+    S = np.einsum("i,iw,i->w", Adag_vec @ V, R, Vinv @ Arho_vec)
 
-    Id = np.identity(L.shape[0])
-    S = np.empty(frequency.shape)
-    for i, w in enumerate(frequency):
-        x = np.linalg.solve(1j * w * Id - L, Arho_vec)
-        S[i] = (Adag_vec @ x).real
-
-    return S / np.pi
+    return S.real / np.pi
 
 
 def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=None):
