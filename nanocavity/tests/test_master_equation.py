@@ -291,6 +291,9 @@ def test_spectrum():
     # compare with resolvent methods
     I7 = nme.spectrum_resolvent(L, a, frequency)
     assert np.allclose(I, I7)
+    I8 = nme.spectrum_resolvent(L, a, frequency, zero_mode_tol=1e-12)
+    assert np.allclose(I, I8)
+    assert not np.all(I7 == I8)  # These calculations should be numerically different
 
 
 def test_g2():
