@@ -305,16 +305,17 @@ def spectrum_resolvent(L, A, frequency, rho_st=None, zero_mode_tol=None):
 
     ev, V = np.linalg.eig(L)
     Vinv = np.linalg.inv(V)
-
+    modes_removed = 0
     if zero_mode_tol is not None:
         # Remove modes below tolerance
         mask = np.abs(ev) > zero_mode_tol
         ev = ev[mask]
         V = V[:, mask]
         Vinv = Vinv[mask, :]
-        print(
-            f"spectrum_resolvent: Removed {np.count_nonzero(~mask)} eigenpair(s) using tol={zero_mode_tol}"
-        )
+        modes_removed = np.count_nonzero(~mask)
+    print(f"spectrum_resolvent: Removed {modes_removed} eigenpair(s) using tol={zero_mode_tol}")
+    if modes_removed != 1:
+        print("  --> WARNING: theoretically exactly one mode of L should be removed!")
 
     R = 1 / (1j * frequency.reshape(1, -1) - ev.reshape(-1, 1))
     S = np.einsum("i,iw,i->w", Adag_vec @ V, R, Vinv @ Arho_vec)
