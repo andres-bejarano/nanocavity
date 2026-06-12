@@ -294,17 +294,13 @@ def spectrum_resolvent(L, A, frequency, rho_st=None, zero_mode_tol=None):
         Spectrum of A
     """
 
-    frequency = _toarray(frequency)
-
     if rho_st is None:
         # we will rely on the default method for obtaining rho_st
         rho_st = stationary(L)
 
-    Arho_vec = (A @ rho_st).toarray().reshape(-1)
-    Adag_vec = A.toarray().conj().reshape(-1)
-
     ev, V = np.linalg.eig(L)
     Vinv = np.linalg.inv(V)
+
     modes_removed = 0
     if zero_mode_tol is not None:
         # Remove modes below tolerance
@@ -317,8 +313,13 @@ def spectrum_resolvent(L, A, frequency, rho_st=None, zero_mode_tol=None):
     if modes_removed != 1:
         print("  --> WARNING: theoretically exactly one mode of L should be removed!")
 
+    Arho_vec = (A @ rho_st).toarray().reshape(-1)
+    Adag_vec = A.toarray().conj().reshape(-1)
+
+    frequency = _toarray(frequency)
     R = 1 / (1j * frequency.reshape(1, -1) - ev.reshape(-1, 1))
     S = np.einsum("i,iw,i->w", Adag_vec @ V, R, Vinv @ Arho_vec)
+
     return S.real / np.pi
 
 
