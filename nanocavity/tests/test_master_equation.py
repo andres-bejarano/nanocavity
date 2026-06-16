@@ -256,8 +256,8 @@ def test_spectrum():
     I = nme.spectrum(L, a, frequency, verbose=False)
     I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True)
     assert (
-        len(Mk) == len(E) == len(L)
-    )  # If we do not discard, the dimensions are maintained
+        len(Mk) == len(E) == len(L) - 1
+    )  # If we do not discard, the dimensions are maintained, except zero mode
     assert not np.allclose(E.imag, 0)  # some entries should have imaginary part
     assert np.all(np.isreal(I))  # must be real
     assert np.all(np.isreal(I2))  # must be real
