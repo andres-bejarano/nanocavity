@@ -371,7 +371,7 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
 
     Returns
     -------
-    I : ndarray
+    S : ndarray
         computed spectrum on frequency (energy) grid
     M : ndarray
         coefficients M_k
@@ -386,13 +386,13 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
 
     frequency = _toarray(frequency)
     R = 1 / (1j * frequency.reshape(1, -1) - E.reshape(-1, 1))
-    I = np.einsum("k,kw->w", M, R).real / np.pi
+    S = np.einsum("k,kw->w", M, R).real / np.pi
 
     if ret_data:
         # spectrum, weights, eigenvalues
-        return I, M, E
+        return S, M, E
 
-    return I
+    return S
 
 
 def g2(
