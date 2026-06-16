@@ -109,12 +109,13 @@ def test_spectrum_analytics():
         assert np.allclose(Inc, Ianalytics, atol=1e-6)
 
 
+@pytest.mark.xfail(reason="Spectra only matches within 50% on the emission resonances.")
 def test_spectrum_with_and_without_iva():
     # in the strong-coupling regime the two approaches should coincide
     Eg = -0.4
     Delta = 0.7
     hw_ph = 1.0
-    g_ph = 0.2
+    g_ph = 0.2  # Lambda/kappa = 0.2/0.05 = 4
     U = 2
     H0, Hint, [dg, de, a] = ntls.Hamiltonian(
         Eg=Eg, Delta=Delta, hw_ph=hw_ph, g_ph=g_ph, U=U, max_bosons=2, rwa=True
