@@ -171,7 +171,7 @@ def _operator2super(A, dim):
 
 
 def regression_theorem(
-    A, L, B, rho_st=None, avgA=False, avgB=False, verbose=True, cutoff=0, real=False
+    A, L, B, rho_st=None, avgA=False, avgB=False, verbose=True, cutoff=0
 ):
     """Uses the quantum regression theorem to compute two-operator coefficients and L-eigenvalues
 
@@ -193,8 +193,6 @@ def regression_theorem(
         print all M_k coefficients and corresponding complex eigenvalues E_k above cutoff
     cutoff : float
         the precision of the values to be considered in the M coefficients
-    real : bool
-        whether to keep only the real part of Mk
 
     Returns
     -------
@@ -218,13 +216,6 @@ def regression_theorem(
 
     # coefficients M_k = <ALB>_k
     M = (w0A @ vr) * (vl.conj().T @ Brho)
-
-    if real:
-        M = M.real
-        # sort descending
-        idx = np.argsort(-M)
-        M = M[idx]
-        E = E[idx]
 
     # keep only data meeting the cutoff criterium
     idx = np.where(np.abs(M) >= cutoff)[0]
@@ -250,11 +241,11 @@ def regression_theorem(
 
 
 def correlation_AB(
-    A, L, B, time_delay, cutoff=0, verbose=True, ret_data=False, rho_st=None, real=False
+    A, L, B, time_delay, cutoff=0, verbose=True, ret_data=False, rho_st=None
 ):
 
     M, E = regression_theorem(
-        A, L, B, rho_st, verbose=verbose, cutoff=cutoff, real=real
+        A, L, B, rho_st, verbose=verbose, cutoff=cutoff
     )
 
     # correlation function S is generally complex
@@ -356,14 +347,14 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     if verbose:
         print(f"Computing spectrum with cutoff={cutoff}")
     M, E = regression_theorem(
-        A.d, L, A, rho_st, verbose=verbose, cutoff=cutoff, real=True
+        A.d, L, A, rho_st, verbose=verbose, cutoff=cutoff
     )
 
     frequency = _toarray(frequency)
     I = np.zeros(len(frequency), dtype=np.float64)
 
     for k, Ek in enumerate(E):
-        I += M[k] * ndist.lorentzian(frequency - Ek.imag, -2 * Ek.real)
+        I += M[k].real * ndist.lorentzian(frequency - Ek.imag, -2 * Ek.real)
 
     if ret_data:
         # spectrum, weights, eigenvalues
@@ -431,7 +422,7 @@ def g2(
 
     if method == "eigen":
         M, E, G1 = regression_theorem(
-            J, L, J, rho_st, verbose=verbose, avgA=True, cutoff=cutoff, real=False
+            J, L, J, rho_st, verbose=verbose, avgA=True, cutoff=cutoff
         )
 
         for k, Ek in enumerate(E):
