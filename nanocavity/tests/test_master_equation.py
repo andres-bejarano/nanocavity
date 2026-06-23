@@ -226,16 +226,14 @@ def test_regression_theorem():
     a_opsp, a_opsm = no.collapses(a, basis, kT, "bosonic", rate, bin_width)
     c_ops = [c_opsp, c_opsm, a_opsp, a_opsm]
     L = no.liouvillian(H, c_ops)
-    M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=True)
+    M, E = nme.regression_theorem(a, L, a.d, cutoff=0)
     assert (
         len(M) == len(E) == len(L)
     )  # If we do not discard, the dimensions are maintained
     assert not np.allclose(E.imag, 0)  # some entries should have imaginary part
-    assert np.all(np.isreal(M))  # check real
-    assert np.all(M[1:] <= M[:-1])  # if is real is sorted
-    M, E = nme.regression_theorem(a, L, a.d, cutoff=0, real=False)
+    M, E = nme.regression_theorem(a, L, a.d, cutoff=0)
     assert np.all(np.any(np.iscomplex(M)))  # check complex
-    M, E = nme.regression_theorem(a, L, a.d, cutoff=10, real=True)
+    M, E = nme.regression_theorem(a, L, a.d, cutoff=10)
     assert len(M) == 0
     M, E = nme.regression_theorem(a, L, a.d, cutoff=1e-8)
     assert (
@@ -255,45 +253,43 @@ def test_spectrum():
     c_ops = [c_opsp, c_opsm, a_opsp, a_opsm]
     L = no.liouvillian(H, c_ops)
     frequency = np.arange(1, 10)
-    I = nme.spectrum(L, a, frequency, verbose=False)
-    I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True)
+    S = nme.spectrum(L, a, frequency, verbose=False)
+    S2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True)
     assert (
-        len(Mk) == len(E) == len(L)
-    )  # If we do not discard, the dimensions are maintained
+        len(Mk) == len(E) == len(L) - 1
+    )  # If we do not discard, the dimensions are maintained, except zero mode
     assert not np.allclose(E.imag, 0)  # some entries should have imaginary part
-    assert np.all(np.isreal(I))  # must be real
-    assert np.all(np.isreal(I2))  # must be real
-    assert np.all(np.isreal(Mk))  # must be real
-    assert np.allclose(I, I2)
-    assert np.all(Mk >= -1e-30)  # tolerate tiny negative values?
-    assert np.all(Mk[1:] <= Mk[:-1])  # entries sorted descending?
-    I3 = nme.spectrum(L, a, frequency, cutoff=10)
-    assert np.allclose(I3, 0)
+    assert np.all(np.isreal(S))  # must be real
+    assert np.all(np.isreal(S2))  # must be real
+    assert np.allclose(S, S2)
+    assert np.all(Mk.real >= -1e-30)  # tolerate tiny negative values?
+    S3 = nme.spectrum(L, a, frequency, cutoff=10)
+    assert np.allclose(S3, 0)
 
     rho_st = nme.stationary(L, method="solve")
-    I4 = nme.spectrum(L, a, frequency, rho_st=rho_st)
-    assert np.allclose(I, I4)
+    S4 = nme.spectrum(L, a, frequency, rho_st=rho_st)
+    assert np.allclose(S, S4)
 
     # check also with a number instead of array
-    I5 = nme.spectrum(L, a, frequency[0], verbose=False)
-    assert np.isclose(I[0], I5)
+    S5 = nme.spectrum(L, a, frequency[0], verbose=False)
+    assert np.isclose(S[0], S5)
 
     # test list
-    I6 = nme.spectrum(L, a, [1, 2], verbose=False)
-    assert np.allclose(I[:2], I6)
+    S6 = nme.spectrum(L, a, [1, 2], verbose=False)
+    assert np.allclose(S[:2], S6)
 
     # cutoff
-    I2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True, cutoff=1e-8)
+    S2, Mk, E = nme.spectrum(L, a, frequency, verbose=False, ret_data=True, cutoff=1e-8)
     assert (
         len(Mk) == len(E) == 6
     )  # With this cut we know that only 6 value are maintained
 
     # compare with resolvent methods
-    I7 = nme.spectrum_resolvent(L, a, frequency)
-    assert np.allclose(I, I7)
-    I8 = nme.spectrum_resolvent(L, a, frequency, zero_mode_tol=1e-12)
-    assert np.allclose(I, I8)
-    assert not np.all(I7 == I8)  # These calculations should be numerically different
+    S7 = nme.spectrum_resolvent(L, a, frequency)
+    assert np.allclose(S, S7)
+    S8 = nme.spectrum_resolvent(L, a, frequency, zero_mode_tol=1e-12)
+    assert np.allclose(S, S8)
+    assert not np.all(S7 == S8)  # These calculations should be numerically different
 
 
 def test_g2():

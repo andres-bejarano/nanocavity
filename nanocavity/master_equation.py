@@ -171,7 +171,15 @@ def _operator2super(A, dim):
 
 
 def regression_theorem(
-    A, L, B, rho_st=None, avgA=False, avgB=False, verbose=True, cutoff=0, real=False
+    A,
+    L,
+    B,
+    rho_st=None,
+    avgA=False,
+    avgB=False,
+    verbose=True,
+    cutoff=0,
+    remove_zero_mode=False,
 ):
     """Uses the quantum regression theorem to compute two-operator coefficients and L-eigenvalues
 
@@ -183,18 +191,18 @@ def regression_theorem(
         Liouvillian superoperator
     B : {ndarray, Operator}
         operator or superoperator
-    rho_st : ndarray
+    rho_st : ndarray, optional
         steady-state density matrix
-    avgA : bool
+    avgA : bool, optional
         whether to return the expectation value <A>
-    avgB : bool
+    avgB : bool, optional
         whether to return the expectation value <B>
-    verbose : bool
+    verbose : bool, optional
         print all M_k coefficients and corresponding complex eigenvalues E_k above cutoff
-    cutoff : float
+    cutoff : float, optional
         the precision of the values to be considered in the M coefficients
-    real : bool
-        whether to keep only the real part of Mk
+    remove_zero_mode : bool, optional
+        whether to remove the zero-mode from the evaluations
 
     Returns
     -------
@@ -210,7 +218,15 @@ def regression_theorem(
     B = _operator2super(B, dim)
     w0 = np.eye(dim).reshape(dim**2)
     rho_st = rho_st.reshape(dim**2)
+
     E, vl, vr = eig_norm(L)
+
+    if remove_zero_mode:
+        idx0 = np.argmin(np.abs(E))
+        assert np.abs(E[idx0] < 1e-6)  # coarse sanity check
+        E = np.delete(E, idx0)
+        vl = np.delete(vl, idx0, axis=1)
+        vr = np.delete(vr, idx0, axis=1)
 
     # intermediate quantities, potentially reused
     w0A = w0 @ A
@@ -218,13 +234,6 @@ def regression_theorem(
 
     # coefficients M_k = <ALB>_k
     M = (w0A @ vr) * (vl.conj().T @ Brho)
-
-    if real:
-        M = M.real
-        # sort descending
-        idx = np.argsort(-M)
-        M = M[idx]
-        E = E[idx]
 
     # keep only data meeting the cutoff criterium
     idx = np.where(np.abs(M) >= cutoff)[0]
@@ -250,11 +259,25 @@ def regression_theorem(
 
 
 def correlation_AB(
-    A, L, B, time_delay, cutoff=0, verbose=True, ret_data=False, rho_st=None, real=False
+    A,
+    L,
+    B,
+    time_delay,
+    cutoff=0,
+    verbose=True,
+    ret_data=False,
+    rho_st=None,
+    remove_zero_mode=False,
 ):
 
     M, E = regression_theorem(
-        A, L, B, rho_st, verbose=verbose, cutoff=cutoff, real=real
+        A,
+        L,
+        B,
+        rho_st,
+        verbose=verbose,
+        cutoff=cutoff,
+        remove_zero_mode=remove_zero_mode,
     )
 
     # correlation function S is generally complex
@@ -309,7 +332,9 @@ def spectrum_resolvent(L, A, frequency, rho_st=None, zero_mode_tol=None):
         V = V[:, mask]
         Vinv = Vinv[mask, :]
         modes_removed = np.count_nonzero(~mask)
-    print(f"spectrum_resolvent: Removed {modes_removed} eigenpair(s) using tol={zero_mode_tol}")
+    print(
+        f"spectrum_resolvent: Removed {modes_removed} eigenpair(s) using tol={zero_mode_tol}"
+    )
     if modes_removed != 1:
         print("  --> WARNING: theoretically exactly one mode of L should be removed!")
 
@@ -340,13 +365,13 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     verbose : bool
         print all M_k coefficients and corresponding complex eigenvalues E_k above cutoff
     ret_data : bool
-        whether to return also G1, M_k, and E_k
+        whether to return also M_k and E_k
     rho_st : ndarray
         steady-state density matrix
 
     Returns
     -------
-    I : ndarray
+    S : ndarray
         computed spectrum on frequency (energy) grid
     M : ndarray
         coefficients M_k
@@ -356,20 +381,18 @@ def spectrum(L, A, frequency, cutoff=0, verbose=True, ret_data=False, rho_st=Non
     if verbose:
         print(f"Computing spectrum with cutoff={cutoff}")
     M, E = regression_theorem(
-        A.d, L, A, rho_st, verbose=verbose, cutoff=cutoff, real=True
+        A.d, L, A, rho_st, verbose=verbose, cutoff=cutoff, remove_zero_mode=True
     )
 
     frequency = _toarray(frequency)
-    I = np.zeros(len(frequency), dtype=np.float64)
-
-    for k, Ek in enumerate(E):
-        I += M[k] * ndist.lorentzian(frequency - Ek.imag, -2 * Ek.real)
+    R = 1 / (1j * frequency.reshape(1, -1) - E.reshape(-1, 1))
+    S = np.einsum("k,kw->w", M, R).real / np.pi
 
     if ret_data:
         # spectrum, weights, eigenvalues
-        return I, M, E
+        return S, M, E
 
-    return I
+    return S
 
 
 def g2(
@@ -431,7 +454,7 @@ def g2(
 
     if method == "eigen":
         M, E, G1 = regression_theorem(
-            J, L, J, rho_st, verbose=verbose, avgA=True, cutoff=cutoff, real=False
+            J, L, J, rho_st, verbose=verbose, avgA=True, cutoff=cutoff
         )
 
         for k, Ek in enumerate(E):
